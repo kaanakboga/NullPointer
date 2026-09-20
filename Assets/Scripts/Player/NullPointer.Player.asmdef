@@ -1,0 +1,17 @@
+{
+    "name": "NullPointer.Player",
+    "rootNamespace": "NullPointer.Player",
+    "references": [
+        "NullPointer.Core",
+        "NullPointer.Input"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

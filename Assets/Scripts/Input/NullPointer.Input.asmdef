@@ -1,0 +1,17 @@
+{
+    "name": "NullPointer.Input",
+    "rootNamespace": "NullPointer.Input",
+    "references": [
+        "NullPointer.Core",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

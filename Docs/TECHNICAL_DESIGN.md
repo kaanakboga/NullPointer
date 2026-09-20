@@ -13,11 +13,11 @@ This document defines the target technical architecture. It is a living design, 
 | Render pipeline | URP asset assigned for all quality levels; default renderer references `Renderer2D.asset` |
 | Color space | Linear |
 | Input handling | New Input System only (`activeInputHandler: 1`) |
-| Input actions | Template `Player` and `UI` maps in `Assets/Settings/InputSystem_Actions.inputactions` |
+| Input actions | Production foundation `Gameplay` map (Move, Interact, Pause) plus retained Unity `UI` navigation map |
 | Build scenes | Only `Assets/Scenes/SampleScene.unity`, enabled |
 | Resolution baseline | 1920×1080 project default |
-| Test support | Unity Test Framework declared |
-| Existing game code | None observed |
+| Test support | Unity Test Framework configured with EditMode and PlayMode assemblies plus command-line verification |
+| Existing game code | Core mode/state, input, horizontal player movement, and interaction foundation |
 | Existing authored content | None observed beyond template scene/settings |
 
 ### Direct Package Manifest
@@ -39,7 +39,7 @@ The project currently declares the following non-module packages. No packages we
 | Visual Studio Editor | `2.0.26` |
 | Input System | `1.19.0` |
 | Multiplayer Center | `1.0.1` |
-| Universal Render Pipeline | `17.6.0` requested; Unity resolves built-in `17.5.0` |
+| Universal Render Pipeline | `17.5.0` |
 | Test Framework | `1.7.0` |
 | Timeline | `1.8.12` |
 | Unity UI (uGUI) | `2.5.0` |
@@ -47,7 +47,25 @@ The project currently declares the following non-module packages. No packages we
 
 The manifest also directly declares these built-in engine modules at `1.0.0`: Accessibility, Adaptive Performance, AI, Android JNI, Animation, Asset Bundle, Audio, Cloth, Director, Image Conversion, IMGUI, JSON Serialize, Particle System, Physics, Physics 2D, Physics Core 2D, Screen Capture, Terrain, Terrain Physics, Tilemap, UI, UI Elements, Umbra, Unity Analytics, Unity Web Request, Unity Web Request Asset Bundle, Unity Web Request Audio, Unity Web Request Texture, Unity Web Request WWW, Vector Graphics, Vehicles, Video, Wind, and XR.
 
-The lock file records `com.unity.render-pipelines.universal` as `17.5.0`, while the manifest requests `17.6.0`. The existing Package Manager log confirms that Unity overrides the request with its built-in `17.5.0` package and emits a warning. Align or explicitly document the manifest request before implementation changes depend on a precise URP package version. Package changes require an explicit, reviewed task.
+The manifest and lock file now both record Unity 6000.5.4f1's built-in `com.unity.render-pipelines.universal` `17.5.0`. No unrelated package version changed during alignment.
+
+## Unity Editor and Command-Line Verification
+
+The installed editor was discovered from the machine rather than assumed. Verified workstation path:
+
+`C:\Program Files\Unity\Hub\Editor\6000.5.4f1\Editor\Unity.exe`
+
+File product version: `6000.5.4f1_d550df8bd089`.
+
+Reusable verification entry point:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Tools\Verify-Unity.ps1 -Mode All
+```
+
+Supported modes are `All`, `Compile`, `EditMode`, and `PlayMode`. The script reads the required version from `ProjectSettings/ProjectVersion.txt`, accepts an explicit `-UnityPath`, then checks `UNITY_PATH` and versioned Unity Hub install locations. It validates the executable's product version before launch, writes logs and NUnit XML under ignored `Logs/Verification`, scans compile logs for known fatal/compiler signatures, validates that tests were actually discovered, and exits non-zero on failure. Machine-specific editor paths are not embedded in runtime code.
+
+Unity does not permit batch mode to open a project already owned by another editor. The verifier warns when `Temp/UnityLockfile` exists and then lets Unity fail safely rather than terminating the active editor. The 2026-09-20 verification run therefore used an isolated copy of the identical source/configuration set while the workspace editor remained open: compile passed, EditMode passed 10/10, and PlayMode passed 2/2.
 
 ## Architectural Goals
 
@@ -145,6 +163,12 @@ Gameplay scenes own their local interactables, navigation, cameras, ambience emi
 
 Transient presentation state—open panels, hover target, current animation frame, active audio source—is not canonical save data.
 
+### Implemented State Foundation
+
+Schema version 1 currently persists current case, location, checkpoint, story flags, collected evidence IDs, unlocked memory IDs, and completed deduction IDs. `GameState` exposes explicit mutation/query APIs and duplicate-safe ordinal sets. `GameStateSnapshot` is a serializable DTO; snapshot collections are sorted for deterministic output, and restore validates the schema while normalizing duplicates. Save-file I/O and migration orchestration remain intentionally unimplemented.
+
+`GameModeService` is the single state owner behind a scene-wirable `GameModeController`. It exposes the current mode and a typed previous/current change event for Gameplay, Inspect, Dialogue, Terminal, EvidenceBoard, Memory, and Paused. Consumers receive the controller/service explicitly; there is no static singleton or scene lookup.
+
 ## Stable IDs and Content Registry
 
 - Use namespaced lowercase IDs such as `evidence.mert.photo_0417` and `flag.ch01.mert_terminal_opened`.
@@ -172,17 +196,17 @@ Effects may set state only through domain APIs that validate transitions and emi
 
 ### Input
 
-Replace the generic template actions through a dedicated task. Planned action maps:
+The generic template gameplay actions have been replaced with:
 
-- `Gameplay`: Move, Interact, Inspect/Focus, Notebook, Pause;
+- `Gameplay`: Move, Interact, Pause;
 - `UI`: Navigate, Submit, Cancel, Point, Click, Scroll;
-- context-specific actions for evidence board or memory puzzles only if shared actions are insufficient.
+- future context-specific actions only when Inspect, Evidence Board, or Memory requirements prove they are necessary.
 
-Generated input wrappers may be used if generated output is committed consistently. Gameplay consumes intent through an input adapter so tests need not synthesize hardware events.
+Keyboard and common gamepad bindings are present for all Gameplay actions. `GameplayInputReader` resolves the centralized action names and exposes `IGameplayInputSource`, allowing movement/interaction tests to provide input without synthesizing hardware events. The existing asset does not generate a C# wrapper.
 
 ### Interaction
 
-An interactor selects candidates using a deterministic policy. Interactable components expose availability and an interaction request/result contract. Evidence, dialogue, terminals, transitions, and generic inspection compose behavior without an enum-driven mega-script.
+`PlayerInteractionDetector` performs a bounded, reused-buffer 2D overlap query only while Gameplay mode is active. Candidates expose availability, priority, and an interaction transform through `IInteractable`. Selection orders by priority, squared distance, then a stable per-instance tie key; unavailable and duplicate targets are ignored. The active target is readable and raises a specific change event. Input dispatch is blocked in every non-Gameplay mode. Evidence, dialogue, terminal, door, inspect, and memory implementations remain deliberately absent.
 
 ### Dialogue
 
@@ -242,19 +266,21 @@ All menus require:
 | `Assets/Scenes/Gameplay` | Production locations and narrative sequences |
 | `Assets/Scenes/Test` | Focused developer/test harness scenes |
 
-The template `SampleScene` remains untouched during foundation work and should later be replaced in Build Settings only as an explicit task.
+The template `SampleScene` remains untouched and is still the only Build Settings scene. `Assets/Scenes/Test/SCN_Test_GameplayFoundation.unity` is an editor-only engineering harness and is intentionally excluded from release Build Settings. It contains a Rigidbody2D player, floor collision, visible interaction probe, current-mode display, and keyboard/gamepad instructions.
 
 ## Assembly Boundaries
 
-Introduce assembly definitions incrementally, beginning with a small runtime domain assembly and EditMode tests. Avoid one assembly per folder. A likely mature layout is:
+Current boundaries:
 
-- `NullPointer.Runtime` — shared domain and runtime contracts;
-- feature runtime assemblies only where compile/dependency boundaries justify them;
-- `NullPointer.Editor` — validators and authoring tools;
-- `NullPointer.Tests.EditMode`;
-- `NullPointer.Tests.PlayMode`.
+- `NullPointer.Core` — game modes and serializable session state;
+- `NullPointer.Input` — Input System adapter and pause-mode input;
+- `NullPointer.Player` — Rigidbody2D horizontal player movement;
+- `NullPointer.Interaction` — interaction contracts, selection, detection, and dispatch;
+- `NullPointer.Editor` — engineering scene generation;
+- `NullPointer.Tests.EditMode` — pure rules, input-asset configuration, and engineering-scene validation;
+- `NullPointer.Tests.PlayMode` — movement/mode blocking and physics interaction integration.
 
-No assembly definition is added during the documentation-only foundation phase.
+Dependencies point toward Core, and Player/Interaction share input only through the input contract. Continue to add feature assemblies only when a compile/dependency boundary justifies them.
 
 ## Testing Strategy
 
@@ -288,6 +314,8 @@ No assembly definition is added during the documentation-only foundation phase.
 
 Tests must assert meaningful behavior. Scene or visual tests are added only when they protect a real regression risk.
 
+Current automated coverage includes mode transitions/events, duplicate-safe state and snapshot round trips, required input actions/UI preservation, deterministic interaction selection, engineering-scene composition, Rigidbody2D movement blocking, and interaction dispatch blocking. Latest verified result: 10 EditMode and 2 PlayMode tests passed.
+
 ## Validation and Observability
 
 - Content assets implement editor validation for required references and ID format.
@@ -313,6 +341,6 @@ Specific minimum hardware will be set before content-complete QA. Until then:
 - Do not place secrets or service credentials in the client project.
 - External telemetry or crash reporting requires a separate privacy and package review.
 
-## Known Foundation Issue
+## Current Foundation Limit
 
-`Packages/manifest.json` requests URP `17.6.0`, but Unity 6000.5.4f1 overrides it with built-in URP `17.5.0`, which is also recorded by `Packages/packages-lock.json`. Resolve the warning by aligning the supported request or documenting the intentional override before automated builds; do not hand-edit the lock without understanding Unity's resolved package set.
+The persistent Bootstrap composition root is not implemented yet. The engineering scene wires one explicit `GameModeController` and one input reader for validation; production scene lifetime and startup routing remain NP-CORE-008.

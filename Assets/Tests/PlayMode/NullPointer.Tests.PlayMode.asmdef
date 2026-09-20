@@ -1,0 +1,24 @@
+{
+    "name": "NullPointer.Tests.PlayMode",
+    "rootNamespace": "NullPointer.Tests.PlayMode",
+    "references": [
+        "NullPointer.Core",
+        "NullPointer.Input",
+        "NullPointer.Player",
+        "NullPointer.Interaction"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

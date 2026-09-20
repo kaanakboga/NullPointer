@@ -1,0 +1,22 @@
+{
+    "name": "NullPointer.Editor",
+    "rootNamespace": "NullPointer.Editor",
+    "references": [
+        "NullPointer.Core",
+        "NullPointer.Input",
+        "NullPointer.Player",
+        "NullPointer.Interaction",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

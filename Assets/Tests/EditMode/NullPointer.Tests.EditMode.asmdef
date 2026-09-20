@@ -1,0 +1,27 @@
+{
+    "name": "NullPointer.Tests.EditMode",
+    "rootNamespace": "NullPointer.Tests.EditMode",
+    "references": [
+        "NullPointer.Core",
+        "NullPointer.Input",
+        "NullPointer.Interaction",
+        "NullPointer.Player",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

@@ -13,35 +13,37 @@ The backlog covers the complete game target. It is not a promise that every impl
 | ID | Status | Task / acceptance outcome |
 | --- | --- | --- |
 | NP-CORE-001 | DONE | Audit the initial repository; create the durable folder structure and populated design, story, technical, art, rules, backlog, and changelog documents. |
-| NP-CORE-002 | NEXT | Align the URP manifest request with Unity 6000.5.4f1's supported built-in resolution (`17.5.0`) through a reviewed Package Manager change, confirm a clean import/compile, and make no unrelated upgrades. |
-| NP-CORE-003 | NOT STARTED | Add minimal runtime, EditMode test, and PlayMode test assembly definitions; verify references compile and an intentional smoke test runs in each test mode. |
+| NP-CORE-002 | DONE | Align the URP manifest request with Unity 6000.5.4f1's supported built-in resolution (`17.5.0`) through a reviewed Package Manager change, confirm a clean import/compile, and make no unrelated upgrades. |
+| NP-CORE-003 | DONE | Add minimal runtime, EditMode test, and PlayMode test assembly definitions; verify references compile and an intentional smoke test runs in each test mode. |
 | NP-CORE-004 | NOT STARTED | Implement and test the stable content-ID format/value rules, including empty, malformed, and duplicate diagnostics. |
 | NP-CORE-005 | NOT STARTED | Implement a content registry that indexes authored assets by stable ID and reports missing/duplicate entries with asset context. |
 | NP-CORE-006 | NOT STARTED | Implement typed story flags plus pure condition/effect evaluation with EditMode tests; no UI or scene dependency. |
-| NP-CORE-007 | NOT STARTED | Define the versioned `GameState`/session model for chapter, checkpoint, evidence, deduction, dialogue, terminal, memory, and ending state; test invariant-preserving transitions. |
+| NP-CORE-007 | IN PROGRESS | Define the versioned `GameState`/session model for chapter, checkpoint, evidence, deduction, dialogue, terminal, memory, and ending state; test invariant-preserving transitions. Schema 1 foundations for case/location/checkpoint, flags, evidence, memories, and deductions are complete; feature-specific state remains. |
 | NP-CORE-008 | NOT STARTED | Create `SCN_Bootstrap` and a small composition root that initializes only required application-lifetime services and routes deterministically to a test destination. |
 | NP-CORE-009 | NOT STARTED | Implement the scene-loading contract with guarded single-load behavior, transition hooks, failure reporting, and a test adapter. |
 | NP-CORE-010 | NOT STARTED | Add project-wide editor validation entry points for stable IDs and required content references; validator output must identify the asset and repair action. |
 | NP-CORE-011 | NOT STARTED | Add development-only state inspection and safe story-jump hooks that cannot enter release builds. |
+| NP-CORE-013 | DONE | Implement the authoritative, testable GameMode service/controller and typed transitions for Gameplay, Inspect, Dialogue, Terminal, EvidenceBoard, Memory, and Paused. |
+| NP-CORE-014 | DONE | Add reusable exact-version Unity batch compile/EditMode/PlayMode verification with ignored logs, NUnit result validation, and non-zero failure behavior. |
 
 ## Phase 1 — Controllable Investigation Space
 
 | ID | Status | Task / acceptance outcome |
 | --- | --- | --- |
-| NP-PLAYER-001 | NOT STARTED | Replace template combat-oriented input actions with reviewed Gameplay and UI maps for keyboard/mouse and gamepad; preserve generated-asset workflow consistently. |
-| NP-PLAYER-002 | NOT STARTED | Implement testable movement intent, speed configuration, and movement locking rules without animation or interaction coupling. |
-| NP-PLAYER-003 | NOT STARTED | Implement the 2D player controller with collision-safe movement and predictable enable/disable lifecycle. |
+| NP-PLAYER-001 | DONE | Replace template combat-oriented input actions with reviewed Gameplay and UI maps for keyboard/mouse and gamepad; preserve generated-asset workflow consistently. |
+| NP-PLAYER-002 | DONE | Implement testable movement intent, speed configuration, and movement locking rules without animation or interaction coupling. |
+| NP-PLAYER-003 | DONE | Implement the 2D player controller with collision-safe movement and predictable enable/disable lifecycle. |
 | NP-PLAYER-004 | NOT STARTED | Add player facing and locomotion animation presentation using placeholder art without changing movement authority. |
 | NP-PLAYER-005 | NOT STARTED | Implement stable spawn-point selection and restoration by validated spawn ID. |
 | NP-PLAYER-006 | NOT STARTED | Configure a pixel-stable follow camera prototype and verify movement at target integer scales and common aspect ratios. |
-| NP-PLAYER-007 | NOT STARTED | Add PlayMode coverage for movement, input-map switching, collision, pause lock, and spawn behavior. |
-| NP-INT-001 | NOT STARTED | Define focused interaction contracts and result types for inspectable, pickup, character, terminal, door, and transition composition. |
-| NP-INT-002 | NOT STARTED | Implement deterministic nearby-target discovery and focus scoring with EditMode tests for tie and invalid-target cases. |
-| NP-INT-003 | NOT STARTED | Implement the player interactor lifecycle, ensuring disabled/blocking UI states cannot dispatch interactions. |
+| NP-PLAYER-007 | IN PROGRESS | Add PlayMode coverage for movement, input-map switching, collision, pause lock, and spawn behavior. Movement and immediate GameMode blocking are covered; input-map, collision-edge, and spawn coverage remain. |
+| NP-INT-001 | IN PROGRESS | Define focused interaction contracts and result types for inspectable, pickup, character, terminal, door, and transition composition. The neutral `IInteractable` availability/priority/transform/invoke contract is complete; result and specialized composition contracts remain. |
+| NP-INT-002 | DONE | Implement deterministic nearby-target discovery and focus scoring with EditMode tests for tie and invalid-target cases. |
+| NP-INT-003 | DONE | Implement the player interactor lifecycle, ensuring disabled/blocking UI states cannot dispatch interactions. |
 | NP-INT-004 | NOT STARTED | Build a reusable interaction prompt presenter with keyboard/gamepad glyph fallback and non-color focus cues. |
 | NP-INT-005 | NOT STARTED | Implement a data-authored inspect interaction with first/repeat responses and optional validated effects. |
 | NP-INT-006 | NOT STARTED | Implement door and scene-transition interactables through the shared loader and spawn contracts. |
-| NP-INT-007 | NOT STARTED | Create `SCN_Test_Interaction` with placeholder player, collision, inspectable, door, and overlapping focus targets; add a representative PlayMode flow test. |
+| NP-INT-007 | IN PROGRESS | Create `SCN_Test_Interaction` with placeholder player, collision, inspectable, door, and overlapping focus targets; add a representative PlayMode flow test. `SCN_Test_GameplayFoundation` covers player, collision, one interaction probe, and mode blocking; specialized/overlap flow remains. |
 
 ## Phase 2 — Evidence, Cases, and First Vertical Slice
 
@@ -225,4 +227,4 @@ The backlog covers the complete game target. It is not a promise that every impl
 
 ## First Recommended Next Task
 
-**NP-CORE-002 — Align and validate the URP package state.** The manifest requests URP `17.6.0`, while Unity 6000.5.4f1 warns that it overrides this with built-in `17.5.0`; the lock records the resolved `17.5.0`. Align the manifest through a reviewed Package Manager change, accept no unrelated upgrades, then confirm a clean import/compile before adding assemblies or runtime code.
+**NP-CORE-004 — Implement stable content IDs.** Add the validated ID value/format rules and duplicate diagnostics before more authored or persistent state begins depending on raw strings. Keep it pure and cover valid, malformed, empty, and duplicate cases in EditMode.
