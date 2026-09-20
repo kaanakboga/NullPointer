@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0e33a05005524e40b62d90176789466, type: 3}
+  m_Name: DED_MERT_POSTMORTEM_TERMINAL
+  m_EditorClassIdentifier: NullPointer.Deduction::NullPointer.Deduction.DeductionData
+  _stableId: deduction.mert.postmortem_terminal
+  _editorDescription: Opening deduction comparing Mert's death time with terminal
+    access.
+  _requiredEvidenceIds:
+  - evidence.mert.terminal_log_0251
+  - evidence.mert.death_time_0236
+  _resultTitle: "\xD6l\xFCm Sonras\u0131 Terminal Eri\u015Fimi"
+  _resultText: "Mert'in terminaline \xF6l\xFCm\xFCnden on be\u015F dakika sonra manuel
+    olarak eri\u015Fildi."
+  _resultingEvidenceId: 
+  _storyFlagsToSet:
+  - flag.mert.postmortem_terminal_deduced

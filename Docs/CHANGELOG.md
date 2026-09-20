@@ -26,14 +26,25 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 - Added configurable Rigidbody2D horizontal movement that immediately stops outside Gameplay mode.
 - Added `IInteractable`, deterministic priority/distance/tie selection, bounded nearby detection, active-target notifications, and Gameplay-only dispatch.
 - Added `SCN_Test_GameplayFoundation` and its editor builder for manual player, interaction, and GameMode verification.
-- Added 10 EditMode and 2 PlayMode tests covering state, modes, input configuration, target selection, scene composition, movement blocking, and interaction dispatch.
+- Added stable authored-content IDs, lowercase ASCII validation, path-aware duplicate diagnostics, an explicit runtime content catalog, and an editor validation command.
+- Added ScriptableObject data for evidence, cases, characters, locations, inspections, deductions, dialogue, terminal entries, and timed memory presentation.
+- Added duplicate-safe `EvidenceService`, pure `DeductionService`, pure branching `DialogueRunner`, and `MemoryService`, all integrated through the existing `GameState` APIs.
+- Added production Inspect, evidence collection, evidence notification, Evidence Board, Dialogue, Terminal, Memory, interaction-prompt, and gated scene-transition components and uGUI presentation.
+- Added `SCN_Bootstrap` with the explicit long-lived composition root and asynchronous `SceneLoader`, plus stable spawn-point installation for scene-local systems.
+- Added production greybox scenes `SCN_ErenApartment` and `SCN_MertApartment`, connected through the authored dispatch flag while preserving the engineering scene.
+- Added opening content for the 03:17 dispatch, neurological medication, environmental foreshadowing, Mert photograph/inscription, 02:51 terminal access, 02:36 death time, postmortem-terminal deduction, optional damaged recording, and first photograph-triggered memory glitch.
+- Added the idempotent **Rebuild Authored Opening Content and Scenes** editor command; repeated batch runs rebuild 19 data assets and 3 production scenes successfully without duplicate content IDs.
+- Expanded automated coverage to 33 EditMode and 8 PlayMode tests for content IDs, duplicate detection, evidence idempotence, deduction requirements/persistence, dialogue branches/invalid links, memory unlock, production asset/scene contracts, modal blocking, Inspect cancel, and Bootstrap startup.
 
 ### Changed
 
 - Aligned the direct URP manifest request from `17.6.0` to Unity 6000.5.4f1's built-in `17.5.0`; the lock file already resolved `17.5.0` and no unrelated package changed.
 - Replaced the generic template gameplay actions with Move, Interact, and Pause while preserving Unity UI navigation actions.
+- Mode-gated Move and Interact at the input adapter while keeping Pause available for modal close; modal owners now control their own safe cancel paths.
+- Replaced template Build Settings startup with Bootstrap → Eren Apartment → Mert Apartment and kept all test scenes excluded.
 
 ### Notes
 
-- Save-file I/O, Inspect, Evidence, Dialogue, Terminal, Memory, final content, and story systems remain intentionally unimplemented.
+- Full SaveManager, objective/notebook progression, interrogation, terminal search/credentials, memory reconstruction puzzles, final UI/art/audio, voice acting, and Chapter 2+ remain intentionally unimplemented.
+- The opening is functional production foundation content with placeholder geometry and restrained uGUI visuals; it is not final art or a completed chapter.
 - No package was installed or upgraded, and no commit was created automatically.

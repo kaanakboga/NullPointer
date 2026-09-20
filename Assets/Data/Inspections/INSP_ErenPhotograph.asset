@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a1ec8031ac720640a52a89ed2b732fd, type: 3}
+  m_Name: INSP_ErenPhotograph
+  m_EditorClassIdentifier: NullPointer.Inspect::NullPointer.Inspect.InspectData
+  _stableId: location.eren.apartment.photograph
+  _editorDescription: "Authored inspection: Kesilmi\u015F Foto\u011Fraf."
+  _title: "Kesilmi\u015F Foto\u011Fraf"
+  _description: "\xC7er\xE7evede \xFC\xE7 ki\u015Filik bo\u015Fluk var; foto\u011Fraf\u0131n
+    sa\u011F kenar\u0131 dikkatle kesilmi\u015F. Eren y\xFCzleri \xE7\u0131karam\u0131yor."

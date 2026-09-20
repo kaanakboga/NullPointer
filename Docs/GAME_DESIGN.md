@@ -128,6 +128,12 @@ Minimum player-facing fields:
 - Critical narrative content cannot be lost permanently through puzzle failure.
 - Effects offer intensity controls and avoid sustained flashing.
 
+### Implemented Opening Foundation
+
+The current production opening starts at 03:17 in Eren's apartment. The player can inspect neurological medication and a damaged photograph, read the Sector 7 dispatch assignment, and use the resulting story flag to leave for Mert's apartment. At Mert's apartment the player can collect the physical photograph, a 02:51 terminal access log, and a 02:36 biometric death-time record; experience a brief authored memory glitch; hear an optional damaged recording; and use the functional evidence board to conclude that the terminal was accessed after Mert's death.
+
+This is the first implementation of the core loop with production data and production scene paths. Placeholder geometry and uGUI styling are intentionally restrained neo-noir stand-ins. The board uses button selection rather than final drag/drop/string presentation, the memory is presentation-only rather than a reconstruction puzzle, and no objective/notebook/save layer is implied by this milestone.
+
 ### Notebook / Investigation Journal
 
 The notebook consolidates objectives, case summaries, evidence, deductions, people, locations, and recent discoveries. It is a usability layer over canonical state, not a second state store.

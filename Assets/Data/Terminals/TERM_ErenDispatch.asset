@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3efd857ac0aa0af4e8f2795fff2e417b, type: 3}
+  m_Name: TERM_ErenDispatch
+  m_EditorClassIdentifier: NullPointer.Terminal::NullPointer.Terminal.TerminalData
+  _stableId: terminal.eren.dispatch
+  _editorDescription: Eren apartment dispatch terminal for the opening assignment.
+  _menuTitle: "SEKT\xD6R 7 // SEVK BA\u011ELANTISI // 03:17"
+  _entries:
+  - _entryId: dispatch_0317
+    _category: 0
+    _title: "AC\u0130L G\xD6REVLEND\u0130RME"
+    _body: "03:17\n\u015E\xFCpheli \xF6l\xFCm bildirimi.\nSekt\xF6r 7.\nKurban: Mert
+      Ersoy.\n\xD6n tarama, bellek b\xFCt\xFCnl\xFC\u011F\xFC anomalisine i\u015Faret
+      ediyor.\nOlay yeri incelemesi i\xE7in derhal hareket edin."
+    _evidenceId: 
+    _storyFlagToSet: flag.dispatch.mert_assignment_received

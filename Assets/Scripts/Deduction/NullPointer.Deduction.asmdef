@@ -1,0 +1,21 @@
+{
+    "name": "NullPointer.Deduction",
+    "rootNamespace": "NullPointer.Deduction",
+    "references": [
+        "NullPointer.Content",
+        "NullPointer.Core",
+        "NullPointer.Evidence",
+        "NullPointer.Input",
+        "NullPointer.Interaction",
+        "Unity.ugui"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

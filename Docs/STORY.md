@@ -82,6 +82,8 @@ Required outcomes:
 
 - Mert's manual alteration is supported by more than one source.
 - The player learns that a clean digital record can itself be suspicious.
+- The player discovers the physical photograph of Eren with Mert and records “Dördümüzden biri hatırlamalı.”
+- A short, fragmented memory glitch creates a personal breach without explaining Project Lazarus.
 - `NLP-0417` enters the case without a complete explanation.
 
 ### Chapter 2 — People Who Remember You
@@ -90,10 +92,23 @@ Purpose: turn the case toward Eren. People react to him with familiarity or fear
 
 Required outcomes:
 
-- The photograph of Eren and Mert is discovered.
-- The message “Dördümüzden biri hatırlamalı.” is recorded verbatim.
+- The earlier photograph and message are corroborated by people who remember Eren differently.
 - Eren's personal history becomes an active case thread.
 - Multiple sources suggest he knew Mert.
+
+## Implemented Opening Sequence
+
+The current authored opening content fixes these surface-level beats without changing the later identity reveals:
+
+1. At 03:17, Sector 7 dispatch reports Mert Ersoy's suspicious death and a memory-integrity anomaly.
+2. Eren may inspect his neurological medication and a cut photograph before leaving.
+3. Mert's biometric record places death at 02:36.
+4. Mert's terminal records manual access at 02:51.
+5. Combining those records yields the conclusion that the terminal was accessed after Mert died.
+6. A physical photograph places Eren beside Mert and carries the inscription “Dördümüzden biri hatırlamalı.”
+7. Collecting the photograph triggers a fragmentary laboratory/alarm memory containing Mert, an indistinct figure, and a warning that there is no return once the process begins.
+
+The memory does not name Lazarus, identify the other figure, explain Eren's body, or disclose `NLP-0`. The damaged optional recording advises trusting the timeline rather than memory; it is foreshadowing, not proof of the central twist.
 
 ### Chapter 3 — Lazarus
 

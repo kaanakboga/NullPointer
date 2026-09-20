@@ -1,0 +1,22 @@
+{
+    "name": "NullPointer.Memory",
+    "rootNamespace": "NullPointer.Memory",
+    "references": [
+        "NullPointer.Content",
+        "NullPointer.Core",
+        "NullPointer.Input",
+        "NullPointer.Interaction",
+        "NullPointer.Inspect",
+        "NullPointer.Evidence",
+        "Unity.ugui"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

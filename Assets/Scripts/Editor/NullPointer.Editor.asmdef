@@ -3,10 +3,21 @@
     "rootNamespace": "NullPointer.Editor",
     "references": [
         "NullPointer.Core",
+        "NullPointer.Content",
+        "NullPointer.Evidence",
+        "NullPointer.Deduction",
+        "NullPointer.Inspect",
+        "NullPointer.Dialogue",
+        "NullPointer.Terminal",
+        "NullPointer.Memory",
+        "NullPointer.UI",
+        "NullPointer.SceneFlow",
+        "NullPointer.Runtime",
         "NullPointer.Input",
         "NullPointer.Player",
         "NullPointer.Interaction",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.ugui"
     ],
     "includePlatforms": [
         "Editor"

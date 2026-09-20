@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a1ec8031ac720640a52a89ed2b732fd, type: 3}
+  m_Name: INSP_ErenMedication
+  m_EditorClassIdentifier: NullPointer.Inspect::NullPointer.Inspect.InspectData
+  _stableId: location.eren.apartment.medication
+  _editorDescription: "Authored inspection: N\xF6rolojik \u0130la\xE7."
+  _title: "N\xF6rolojik \u0130la\xE7"
+  _description: "Re\xE7ete etiketi Eren'in ad\u0131na. Doz, bellek b\xFCt\xFCnl\xFC\u011F\xFC
+    dalgalanmalar\u0131n\u0131 bast\u0131rmak i\xE7in art\u0131r\u0131lm\u0131\u015F."

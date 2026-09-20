@@ -1,0 +1,29 @@
+{
+    "name": "NullPointer.Runtime",
+    "rootNamespace": "NullPointer.Runtime",
+    "references": [
+        "NullPointer.Content",
+        "NullPointer.Core",
+        "NullPointer.Deduction",
+        "NullPointer.Dialogue",
+        "NullPointer.Evidence",
+        "NullPointer.Input",
+        "NullPointer.Inspect",
+        "NullPointer.Interaction",
+        "NullPointer.Memory",
+        "NullPointer.Player",
+        "NullPointer.SceneFlow",
+        "NullPointer.Terminal",
+        "NullPointer.UI",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

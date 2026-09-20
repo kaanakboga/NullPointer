@@ -1,4 +1,5 @@
 using System;
+using NullPointer.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,12 +14,22 @@ namespace NullPointer.Input
         private InputAction _moveAction;
         private InputAction _interactAction;
         private InputAction _pauseAction;
+        private GameModeController _gameModeController;
         private bool _isBound;
+        private bool _isModeSubscribed;
 
         public event Action InteractPressed;
         public event Action PausePressed;
 
         public Vector2 Move => _moveAction?.ReadValue<Vector2>() ?? Vector2.zero;
+
+        public void InitializeModeGate(GameModeController gameModeController)
+        {
+            UnsubscribeFromModeChanges();
+            _gameModeController = gameModeController;
+            SubscribeToModeChanges();
+            ApplyModeGate();
+        }
 
         public void Configure(InputActionAsset actions)
         {
@@ -41,11 +52,15 @@ namespace NullPointer.Input
             if (TryBind())
             {
                 _gameplayMap.Enable();
+                ApplyModeGate();
             }
+
+            SubscribeToModeChanges();
         }
 
         private void OnDisable()
         {
+            UnsubscribeFromModeChanges();
             if (_gameplayMap != null)
             {
                 _gameplayMap.Disable();
@@ -115,6 +130,53 @@ namespace NullPointer.Input
         private void OnPausePerformed(InputAction.CallbackContext context)
         {
             PausePressed?.Invoke();
+        }
+
+        private void SubscribeToModeChanges()
+        {
+            if (_isModeSubscribed || _gameModeController == null)
+            {
+                return;
+            }
+
+            _gameModeController.ModeChanged += OnGameModeChanged;
+            _isModeSubscribed = true;
+        }
+
+        private void UnsubscribeFromModeChanges()
+        {
+            if (!_isModeSubscribed || _gameModeController == null)
+            {
+                return;
+            }
+
+            _gameModeController.ModeChanged -= OnGameModeChanged;
+            _isModeSubscribed = false;
+        }
+
+        private void OnGameModeChanged(GameModeChanged change)
+        {
+            ApplyModeGate();
+        }
+
+        private void ApplyModeGate()
+        {
+            if (!_isBound || _gameModeController == null)
+            {
+                return;
+            }
+
+            bool gameplayEnabled = _gameModeController.CurrentMode == GameMode.Gameplay;
+            if (gameplayEnabled)
+            {
+                _moveAction.Enable();
+                _interactAction.Enable();
+            }
+            else
+            {
+                _moveAction.Disable();
+                _interactAction.Disable();
+            }
         }
     }
 }

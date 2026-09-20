@@ -3,9 +3,20 @@
     "rootNamespace": "NullPointer.Tests.PlayMode",
     "references": [
         "NullPointer.Core",
+        "NullPointer.Content",
+        "NullPointer.Evidence",
+        "NullPointer.Deduction",
+        "NullPointer.Dialogue",
+        "NullPointer.Inspect",
+        "NullPointer.Memory",
+        "NullPointer.Runtime",
+        "NullPointer.SceneFlow",
+        "NullPointer.Terminal",
+        "NullPointer.UI",
         "NullPointer.Input",
         "NullPointer.Player",
-        "NullPointer.Interaction"
+        "NullPointer.Interaction",
+        "Unity.ugui"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

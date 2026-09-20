@@ -3,10 +3,20 @@
     "rootNamespace": "NullPointer.Tests.EditMode",
     "references": [
         "NullPointer.Core",
+        "NullPointer.Content",
+        "NullPointer.Evidence",
+        "NullPointer.Deduction",
+        "NullPointer.Dialogue",
+        "NullPointer.Inspect",
+        "NullPointer.Memory",
+        "NullPointer.Terminal",
+        "NullPointer.SceneFlow",
+        "NullPointer.Runtime",
         "NullPointer.Input",
         "NullPointer.Interaction",
         "NullPointer.Player",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.ugui"
     ],
     "includePlatforms": [
         "Editor"

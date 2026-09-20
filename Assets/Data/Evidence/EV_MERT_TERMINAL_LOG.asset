@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd7b15893a0211745ba36ff35c6907d0, type: 3}
+  m_Name: EV_MERT_TERMINAL_LOG
+  m_EditorClassIdentifier: NullPointer.Evidence::NullPointer.Evidence.EvidenceData
+  _stableId: evidence.mert.terminal_log_0251
+  _editorDescription: "Opening evidence: 02:51 Terminal Kayd\u0131."
+  _displayName: "02:51 Terminal Kayd\u0131"
+  _description: "G\xF6zlem: Mert'in terminalinde 02:51'de manuel eri\u015Fim kayd\u0131
+    bulunuyor."
+  _evidenceType: 1
+  _caseId: case.mert.suspicious_death
+  _isCritical: 1
+  _icon: {fileID: 0}

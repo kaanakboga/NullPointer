@@ -65,7 +65,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Tools\Verify-Unity.ps1
 
 Supported modes are `All`, `Compile`, `EditMode`, and `PlayMode`. The script reads the required version from `ProjectSettings/ProjectVersion.txt`, accepts an explicit `-UnityPath`, then checks `UNITY_PATH` and versioned Unity Hub install locations. It validates the executable's product version before launch, writes logs and NUnit XML under ignored `Logs/Verification`, scans compile logs for known fatal/compiler signatures, validates that tests were actually discovered, and exits non-zero on failure. Machine-specific editor paths are not embedded in runtime code.
 
-Unity does not permit batch mode to open a project already owned by another editor. The verifier warns when `Temp/UnityLockfile` exists and then lets Unity fail safely rather than terminating the active editor. The 2026-09-20 verification run therefore used an isolated copy of the identical source/configuration set while the workspace editor remained open: compile passed, EditMode passed 10/10, and PlayMode passed 2/2.
+Unity does not permit batch mode to open a project already owned by another editor. The verifier warns when `Temp/UnityLockfile` exists and then lets Unity fail safely rather than terminating the active editor. The current workspace verification compiles the project and runs both test modes directly against the production scenes and assets; the latest clean totals are recorded in the Testing Strategy section.
 
 ## Architectural Goals
 
@@ -120,17 +120,9 @@ Adapters for scene loading, file storage, input, audio playback, localization-re
 
 ### Bootstrap Scene
 
-A minimal Bootstrap scene will create the application composition root, initialize long-lived services, validate startup, and route to Main Menu or a requested test scene. It must contain only objects that genuinely require application lifetime.
+`SCN_Bootstrap` now owns the small `GameApplication` composition root. It constructs the current `GameState`, `EvidenceService`, `DeductionService`, and `MemoryService`; owns the authoritative `GameModeController`, input reader, pause handler, and `SceneLoader`; then asynchronously routes to the authored starting `LocationData`. This root is the sole `DontDestroyOnLoad` object because session state and transition ownership must survive single-scene loads. It contains no location presentation.
 
-Likely long-lived responsibilities:
-
-- `GameState` owner / current session;
-- `SaveManager` and storage adapter;
-- `AudioManager` or audio service root;
-- `SceneLoader` with transition control;
-- settings service.
-
-`GameManager` is not mandatory. If introduced, it coordinates lifecycle only and must not absorb system-specific logic.
+`GameApplication` listens only at scene-load boundaries, finds the single explicit `OpeningSceneInstaller` among the loaded scene roots, and injects application services into scene-local controllers. Arbitrary gameplay scripts do not locate or access a global singleton. Save, audio, settings, and Main Menu services remain future work and are not stubbed into this root.
 
 ### Scene-Scoped Composition
 
@@ -178,6 +170,10 @@ Schema version 1 currently persists current case, location, checkpoint, story fl
 - Once a released save can reference an ID, removal requires a migration or compatibility alias.
 - Runtime lookup reports missing and duplicate IDs with actionable context.
 
+`AuthoredContentAsset` implements the stable-ID contract for evidence, characters, dialogues, cases, locations, memories, deductions, inspections, and terminals. `ContentIdValidator` enforces nonblank lowercase dot-separated ASCII IDs and reports malformed and duplicate entries. The editor command **Null Pointer → Content → Validate Stable Content IDs** scans authored ScriptableObjects and includes both asset name and path in diagnostics. `ContentCatalog` is an explicit runtime catalog—there is no reflection or AssetDatabase scan in a player—and feature services build ordinal dictionaries from their typed catalog arrays.
+
+Opening IDs use immutable semantic keys such as `evidence.mert.photo`, `evidence.mert.terminal_log_0251`, and `deduction.mert.postmortem_terminal`. Uppercase brief labels such as `EV_MERT_PHOTO` are asset filenames/editor handles, not runtime IDs.
+
 ## Story Conditions and Effects
 
 Conditions and effects should be typed data, not free-form expression strings. Initial condition types may include:
@@ -204,25 +200,29 @@ The generic template gameplay actions have been replaced with:
 
 Keyboard and common gamepad bindings are present for all Gameplay actions. `GameplayInputReader` resolves the centralized action names and exposes `IGameplayInputSource`, allowing movement/interaction tests to provide input without synthesizing hardware events. The existing asset does not generate a C# wrapper.
 
+The persistent input reader mode-gates Move and Interact actions: they are enabled only in Gameplay. Pause remains enabled so the owning modal can close through the same device-agnostic input contract. `PauseInputHandler` handles only Gameplay/Paused; Inspect, Dialogue, Terminal, Evidence Board, and Memory own their cancel path.
+
 ### Interaction
 
-`PlayerInteractionDetector` performs a bounded, reused-buffer 2D overlap query only while Gameplay mode is active. Candidates expose availability, priority, and an interaction transform through `IInteractable`. Selection orders by priority, squared distance, then a stable per-instance tie key; unavailable and duplicate targets are ignored. The active target is readable and raises a specific change event. Input dispatch is blocked in every non-Gameplay mode. Evidence, dialogue, terminal, door, inspect, and memory implementations remain deliberately absent.
+`PlayerInteractionDetector` performs a bounded, reused-buffer 2D overlap query only while Gameplay mode is active. Candidates expose availability, priority, and an interaction transform through `IInteractable`. Selection orders by priority, squared distance, then a stable per-instance tie key; unavailable and duplicate targets are ignored. The active target is readable and raises a specific change event. Input dispatch is blocked in every non-Gameplay mode. Optional `IInteractionPromptSource` text feeds the reusable prompt UI. Inspect, evidence, dialogue, terminal, evidence-board, memory, and scene-transition interactables compose on this neutral contract without adding story-specific knowledge to the player controller.
 
 ### Dialogue
 
-The dialogue runner reads authored graphs or node data, evaluates conditions through the domain layer, applies validated effects, and emits presentation events. Text, speaker identity, portraits, choices, and timing data remain authored. Save/checkpoint rules define whether a conversation resumes at a node or restarts at a safe boundary.
+`DialogueData` owns authored nodes, speakers, text, next links, choices, typed conditions, and typed actions. The pure `DialogueRunner` filters choices against `GameState`, follows branches, emits typed actions, and terminates safely with a diagnostic when a next node is invalid. `DialogueController` owns Dialogue mode, UI focus/cancel, flag and evidence effects, and exposes memory/scene-transition actions through a narrow event for later composition. Dialogue history, resume/checkpoint policy, text reveal, and full graph validation remain future work.
 
 ### Evidence and Deduction
 
-Evidence discovery writes to `GameState`; UI views read projections of that state. Deduction definitions declare required evidence/annotations and resulting effects. The board manipulates a working hypothesis; only a validated solve commits progression.
+`EvidenceData` contains stable presentation/category/case/critical/icon fields while `EvidenceService` owns catalog lookup, duplicate-safe collection, queries, ordered UI projections, and a typed collection event over `GameState`. Environmental inspection and evidence collection are separate paths; evidence-bearing inspection may invoke a narrow follow-up such as a memory trigger only after first collection.
+
+`DeductionData` declares required evidence IDs, authored result text, optional resulting evidence, and story flags. The pure `DeductionService` reports missing requirements, refuses duplicate completion, commits through `GameState`, and emits a typed completion event. The baseline evidence board selects collected evidence deterministically, attempts exact authored combinations, resets safely, and projects completed deductions from canonical state. It intentionally omits final drag/drop and red-string art.
 
 ### Memory
 
-Memory definitions describe fragment content, ordering/relationship rules, presentation profile, completion effects, and restart behavior. Puzzle logic is testable separately from glitch rendering. Accessibility settings scale effects without changing the logical puzzle.
+`MemoryData` currently defines timed presentation beats with text, overlay color, duration, and optional audio hooks. `MemoryService` records a stable unlocked ID exactly once. `MemoryController` owns Memory mode, real-time sequencing, skip/cancel, overlay/audio presentation, and return to Gameplay. The presentation boundary can later be replaced by Timeline without changing unlock state. Reconstruction rules and accessibility intensity profiles remain deliberately unimplemented.
 
 ### Terminal
 
-Terminal content is authored and queryable through a scoped virtual database. Authentication and discovered queries are state-backed. The terminal UI never reads real files or executes arbitrary commands.
+`TerminalData` contains a menu title and bounded authored entries categorized as Mail, Logs, Files, Security, Search, or Archive. Entries may add one evidence ID and/or story flag through domain APIs. `TerminalController` owns Terminal mode, controller/keyboard UI focus, entry viewing, evidence integration, and safe close. It never accesses host files or executes terminal text. Credentials, search, archives, and richer session persistence remain future work.
 
 ### Audio
 
@@ -230,7 +230,7 @@ Use mixer groups for Master, Music, Ambience, SFX, and Voice. A music/ambience c
 
 ### Scene Loading
 
-All production transitions go through one loader abstraction that can show progress, fade safely, choose spawn points, and avoid double-load requests. Scene references should be validated assets or centralized keys rather than scattered strings.
+All production transitions use `SceneLoader`. It rejects concurrent loads, raises typed start/completion hooks for later fade presentation, asynchronously loads the scene named by validated `LocationData`, updates `GameState.LocationId`, and forwards a stable spawn-point ID to the scene installer. `SceneTransitionInteractable` may require a story flag and never couples transition logic to the player controller. Explicit error UI and a concrete fade presenter remain future work.
 
 ## Save and Settings Design
 
@@ -246,7 +246,7 @@ All production transitions go through one loader abstraction that can show progr
 
 ## UI Strategy
 
-Use one UI technology consistently per feature; do not mix uGUI and UI Toolkit inside a single screen without a concrete need. A later UI spike will choose the production standard based on pixel-art rendering, gamepad navigation, text styling, and authoring workflow.
+The opening vertical slice uses uGUI consistently for runtime HUD and modal screens. This is now the baseline for the implemented Inspect, Dialogue, Terminal, Evidence Board, Memory, interaction-prompt, and notification features; a later production UI review may refine shared styling and accessibility without moving domain logic into views.
 
 All menus require:
 
@@ -266,17 +266,24 @@ All menus require:
 | `Assets/Scenes/Gameplay` | Production locations and narrative sequences |
 | `Assets/Scenes/Test` | Focused developer/test harness scenes |
 
-The template `SampleScene` remains untouched and is still the only Build Settings scene. `Assets/Scenes/Test/SCN_Test_GameplayFoundation.unity` is an editor-only engineering harness and is intentionally excluded from release Build Settings. It contains a Rigidbody2D player, floor collision, visible interaction probe, current-mode display, and keyboard/gamepad instructions.
+Build Settings now start with `SCN_Bootstrap`, followed by `SCN_ErenApartment` and `SCN_MertApartment`. The template `SampleScene` remains untouched but is no longer enabled for production startup. `Assets/Scenes/Test/SCN_Test_GameplayFoundation.unity` remains an editor-only engineering harness and is intentionally excluded from Build Settings.
+
+The explicit editor command **Null Pointer → Opening → Rebuild Authored Opening Content and Scenes** creates or updates the opening ScriptableObjects, registry, Bootstrap, both location scenes, and Build Settings. It is idempotent, preserves stable asset GUIDs, validates content IDs after generation, and refuses to discard an unsaved untitled scene during interactive use. Batch automation may replace only Unity's empty startup scene.
 
 ## Assembly Boundaries
 
 Current boundaries:
 
 - `NullPointer.Core` — game modes and serializable session state;
+- `NullPointer.Content` — stable authored-content contracts, validator, and shared character/case/location assets;
 - `NullPointer.Input` — Input System adapter and pause-mode input;
 - `NullPointer.Player` — Rigidbody2D horizontal player movement;
 - `NullPointer.Interaction` — interaction contracts, selection, detection, and dispatch;
-- `NullPointer.Editor` — engineering scene generation;
+- `NullPointer.Evidence`, `NullPointer.Deduction`, `NullPointer.Inspect`, `NullPointer.Dialogue`, `NullPointer.Terminal`, and `NullPointer.Memory` — feature data, domain/application logic, interactables, and feature-owned presentation;
+- `NullPointer.SceneFlow` — location loading, spawn, and transition contracts;
+- `NullPointer.UI` — shared prompt and evidence notification presentation;
+- `NullPointer.Runtime` — Bootstrap composition and explicit scene installation;
+- `NullPointer.Editor` — content validation plus idempotent engineering/production scene generation;
 - `NullPointer.Tests.EditMode` — pure rules, input-asset configuration, and engineering-scene validation;
 - `NullPointer.Tests.PlayMode` — movement/mode blocking and physics interaction integration.
 
@@ -314,7 +321,7 @@ Dependencies point toward Core, and Player/Interaction share input only through 
 
 Tests must assert meaningful behavior. Scene or visual tests are added only when they protect a real regression risk.
 
-Current automated coverage includes mode transitions/events, duplicate-safe state and snapshot round trips, required input actions/UI preservation, deterministic interaction selection, engineering-scene composition, Rigidbody2D movement blocking, and interaction dispatch blocking. Latest verified result: 10 EditMode and 2 PlayMode tests passed.
+Current automated coverage includes mode transitions/events, duplicate-safe state and snapshots, input-map requirements, deterministic interaction selection, stable ID format/duplicates, evidence collection, deduction requirements/persistence, dialogue branching and invalid links, memory unlocks, authored content/production scene contracts, modal movement blocking, Inspect close flow, interaction dispatch, and Bootstrap startup. Latest verified result: 33 EditMode and 8 PlayMode tests passed.
 
 ## Validation and Observability
 
@@ -343,4 +350,4 @@ Specific minimum hardware will be set before content-complete QA. Until then:
 
 ## Current Foundation Limit
 
-The persistent Bootstrap composition root is not implemented yet. The engineering scene wires one explicit `GameModeController` and one input reader for validation; production scene lifetime and startup routing remain NP-CORE-008.
+This phase establishes a playable authored opening foundation, not the complete vertical slice. SaveManager, objective/case progression, dialogue history, terminal credentials/search, memory reconstruction puzzles, final evidence-board interaction art, final localization, full accessibility options, final audiovisual assets, and production fades remain outside scope. The Bootstrap session is deliberately in-memory only.

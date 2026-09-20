@@ -34,6 +34,11 @@ namespace NullPointer.Input
                 return;
             }
 
+            if (_gameModeController.CurrentMode != GameMode.Gameplay)
+            {
+                return;
+            }
+
             _modeBeforePause = _gameModeController.CurrentMode;
             _gameModeController.SetMode(GameMode.Paused);
         }
