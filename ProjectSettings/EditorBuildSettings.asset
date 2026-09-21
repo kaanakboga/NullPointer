@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Bootstrap/SCN_Bootstrap.unity
     guid: 7e4e82f0610f55c46a0a4e247ada2a86
   - enabled: 1
+    path: Assets/Scenes/MainMenu/SCN_MainMenu.unity
+    guid: fc17479cd0114e74a9e2c9fcd019b097
+  - enabled: 1
     path: Assets/Scenes/Gameplay/SCN_ErenApartment.unity
     guid: 255b0d0d284c22246a6da8bb06aeb4b6
   - enabled: 1

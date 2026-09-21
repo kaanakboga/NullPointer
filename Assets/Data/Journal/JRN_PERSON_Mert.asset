@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a179d565b5c49024f8d928760c46fb3f, type: 3}
+  m_Name: JRN_PERSON_Mert
+  m_EditorClassIdentifier: NullPointer.Journal::NullPointer.Journal.JournalEntryData
+  _stableId: journal.person.mert
+  _editorDescription: 'Chapter 1 journal entry: Mert Ersoy.'
+  _section: 1
+  _title: Mert Ersoy
+  _body: "Mnemosyne sistem m\xFChendisi. \xD6lmeden \xF6nce bellek kay\u0131tlar\u0131yla
+    \xE7al\u0131\u015Fm\u0131\u015F."
+  _requiredStoryFlag: flag.dispatch.mert_assignment_received
+  _requiredEvidenceId: 
+  _requiredDeductionId: 
+  _displayOrder: 20

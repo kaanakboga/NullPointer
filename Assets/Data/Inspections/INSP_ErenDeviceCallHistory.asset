@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a1ec8031ac720640a52a89ed2b732fd, type: 3}
+  m_Name: INSP_ErenDeviceCallHistory
+  m_EditorClassIdentifier: NullPointer.Inspect::NullPointer.Inspect.InspectData
+  _stableId: location.mert.apartment.eren_device
+  _editorDescription: "Authored inspection: Eren'in Cihaz\u0131."
+  _title: "Eren'in Cihaz\u0131"
+  _description: "Mert'in son temas kayd\u0131yla kar\u015F\u0131la\u015Ft\u0131r\u0131ld\u0131\u011F\u0131nda
+    Eren'in cihaz\u0131nda e\u015Fle\u015Fen gelen arama g\xF6r\xFCnm\xFCyor."

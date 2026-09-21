@@ -23,6 +23,7 @@ MonoBehaviour:
       ge\xE7ersiz k\u0131lma\nOturum s\xFCresi: 00:03:12"
     _evidenceId: evidence.mert.terminal_log_0251
     _storyFlagToSet: flag.mert.terminal_log_read
+    _requiredStoryFlag: 
   - _entryId: integrity_warning
     _category: 1
     _title: "B\xDCT\xDCNL\xDCK UYARISI"
@@ -30,3 +31,36 @@ MonoBehaviour:
       \xE7evrimd\u0131\u015F\u0131."
     _evidenceId: 
     _storyFlagToSet: 
+    _requiredStoryFlag: 
+  - _entryId: memory_deletion_0229
+    _category: 1
+    _title: "BELLEK D\u0130Z\u0130N\u0130 \u0130\u015ELEM\u0130"
+    _body: "02:29 \u2014 manuel silme iste\u011Fi\nHedef blok: ki\u015Fisel an\u0131
+      k\xFCmesi\nDo\u011Frulama: yerel biyometrik"
+    _evidenceId: evidence.mert.memory_deletion_0229
+    _storyFlagToSet: flag.mert.memory_deletion_read
+    _requiredStoryFlag: 
+  - _entryId: file_nlp_0417
+    _category: 2
+    _title: "NLP-0417 // BOZUK BA\u015ELIK"
+    _body: "Dosya g\xF6vdesi kurtar\u0131lamad\u0131. Kimlik: NLP-0417. Son yerel
+      de\u011Fi\u015Fiklik: 02:28."
+    _evidenceId: 
+    _storyFlagToSet: flag.mert.nlp_0417_seen
+    _requiredStoryFlag: 
+  - _entryId: mail_unsent
+    _category: 0
+    _title: "G\xD6NDER\u0130LMEM\u0130\u015E TASLAK"
+    _body: "Temiz kay\u0131t, do\u011Fru kay\u0131t demek de\u011Fil. Fiziksel kopyay\u0131
+      bul."
+    _evidenceId: 
+    _storyFlagToSet: 
+    _requiredStoryFlag: 
+  - _entryId: last_contact
+    _category: 3
+    _title: "SON TEMAS DENEMES\u0130"
+    _body: "02:31 \u2014 EREN VARDAR\nArama ba\u015Flat\u0131ld\u0131. Kar\u015F\u0131
+      cihaz teslim kayd\u0131 yok."
+    _evidenceId: evidence.mert.last_call_eren
+    _storyFlagToSet: flag.mert.last_contact_revealed
+    _requiredStoryFlag: flag.mert.postmortem_terminal_deduced

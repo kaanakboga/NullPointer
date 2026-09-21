@@ -24,3 +24,11 @@ MonoBehaviour:
       ediyor.\nOlay yeri incelemesi i\xE7in derhal hareket edin."
     _evidenceId: 
     _storyFlagToSet: flag.dispatch.mert_assignment_received
+    _requiredStoryFlag: 
+  - _entryId: device_call_history
+    _category: 1
+    _title: "C\u0130HAZ ARAMA GE\xC7M\u0130\u015E\u0130"
+    _body: "Son 24 saat: Mert Ersoy kaynakl\u0131 gelen arama kayd\u0131 yok."
+    _evidenceId: evidence.eren.call_history_gap
+    _storyFlagToSet: flag.eren.call_history_checked
+    _requiredStoryFlag: 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NullPointer.Audio;
 using NullPointer.Content;
 using NullPointer.Core;
 using NullPointer.Deduction;
@@ -8,9 +9,13 @@ using NullPointer.Dialogue;
 using NullPointer.Evidence;
 using NullPointer.Input;
 using NullPointer.Inspect;
+using NullPointer.Interrogation;
 using NullPointer.Interaction;
+using NullPointer.Journal;
 using NullPointer.Memory;
+using NullPointer.Menus;
 using NullPointer.Player;
+using NullPointer.Progression;
 using NullPointer.Runtime;
 using NullPointer.SceneFlow;
 using NullPointer.Terminal;
@@ -31,6 +36,7 @@ namespace NullPointer.Editor
     {
         private const string InputActionsPath = "Assets/Settings/InputSystem_Actions.inputactions";
         private const string BootstrapScenePath = "Assets/Scenes/Bootstrap/SCN_Bootstrap.unity";
+        private const string MainMenuScenePath = "Assets/Scenes/MainMenu/SCN_MainMenu.unity";
         private const string ErenScenePath = "Assets/Scenes/Gameplay/SCN_ErenApartment.unity";
         private const string MertScenePath = "Assets/Scenes/Gameplay/SCN_MertApartment.unity";
         private const string DispatchReceivedFlag = "flag.dispatch.mert_assignment_received";
@@ -53,6 +59,7 @@ namespace NullPointer.Editor
 
             OpeningAssets assets = CreateOrUpdateAssets();
             BuildBootstrapScene(assets, inputActions);
+            BuildMainMenuScene();
             BuildErenApartmentScene(assets);
             BuildMertApartmentScene(assets);
             ConfigureBuildSettings();
@@ -80,6 +87,11 @@ namespace NullPointer.Editor
             EnsureFolder("Assets/Data/Deductions");
             EnsureFolder("Assets/Data/Inspections");
             EnsureFolder("Assets/Data/Terminals");
+            EnsureFolder("Assets/Data/Objectives");
+            EnsureFolder("Assets/Data/Checkpoints");
+            EnsureFolder("Assets/Data/Journal");
+            EnsureFolder("Assets/Data/Interrogation");
+            EnsureFolder("Assets/Data/Audio");
 
             var assets = new OpeningAssets
             {
@@ -89,22 +101,44 @@ namespace NullPointer.Editor
                 Dispatch = GetOrCreate<CharacterData>("Assets/Data/Characters/CHAR_Sector7Dispatch.asset"),
                 ErenLocation = GetOrCreate<LocationData>("Assets/Data/Locations/LOC_ErenApartment.asset"),
                 MertLocation = GetOrCreate<LocationData>("Assets/Data/Locations/LOC_MertApartment.asset"),
+                MainMenuLocation = GetOrCreate<LocationData>("Assets/Data/Locations/LOC_MainMenu.asset"),
                 MedicationInspection = GetOrCreate<InspectData>("Assets/Data/Inspections/INSP_ErenMedication.asset"),
                 ForeshadowInspection = GetOrCreate<InspectData>("Assets/Data/Inspections/INSP_ErenPhotograph.asset"),
                 MertPhotoInspection = GetOrCreate<InspectData>("Assets/Data/Inspections/INSP_MertPhotograph.asset"),
                 DeathTimeInspection = GetOrCreate<InspectData>("Assets/Data/Inspections/INSP_MertDeathTime.asset"),
+                CoffeeInspection = GetOrCreate<InspectData>("Assets/Data/Inspections/INSP_MertCoffee.asset"),
+                ImplantInspection = GetOrCreate<InspectData>("Assets/Data/Inspections/INSP_MertDamagedImplant.asset"),
+                DoorInspection = GetOrCreate<InspectData>("Assets/Data/Inspections/INSP_MertDoorStatus.asset"),
+                NotesInspection = GetOrCreate<InspectData>("Assets/Data/Inspections/INSP_MertNotes.asset"),
+                MedicalInspection = GetOrCreate<InspectData>("Assets/Data/Inspections/INSP_MertMedicalDevice.asset"),
+                ErenDeviceInspection = GetOrCreate<InspectData>("Assets/Data/Inspections/INSP_ErenDeviceCallHistory.asset"),
                 MertPhotoEvidence = GetOrCreate<EvidenceData>("Assets/Data/Evidence/EV_MERT_PHOTO.asset"),
                 MertTerminalEvidence = GetOrCreate<EvidenceData>("Assets/Data/Evidence/EV_MERT_TERMINAL_LOG.asset"),
                 MertDeathTimeEvidence = GetOrCreate<EvidenceData>("Assets/Data/Evidence/EV_MERT_DEATH_TIME.asset"),
+                DamagedImplantEvidence = GetOrCreate<EvidenceData>("Assets/Data/Evidence/EV_MERT_DAMAGED_IMPLANT.asset"),
+                DoorStatusEvidence = GetOrCreate<EvidenceData>("Assets/Data/Evidence/EV_MERT_DOOR_STATUS.asset"),
+                CallRecordEvidence = GetOrCreate<EvidenceData>("Assets/Data/Evidence/EV_MERT_CALL_RECORD.asset"),
+                MemoryDeletionEvidence = GetOrCreate<EvidenceData>("Assets/Data/Evidence/EV_MERT_MEMORY_DELETION.asset"),
+                ErenCallHistoryEvidence = GetOrCreate<EvidenceData>("Assets/Data/Evidence/EV_EREN_CALL_HISTORY.asset"),
                 PostmortemDeduction = GetOrCreate<DeductionData>(
                     "Assets/Data/Deductions/DED_MERT_POSTMORTEM_TERMINAL.asset"),
+                SuicideInconsistentDeduction = GetOrCreate<DeductionData>(
+                    "Assets/Data/Deductions/DED_MERT_SUICIDE_INCONSISTENT.asset"),
+                LockedRoomDeduction = GetOrCreate<DeductionData>(
+                    "Assets/Data/Deductions/DED_MERT_LOCKED_ROOM_UNCERTAIN.asset"),
                 DispatchTerminal = GetOrCreate<TerminalData>("Assets/Data/Terminals/TERM_ErenDispatch.asset"),
                 MertTerminal = GetOrCreate<TerminalData>("Assets/Data/Terminals/TERM_MertPersonal.asset"),
                 PhotoMemory = GetOrCreate<MemoryData>("Assets/Data/Memories/MEM_MertPhotoGlitch.asset"),
                 MertRecorderDialogue = GetOrCreate<DialogueData>(
                     "Assets/Data/Dialogue/DLG_MertDamagedRecorder.asset"),
+                ChapterEndDialogue = GetOrCreate<DialogueData>(
+                    "Assets/Data/Dialogue/DLG_CH01_EndHook.asset"),
+                AudioCues = GetOrCreate<AudioCueSet>("Assets/Data/Audio/AUD_CH01_Hooks.asset"),
                 Catalog = GetOrCreate<ContentCatalog>("Assets/Data/CAT_OpeningContent.asset")
             };
+
+            CreateObjectivesAndCheckpoints(assets);
+            CreateJournalAndInterrogation(assets);
 
             ConfigureCase(assets.Case);
             ConfigureCharacter(assets.Eren, "character.eren.vardar", "Eren Vardar", "Soruşturmacı");
@@ -112,6 +146,7 @@ namespace NullPointer.Editor
             ConfigureCharacter(assets.Dispatch, "character.dispatch.sector_7", "Sektör 7 Sevk", "Operatör");
             ConfigureLocation(assets.ErenLocation, "location.eren.apartment", "Eren'in Dairesi", "SCN_ErenApartment");
             ConfigureLocation(assets.MertLocation, "location.mert.apartment", "Mert'in Dairesi", "SCN_MertApartment");
+            ConfigureLocation(assets.MainMenuLocation, "location.system.main_menu", "Ana Menü", "SCN_MainMenu");
 
             ConfigureInspection(
                 assets.MedicationInspection,
@@ -133,6 +168,12 @@ namespace NullPointer.Editor
                 "location.mert.apartment.death_time",
                 "Adli Zaman Damgası",
                 "Biyometrik bileklik son yaşamsal sinyali 02:36 olarak kaydetmiş.");
+            ConfigureInspection(assets.CoffeeInspection, "location.mert.apartment.coffee", "Yarım Kalmış Kahve", "Kahve soğuk. Fincanın yanında açık bir teknik not var; gündelik bir kesinti, tek başına kanıt değil.");
+            ConfigureInspection(assets.ImplantInspection, "location.mert.apartment.implant", "Hasarlı Bellek İmplantı", "İmplant yuvasında kontrollü söküm izleri ve yanmış bir doğrulama hattı var.");
+            ConfigureInspection(assets.DoorInspection, "location.mert.apartment.door", "İç Kapı Kaydı", "Kapı içeriden kilitli görünse de acil servis mandalı kısa süre önce mekanik olarak kullanılmış.");
+            ConfigureInspection(assets.NotesInspection, "location.mert.apartment.notes", "Kişisel Notlar", "Mert, temiz kayıtların güvenilir kayıtlar olmadığını yazmış. NLP-0417 kodu kenarda iki kez tekrarlanıyor.");
+            ConfigureInspection(assets.MedicalInspection, "location.mert.apartment.medical", "Nöral Kalibratör", "Cihaz son seansın yarıda kesildiğini gösteriyor. Tıbbi cihazın kendisi ölüm nedenini kanıtlamıyor.");
+            ConfigureInspection(assets.ErenDeviceInspection, "location.mert.apartment.eren_device", "Eren'in Cihazı", "Mert'in son temas kaydıyla karşılaştırıldığında Eren'in cihazında eşleşen gelen arama görünmüyor.");
 
             ConfigureEvidence(
                 assets.MertPhotoEvidence,
@@ -158,16 +199,153 @@ namespace NullPointer.Editor
                 EvidenceType.Biometric,
                 assets.Case.StableId,
                 true);
+            ConfigureEvidence(assets.DamagedImplantEvidence, "evidence.mert.damaged_implant", "Hasarlı Bellek İmplantı", "Gözlem: İmplant doğrulama hattı ölümden kısa süre önce fiziksel olarak devre dışı bırakılmış.", EvidenceType.Physical, assets.Case.StableId, true);
+            ConfigureEvidence(assets.DoorStatusEvidence, "evidence.mert.door_status", "Kapı Durumu", "Gözlem: İç kilit kapalı; ancak mekanik acil mandalı yakın zamanda kullanılmış.", EvidenceType.Physical, assets.Case.StableId, false);
+            ConfigureEvidence(assets.CallRecordEvidence, "evidence.mert.last_call_eren", "Mert'in Son Araması", "Gözlem: Mert'in son arama girişimi ölümünden kısa süre önce Eren Vardar'a yapılmış.", EvidenceType.Digital, assets.Case.StableId, true);
+            ConfigureEvidence(assets.MemoryDeletionEvidence, "evidence.mert.memory_deletion_0229", "02:29 Bellek Silme Kaydı", "Gözlem: Mert'in bellek dizininde 02:29'da manuel silme işlemi başlatılmış.", EvidenceType.Digital, assets.Case.StableId, true);
+            ConfigureEvidence(assets.ErenCallHistoryEvidence, "evidence.eren.call_history_gap", "Eren'in Arama Geçmişi", "Gözlem: Eren'in cihazında Mert'ten gelen karşılık bir arama bulunmuyor.", EvidenceType.Digital, assets.Case.StableId, true);
             ConfigureDeduction(assets.PostmortemDeduction, assets);
-            ConfigureDispatchTerminal(assets.DispatchTerminal);
-            ConfigureMertTerminal(assets.MertTerminal, assets.MertTerminalEvidence.StableId);
+            ConfigureChapterDeductions(assets);
+            ConfigureDispatchTerminal(assets.DispatchTerminal, assets);
+            ConfigureMertTerminal(assets.MertTerminal, assets);
             ConfigureMemory(assets.PhotoMemory);
             ConfigureDialogue(assets.MertRecorderDialogue, assets.Mert);
+            ConfigureChapterEndDialogue(assets.ChapterEndDialogue, assets.Eren);
             ConfigureCatalog(assets);
 
             EditorUtility.SetDirty(assets.Catalog);
             AssetDatabase.SaveAssets();
             return assets;
+        }
+
+        private static void CreateObjectivesAndCheckpoints(OpeningAssets assets)
+        {
+            assets.Objectives = new[]
+            {
+                CreateObjective("OBJ_CH01_Dispatch", "objective.ch01.inspect_dispatch", "Dispatch mesajını incele", 10),
+                CreateObjective("OBJ_CH01_Travel", "objective.ch01.go_to_mert", "Mert Ersoy'un dairesine git", 20),
+                CreateObjective("OBJ_CH01_Investigate", "objective.ch01.investigate_scene", "Olay yerini araştır", 30),
+                CreateObjective("OBJ_CH01_DeathTime", "objective.ch01.confirm_death_time", "Mert'in ölüm zamanını doğrula", 40),
+                CreateObjective("OBJ_CH01_Terminal", "objective.ch01.inspect_terminal", "Terminal kayıtlarını incele", 50),
+                CreateObjective("OBJ_CH01_Photo", "objective.ch01.trace_photo", "Fotoğrafın kaynağını araştır", 60),
+                CreateObjective("OBJ_CH01_Compare", "objective.ch01.compare_evidence", "Kanıtları karşılaştır", 70)
+            };
+
+            assets.ErenStartCheckpoint = CreateCheckpoint(
+                "CHK_CH01_ErenStart",
+                "checkpoint.ch01.eren_start",
+                "Eren'in dairesi — 03:17",
+                assets.ErenLocation,
+                "entry");
+            assets.DispatchCheckpoint = CreateCheckpoint(
+                "CHK_CH01_DispatchComplete",
+                "checkpoint.ch01.dispatch_complete",
+                "Dispatch tamamlandı",
+                assets.ErenLocation,
+                "entry");
+            assets.MertEntranceCheckpoint = CreateCheckpoint(
+                "CHK_CH01_MertEntrance",
+                "checkpoint.ch01.mert_entrance",
+                "Mert'in dairesi girişi",
+                assets.MertLocation,
+                "entry");
+            assets.CriticalEvidenceCheckpoint = CreateCheckpoint(
+                "CHK_CH01_CriticalEvidence",
+                "checkpoint.ch01.critical_evidence",
+                "İlk kritik kanıt",
+                assets.MertLocation,
+                "entry");
+            assets.FirstDeductionCheckpoint = CreateCheckpoint(
+                "CHK_CH01_FirstDeduction",
+                "checkpoint.ch01.first_deduction",
+                "İlk çıkarım tamamlandı",
+                assets.MertLocation,
+                "entry");
+        }
+
+        private static ObjectiveData CreateObjective(string assetName, string stableId, string title, int order)
+        {
+            ObjectiveData data = GetOrCreate<ObjectiveData>($"Assets/Data/Objectives/{assetName}.asset");
+            SerializedObject serialized = BeginContent(data, stableId, $"Chapter 1 objective: {title}.");
+            serialized.FindProperty("_title").stringValue = title;
+            serialized.FindProperty("_description").stringValue = title;
+            serialized.FindProperty("_displayOrder").intValue = order;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return data;
+        }
+
+        private static CheckpointData CreateCheckpoint(
+            string assetName,
+            string stableId,
+            string displayName,
+            LocationData location,
+            string spawnPointId)
+        {
+            CheckpointData data = GetOrCreate<CheckpointData>($"Assets/Data/Checkpoints/{assetName}.asset");
+            SerializedObject serialized = BeginContent(data, stableId, $"Safe Chapter 1 checkpoint: {displayName}.");
+            serialized.FindProperty("_displayName").stringValue = displayName;
+            serialized.FindProperty("_location").objectReferenceValue = location;
+            serialized.FindProperty("_spawnPointId").stringValue = spawnPointId;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return data;
+        }
+
+        private static void CreateJournalAndInterrogation(OpeningAssets assets)
+        {
+            assets.JournalEntries = new[]
+            {
+                CreateJournal("JRN_CASE_Mert", "journal.case.mert", JournalSection.Cases, "Mert Ersoy — Şüpheli Ölüm", "02:36 ölüm kaydı. Bellek bütünlüğü anomalisi. Resmî intihar değerlendirmesi doğrulanmadı.", "", "", "", 10),
+                CreateJournal("JRN_PERSON_Eren", "journal.person.eren", JournalSection.People, "Eren Vardar", "Soruşturmayı yürüten kişi. Kendi anılarındaki boşluklar dosyayla kesişiyor.", "", "", "", 10),
+                CreateJournal("JRN_PERSON_Mert", "journal.person.mert", JournalSection.People, "Mert Ersoy", "Mnemosyne sistem mühendisi. Ölmeden önce bellek kayıtlarıyla çalışmış.", DispatchReceivedFlag, "", "", 20),
+                CreateJournal("JRN_Q_NLP", "journal.question.nlp", JournalSection.Questions, "NLP nedir?", "NLP-0417 bir dosya, deney ya da kişi kodu olabilir. Henüz doğrulanmadı.", "flag.mert.nlp_0417_seen", "", "", 10),
+                CreateJournal("JRN_Q_Knew", "journal.question.mert_knew_eren", JournalSection.Questions, "Mert beni neden tanıyordu?", "Fotoğraf fiziksel; dijital bir eşleşme hatasıyla kolayca açıklanamaz.", "", assets.MertPhotoEvidence.StableId, "", 20),
+                CreateJournal("JRN_Q_0251", "journal.question.terminal_0251", JournalSection.Questions, "02:51'de terminali kim kullandı?", "Manuel erişim, ölüm kaydından on beş dakika sonra.", "", assets.MertTerminalEvidence.StableId, "", 30),
+                CreateJournal("JRN_Q_Memory", "journal.question.memory_changed", JournalSection.Questions, "Mert neden ölmeden önce hafızasını değiştirdi?", "02:29 silme isteği ve implant hasarı aynı olaya bağlanabilir.", "", assets.MemoryDeletionEvidence.StableId, "", 40),
+                CreateJournal("JRN_T_Return", "journal.timeline.return_home", JournalSection.Timeline, "01:58 — Mert eve döner", "Bina giriş kaydı; olayın son doğrulanmış sıradan hareketi.", DispatchReceivedFlag, "", "", 10),
+                CreateJournal("JRN_T_Delete", "journal.timeline.memory_deletion", JournalSection.Timeline, "02:29 — Bellek silme", "Yerel terminalde manuel silme isteği.", "", assets.MemoryDeletionEvidence.StableId, "", 20),
+                CreateJournal("JRN_T_Call", "journal.timeline.last_contact", JournalSection.Timeline, "02:31 — Son temas", "Mert, Eren Vardar'ı aramaya çalışır.", "", assets.CallRecordEvidence.StableId, "", 30),
+                CreateJournal("JRN_T_Death", "journal.timeline.death", JournalSection.Timeline, "02:36 — Tahmini ölüm", "Biyometrik son yaşamsal sinyal.", "", assets.MertDeathTimeEvidence.StableId, "", 40),
+                CreateJournal("JRN_T_Access", "journal.timeline.terminal_access", JournalSection.Timeline, "02:51 — Manuel terminal erişimi", "Ölümden on beş dakika sonra yerel geçersiz kılma.", "", assets.MertTerminalEvidence.StableId, "", 50)
+            };
+
+            assets.TimelineClaim = GetOrCreate<InterrogationClaimData>(
+                "Assets/Data/Interrogation/CLM_MertTerminalUntouched.asset");
+            SerializedObject claim = BeginContent(
+                assets.TimelineClaim,
+                "claim.mert.terminal_untouched",
+                "Reusable Chapter 1 contradiction fixture for later testimony.");
+            claim.FindProperty("_statement").stringValue = "Mert'in ölümünden sonra terminale kimse dokunmadı.";
+            SetStringArray(
+                claim.FindProperty("_contradictingEvidenceIds"),
+                new[] { assets.MertTerminalEvidence.StableId });
+            claim.FindProperty("_contradictionStoryFlag").stringValue = "flag.interrogation.postmortem_access_contradiction";
+            claim.FindProperty("_successResponse").stringValue = "02:51 kaydı bu ifadeyle çelişiyor. Tanık ayrıntıyı geri çekmek zorunda kalır.";
+            claim.FindProperty("_irrelevantResponse").stringValue = "Bu kanıt söz konusu erişim iddiasını doğrudan sınamıyor.";
+            claim.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static JournalEntryData CreateJournal(
+            string assetName,
+            string stableId,
+            JournalSection section,
+            string title,
+            string body,
+            string flag,
+            string evidence,
+            string deduction,
+            int order)
+        {
+            JournalEntryData data = GetOrCreate<JournalEntryData>($"Assets/Data/Journal/{assetName}.asset");
+            SerializedObject serialized = BeginContent(data, stableId, $"Chapter 1 journal entry: {title}.");
+            serialized.FindProperty("_section").enumValueIndex = (int)section;
+            serialized.FindProperty("_title").stringValue = title;
+            serialized.FindProperty("_body").stringValue = body;
+            serialized.FindProperty("_requiredStoryFlag").stringValue = flag;
+            serialized.FindProperty("_requiredEvidenceId").stringValue = evidence;
+            serialized.FindProperty("_requiredDeductionId").stringValue = deduction;
+            serialized.FindProperty("_displayOrder").intValue = order;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return data;
         }
 
         private static void ConfigureCase(CaseData data)
@@ -233,6 +411,7 @@ namespace NullPointer.Editor
             SetStringArray(
                 serialized.FindProperty("_requiredEvidenceIds"),
                 new[] { assets.MertTerminalEvidence.StableId, assets.MertDeathTimeEvidence.StableId });
+            SetStringArray(serialized.FindProperty("_requiredDeductionIds"), Array.Empty<string>());
             serialized.FindProperty("_resultTitle").stringValue = "Ölüm Sonrası Terminal Erişimi";
             serialized.FindProperty("_resultText").stringValue =
                 "Mert'in terminaline ölümünden on beş dakika sonra manuel olarak erişildi.";
@@ -243,7 +422,60 @@ namespace NullPointer.Editor
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void ConfigureDispatchTerminal(TerminalData data)
+        private static void ConfigureChapterDeductions(OpeningAssets assets)
+        {
+            ConfigureDeductionAsset(
+                assets.SuicideInconsistentDeduction,
+                "deduction.mert.suicide_timeline_inconsistent",
+                "The apparent-suicide timeline conflicts with physical and deletion records.",
+                new[]
+                {
+                    assets.MertTerminalEvidence.StableId,
+                    assets.MertDeathTimeEvidence.StableId,
+                    assets.MemoryDeletionEvidence.StableId,
+                    assets.DamagedImplantEvidence.StableId
+                },
+                new[] { assets.PostmortemDeduction.StableId },
+                "Resmî Zaman Çizelgesi Tutarsız",
+                "Bellek silme işlemi, implant hasarı ve ölüm sonrası erişim; olayın basit bir intihar olarak kapanamayacağını gösteriyor.",
+                "flag.mert.suicide_timeline_inconsistent");
+            ConfigureDeductionAsset(
+                assets.LockedRoomDeduction,
+                "deduction.mert.locked_room_unreliable",
+                "Chapter 1 conclusion connecting the door and mismatched call histories.",
+                new[]
+                {
+                    assets.DoorStatusEvidence.StableId,
+                    assets.CallRecordEvidence.StableId,
+                    assets.ErenCallHistoryEvidence.StableId
+                },
+                new[] { assets.SuicideInconsistentDeduction.StableId },
+                "Kilitli Oda Görünüşü Güvenilir Değil",
+                "Mekanik kapı izi ve eşleşmeyen arama geçmişleri, kapalı oda anlatısının yüzeyde göründüğü gibi kabul edilemeyeceğini gösteriyor.",
+                "flag.ch01.locked_room_unreliable");
+        }
+
+        private static void ConfigureDeductionAsset(
+            DeductionData data,
+            string stableId,
+            string editorDescription,
+            string[] requiredEvidence,
+            string[] requiredDeductions,
+            string title,
+            string result,
+            string flag)
+        {
+            SerializedObject serialized = BeginContent(data, stableId, editorDescription);
+            SetStringArray(serialized.FindProperty("_requiredEvidenceIds"), requiredEvidence);
+            SetStringArray(serialized.FindProperty("_requiredDeductionIds"), requiredDeductions);
+            serialized.FindProperty("_resultTitle").stringValue = title;
+            serialized.FindProperty("_resultText").stringValue = result;
+            serialized.FindProperty("_resultingEvidenceId").stringValue = string.Empty;
+            SetStringArray(serialized.FindProperty("_storyFlagsToSet"), new[] { flag });
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void ConfigureDispatchTerminal(TerminalData data, OpeningAssets assets)
         {
             SerializedObject serialized = BeginContent(
                 data,
@@ -251,7 +483,7 @@ namespace NullPointer.Editor
                 "Eren apartment dispatch terminal for the opening assignment.");
             serialized.FindProperty("_menuTitle").stringValue = "SEKTÖR 7 // SEVK BAĞLANTISI // 03:17";
             SerializedProperty entries = serialized.FindProperty("_entries");
-            entries.arraySize = 1;
+            entries.arraySize = 2;
             ConfigureTerminalEntry(
                 entries.GetArrayElementAtIndex(0),
                 "dispatch_0317",
@@ -260,10 +492,18 @@ namespace NullPointer.Editor
                 "03:17\nŞüpheli ölüm bildirimi.\nSektör 7.\nKurban: Mert Ersoy.\nÖn tarama, bellek bütünlüğü anomalisine işaret ediyor.\nOlay yeri incelemesi için derhal hareket edin.",
                 string.Empty,
                 DispatchReceivedFlag);
+            ConfigureTerminalEntry(
+                entries.GetArrayElementAtIndex(1),
+                "device_call_history",
+                TerminalEntryCategory.Logs,
+                "CİHAZ ARAMA GEÇMİŞİ",
+                "Son 24 saat: Mert Ersoy kaynaklı gelen arama kaydı yok.",
+                assets.ErenCallHistoryEvidence.StableId,
+                "flag.eren.call_history_checked");
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void ConfigureMertTerminal(TerminalData data, string evidenceId)
+        private static void ConfigureMertTerminal(TerminalData data, OpeningAssets assets)
         {
             SerializedObject serialized = BeginContent(
                 data,
@@ -271,14 +511,14 @@ namespace NullPointer.Editor
                 "Mert apartment terminal containing the postmortem access log.");
             serialized.FindProperty("_menuTitle").stringValue = "MERT // YEREL TERMİNAL";
             SerializedProperty entries = serialized.FindProperty("_entries");
-            entries.arraySize = 2;
+            entries.arraySize = 6;
             ConfigureTerminalEntry(
                 entries.GetArrayElementAtIndex(0),
                 "security_access_0251",
                 TerminalEntryCategory.Security,
                 "ERİŞİM KAYDI",
                 "02:51 — MANUEL ERİŞİM\nKimlik doğrulama: yerel geçersiz kılma\nOturum süresi: 00:03:12",
-                evidenceId,
+                assets.MertTerminalEvidence.StableId,
                 "flag.mert.terminal_log_read");
             ConfigureTerminalEntry(
                 entries.GetArrayElementAtIndex(1),
@@ -288,6 +528,39 @@ namespace NullPointer.Editor
                 "Bellek eşleme dizini doğrulanamadı. Arşiv alanı çevrimdışı.",
                 string.Empty,
                 string.Empty);
+            ConfigureTerminalEntry(
+                entries.GetArrayElementAtIndex(2),
+                "memory_deletion_0229",
+                TerminalEntryCategory.Logs,
+                "BELLEK DİZİNİ İŞLEMİ",
+                "02:29 — manuel silme isteği\nHedef blok: kişisel anı kümesi\nDoğrulama: yerel biyometrik",
+                assets.MemoryDeletionEvidence.StableId,
+                "flag.mert.memory_deletion_read");
+            ConfigureTerminalEntry(
+                entries.GetArrayElementAtIndex(3),
+                "file_nlp_0417",
+                TerminalEntryCategory.Files,
+                "NLP-0417 // BOZUK BAŞLIK",
+                "Dosya gövdesi kurtarılamadı. Kimlik: NLP-0417. Son yerel değişiklik: 02:28.",
+                string.Empty,
+                "flag.mert.nlp_0417_seen");
+            ConfigureTerminalEntry(
+                entries.GetArrayElementAtIndex(4),
+                "mail_unsent",
+                TerminalEntryCategory.Mail,
+                "GÖNDERİLMEMİŞ TASLAK",
+                "Temiz kayıt, doğru kayıt demek değil. Fiziksel kopyayı bul.",
+                string.Empty,
+                string.Empty);
+            ConfigureTerminalEntry(
+                entries.GetArrayElementAtIndex(5),
+                "last_contact",
+                TerminalEntryCategory.Security,
+                "SON TEMAS DENEMESİ",
+                "02:31 — EREN VARDAR\nArama başlatıldı. Karşı cihaz teslim kaydı yok.",
+                assets.CallRecordEvidence.StableId,
+                "flag.mert.last_contact_revealed",
+                "flag.mert.postmortem_terminal_deduced");
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -298,7 +571,8 @@ namespace NullPointer.Editor
             string title,
             string body,
             string evidenceId,
-            string storyFlag)
+            string storyFlag,
+            string requiredStoryFlag = "")
         {
             entry.FindPropertyRelative("_entryId").stringValue = entryId;
             entry.FindPropertyRelative("_category").enumValueIndex = (int)category;
@@ -306,6 +580,7 @@ namespace NullPointer.Editor
             entry.FindPropertyRelative("_body").stringValue = body;
             entry.FindPropertyRelative("_evidenceId").stringValue = evidenceId;
             entry.FindPropertyRelative("_storyFlagToSet").stringValue = storyFlag;
+            entry.FindPropertyRelative("_requiredStoryFlag").stringValue = requiredStoryFlag;
         }
 
         private static void ConfigureMemory(MemoryData data)
@@ -320,8 +595,9 @@ namespace NullPointer.Editor
             {
                 "LABORATUVAR // görüntü kaybı",
                 "ALARM // bağlantı kararsız",
-                "MERT: “Başladıktan sonra geri dönüş yok.”",
-                "BİR SİLUET // kimlik çözülemedi",
+                "MERT: “Bunu başlatırsak geri dönüşü yok.”",
+                "EREN // yansıma doğrulanamadı",
+                "İKİ BELİRSİZ FİGÜR // kimlik çözülemedi",
                 "SİNYAL KESİLDİ"
             };
             Color[] colors =
@@ -329,6 +605,7 @@ namespace NullPointer.Editor
                 new Color(0.05f, 0.8f, 0.9f, 0.38f),
                 new Color(0.85f, 0.1f, 0.16f, 0.42f),
                 new Color(0.95f, 0.58f, 0.12f, 0.35f),
+                new Color(0.05f, 0.65f, 0.72f, 0.42f),
                 new Color(0.15f, 0.2f, 0.25f, 0.65f),
                 new Color(0.8f, 0.08f, 0.14f, 0.48f)
             };
@@ -368,6 +645,22 @@ namespace NullPointer.Editor
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        private static void ConfigureChapterEndDialogue(DialogueData data, CharacterData speaker)
+        {
+            SerializedObject serialized = BeginContent(
+                data,
+                "dialogue.ch01.ending_hook",
+                "Chapter 1 ending reveal after the completed deduction chain.");
+            serialized.FindProperty("_startNodeId").stringValue = "contact";
+            SerializedProperty nodes = serialized.FindProperty("_nodes");
+            nodes.arraySize = 4;
+            ConfigureDialogueNode(nodes.GetArrayElementAtIndex(0), "contact", speaker, "Mert'in son temas girişimi: EREN VARDAR.", "absence");
+            ConfigureDialogueNode(nodes.GetArrayElementAtIndex(1), "absence", speaker, "Arama ölümden kısa süre önce yapılmış. Benim cihazımda karşılık gelen hiçbir kayıt yok.", "identifier");
+            ConfigureDialogueNode(nodes.GetArrayElementAtIndex(2), "identifier", speaker, "Fotoğraf, silinen bellek bloğu ve bozuk dosya aynı işarete çıkıyor: NLP-0417.", "hook");
+            ConfigureDialogueNode(nodes.GetArrayElementAtIndex(3), "hook", speaker, "Mert beni aradı. Beni tanıyordu. Ben neden hiçbirini hatırlamıyorum?", string.Empty);
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         private static void ConfigureDialogueNode(
             SerializedProperty node,
             string nodeId,
@@ -385,7 +678,7 @@ namespace NullPointer.Editor
 
         private static void ConfigureCatalog(OpeningAssets assets)
         {
-            AuthoredContentAsset[] allContent =
+            AuthoredContentAsset[] allContent = new AuthoredContentAsset[]
             {
                 assets.Case,
                 assets.Eren,
@@ -393,25 +686,76 @@ namespace NullPointer.Editor
                 assets.Dispatch,
                 assets.ErenLocation,
                 assets.MertLocation,
+                assets.MainMenuLocation,
                 assets.MedicationInspection,
                 assets.ForeshadowInspection,
                 assets.MertPhotoInspection,
                 assets.DeathTimeInspection,
+                assets.CoffeeInspection,
+                assets.ImplantInspection,
+                assets.DoorInspection,
+                assets.NotesInspection,
+                assets.MedicalInspection,
+                assets.ErenDeviceInspection,
                 assets.MertPhotoEvidence,
                 assets.MertTerminalEvidence,
                 assets.MertDeathTimeEvidence,
+                assets.DamagedImplantEvidence,
+                assets.DoorStatusEvidence,
+                assets.CallRecordEvidence,
+                assets.MemoryDeletionEvidence,
+                assets.ErenCallHistoryEvidence,
                 assets.PostmortemDeduction,
+                assets.SuicideInconsistentDeduction,
+                assets.LockedRoomDeduction,
                 assets.DispatchTerminal,
                 assets.MertTerminal,
                 assets.PhotoMemory,
-                assets.MertRecorderDialogue
-            };
+                assets.MertRecorderDialogue,
+                assets.ChapterEndDialogue,
+                assets.TimelineClaim
+            }.Concat(assets.Objectives)
+                .Concat(new[]
+                {
+                    assets.ErenStartCheckpoint,
+                    assets.DispatchCheckpoint,
+                    assets.MertEntranceCheckpoint,
+                    assets.CriticalEvidenceCheckpoint,
+                    assets.FirstDeductionCheckpoint
+                })
+                .Concat(assets.JournalEntries)
+                .ToArray();
             SerializedObject serialized = new SerializedObject(assets.Catalog);
             SetObjectArray(serialized.FindProperty("_allContent"), allContent);
             SetObjectArray(
                 serialized.FindProperty("_evidence"),
-                new[] { assets.MertPhotoEvidence, assets.MertTerminalEvidence, assets.MertDeathTimeEvidence });
-            SetObjectArray(serialized.FindProperty("_deductions"), new[] { assets.PostmortemDeduction });
+                new[]
+                {
+                    assets.MertPhotoEvidence,
+                    assets.MertTerminalEvidence,
+                    assets.MertDeathTimeEvidence,
+                    assets.DamagedImplantEvidence,
+                    assets.DoorStatusEvidence,
+                    assets.CallRecordEvidence,
+                    assets.MemoryDeletionEvidence,
+                    assets.ErenCallHistoryEvidence
+                });
+            SetObjectArray(
+                serialized.FindProperty("_deductions"),
+                new[] { assets.PostmortemDeduction, assets.SuicideInconsistentDeduction, assets.LockedRoomDeduction });
+            SetObjectArray(serialized.FindProperty("_objectives"), assets.Objectives);
+            SetObjectArray(
+                serialized.FindProperty("_checkpoints"),
+                new[]
+                {
+                    assets.ErenStartCheckpoint,
+                    assets.DispatchCheckpoint,
+                    assets.MertEntranceCheckpoint,
+                    assets.CriticalEvidenceCheckpoint,
+                    assets.FirstDeductionCheckpoint
+                });
+            SetObjectArray(serialized.FindProperty("_journalEntries"), assets.JournalEntries);
+            SetObjectArray(serialized.FindProperty("_interrogationClaims"), new[] { assets.TimelineClaim });
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -433,6 +777,8 @@ namespace NullPointer.Editor
                     loader,
                     assets.Catalog,
                     assets.ErenLocation,
+                    assets.MainMenuLocation,
+                    assets.ErenStartCheckpoint,
                     "entry");
 
                 var cameraObject = new GameObject("Bootstrap Camera");
@@ -440,6 +786,51 @@ namespace NullPointer.Editor
                 Camera camera = cameraObject.AddComponent<Camera>();
                 camera.clearFlags = CameraClearFlags.SolidColor;
                 camera.backgroundColor = BackgroundColor;
+            });
+        }
+
+        private static void BuildMainMenuScene()
+        {
+            BuildScene(MainMenuScenePath, () =>
+            {
+                CreateCamera();
+                var eventSystemObject = new GameObject("Event System");
+                eventSystemObject.AddComponent<EventSystem>();
+                eventSystemObject.AddComponent<InputSystemUIInputModule>();
+
+                var canvasObject = new GameObject("Main Menu Canvas", typeof(RectTransform));
+                Canvas canvas = canvasObject.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                CanvasScaler scaler = canvasObject.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920f, 1080f);
+                canvasObject.AddComponent<GraphicRaycaster>();
+
+                GameObject backdrop = CreateImage(
+                    canvasObject.transform,
+                    "Noir Backdrop",
+                    Vector2.zero,
+                    Vector2.one,
+                    Vector2.zero,
+                    Vector2.zero,
+                    BackgroundColor);
+                CreateImage(backdrop.transform, "Cyan Horizon", new Vector2(0f, 0.2f), new Vector2(1f, 0.21f), Vector2.zero, Vector2.zero, new Color(0.1f, 0.55f, 0.62f, 0.45f));
+                CreateText(backdrop.transform, "Title", "NULL POINTER", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -190f), new Vector2(1100f, 110f), 72, TextAnchor.MiddleCenter, TextColor);
+                CreateText(backdrop.transform, "Subtitle", "ANILAR SİLİNMEDEN ÖNCE", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -275f), new Vector2(900f, 60f), 28, TextAnchor.MiddleCenter, Cyan);
+
+                GameObject menuRoot = CreateRect(backdrop.transform, "Main Menu", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -80f), new Vector2(520f, 460f));
+                Button newGame = CreateButton(menuRoot.transform, "New Game", "YENİ OYUN", new Vector2(420f, 70f), new Vector2(0f, 150f), Cyan, out _);
+                Button continueGame = CreateButton(menuRoot.transform, "Continue", "DEVAM ET", new Vector2(420f, 70f), new Vector2(0f, 55f), new Color(0.1f, 0.32f, 0.36f, 1f), out _);
+                Button settings = CreateButton(menuRoot.transform, "Settings", "AYARLAR", new Vector2(420f, 70f), new Vector2(0f, -40f), new Color(0.16f, 0.22f, 0.28f, 1f), out _);
+                Button quit = CreateButton(menuRoot.transform, "Quit", "ÇIKIŞ", new Vector2(420f, 70f), new Vector2(0f, -135f), Red, out _);
+                MainMenuPanel panel = menuRoot.AddComponent<MainMenuPanel>();
+                panel.Configure(newGame, continueGame, settings, quit);
+                SettingsPanel settingsPanel = CreateSettingsPanel(backdrop.transform, "Main Menu Settings");
+                MainMenuController controller = backdrop.AddComponent<MainMenuController>();
+                controller.Configure(panel, settingsPanel);
+                MainMenuSceneInstaller installer = backdrop.AddComponent<MainMenuSceneInstaller>();
+                installer.Configure(controller);
+                settingsPanel.Hide();
             });
         }
 
@@ -497,6 +888,32 @@ namespace NullPointer.Editor
                     setup.Ui.EvidenceNotification,
                     new[] { transition },
                     new[] { setup.SpawnPoint });
+                ProgressionCoordinator progression = setup.Installer.gameObject.AddComponent<ProgressionCoordinator>();
+                progression.Configure(
+                    setup.Ui.TerminalController,
+                    new[]
+                    {
+                        new ProgressionMilestone(
+                            ProgressionTriggerKind.SceneEntered,
+                            assets.ErenLocation.StableId,
+                            objectiveToStart: assets.Objectives[0],
+                            checkpoint: assets.ErenStartCheckpoint),
+                        new ProgressionMilestone(
+                            ProgressionTriggerKind.TerminalEntryOpened,
+                            "dispatch_0317",
+                            assets.Objectives[0],
+                            assets.Objectives[1],
+                            assets.DispatchCheckpoint)
+                    });
+                setup.Installer.ConfigureProduction(
+                    setup.Ui.PauseMenuController,
+                    setup.Ui.ObjectivePresenter,
+                    progression,
+                    null);
+                setup.Installer.ConfigureAudioHooks(CreateAudioHooks(
+                    assets,
+                    setup.Ui.TerminalController,
+                    LocationAmbienceKind.DistantTraffic));
             });
         }
 
@@ -506,9 +923,13 @@ namespace NullPointer.Editor
             {
                 SceneSetup setup = CreateGameplayScene("MERT'İN DAİRESİ // OLAY YERİ", assets.MertLocation);
 
+                CreateWorldBlock("Rain Window", new Vector3(-4.9f, 1.4f, 0f), new Vector2(2.2f, 2.8f), new Color(0.04f, 0.2f, 0.27f, 1f), GetPlaceholderSprite(), false, -2);
+                CreateWorldBlock("Workstation Pool", new Vector3(-1.8f, -0.7f, 0f), new Vector2(2.6f, 1.8f), new Color(0.08f, 0.18f, 0.2f, 1f), GetPlaceholderSprite(), false, -2);
+                CreateWorldBlock("Locked Interior", new Vector3(4.6f, 0.1f, 0f), new Vector2(3.1f, 4.4f), new Color(0.08f, 0.06f, 0.12f, 1f), GetPlaceholderSprite(), false, -3);
+
                 GameObject photograph = CreateInteractableBlock(
                     "Mert Photograph",
-                    new Vector3(-3.5f, -1.2f, 0f),
+                    new Vector3(-4.95f, -1.2f, 0f),
                     new Vector2(0.75f, 0.95f),
                     Cyan);
                 MemoryEvidenceTrigger memoryTrigger = photograph.AddComponent<MemoryEvidenceTrigger>();
@@ -521,7 +942,7 @@ namespace NullPointer.Editor
 
                 GameObject terminal = CreateInteractableBlock(
                     "Mert Terminal",
-                    new Vector3(-1.15f, -1.1f, 0f),
+                    new Vector3(-2.35f, -1.1f, 0f),
                     new Vector2(1.1f, 1.25f),
                     Amber);
                 terminal.AddComponent<TerminalInteractable>().Configure(
@@ -530,7 +951,7 @@ namespace NullPointer.Editor
 
                 GameObject deathTime = CreateInteractableBlock(
                     "Biometric Death Time",
-                    new Vector3(1.35f, -1.35f, 0f),
+                    new Vector3(0.45f, -1.35f, 0f),
                     new Vector2(0.75f, 0.6f),
                     Red);
                 deathTime.AddComponent<EvidenceInteractable>().Configure(
@@ -540,19 +961,26 @@ namespace NullPointer.Editor
 
                 GameObject board = CreateInteractableBlock(
                     "Evidence Board",
-                    new Vector3(3.45f, -0.95f, 0f),
+                    new Vector3(5.15f, -0.95f, 0f),
                     new Vector2(1.4f, 1.55f),
                     new Color(0.18f, 0.52f, 0.58f, 1f));
                 board.AddComponent<EvidenceBoardInteractable>().Configure(setup.Ui.EvidenceBoardController);
 
                 GameObject recorder = CreateInteractableBlock(
                     "Damaged Recorder",
-                    new Vector3(5.2f, -1.4f, 0f),
+                    new Vector3(6.15f, -1.4f, 0f),
                     new Vector2(0.55f, 0.55f),
                     new Color(0.45f, 0.25f, 0.32f, 1f));
                 recorder.AddComponent<DialogueInteractable>().Configure(
                     setup.Ui.DialogueController,
                     assets.MertRecorderDialogue);
+
+                CreateEvidenceObject("Damaged Memory Implant", -0.9f, assets.ImplantInspection, assets.DamagedImplantEvidence, setup);
+                CreateEvidenceObject("Internal Door Latch", 1.75f, assets.DoorInspection, assets.DoorStatusEvidence, setup);
+                CreateInspectionObject("Unfinished Coffee", -3.75f, assets.CoffeeInspection, setup, new Color(0.48f, 0.31f, 0.16f, 1f));
+                CreateInspectionObject("Personal Notes", 3f, assets.NotesInspection, setup, new Color(0.55f, 0.48f, 0.3f, 1f));
+                CreateInspectionObject("Medical Calibrator", 4.05f, assets.MedicalInspection, setup, new Color(0.3f, 0.4f, 0.52f, 1f));
+                CreateEvidenceObject("Eren Device History", -6.1f, assets.ErenDeviceInspection, assets.ErenCallHistoryEvidence, setup);
 
                 setup.Installer.Configure(
                     assets.MertLocation,
@@ -567,7 +995,76 @@ namespace NullPointer.Editor
                     setup.Ui.EvidenceNotification,
                     Array.Empty<SceneTransitionInteractable>(),
                     new[] { setup.SpawnPoint });
+                ProgressionCoordinator progression = setup.Installer.gameObject.AddComponent<ProgressionCoordinator>();
+                progression.Configure(
+                    setup.Ui.TerminalController,
+                    new[]
+                    {
+                        new ProgressionMilestone(ProgressionTriggerKind.SceneEntered, assets.MertLocation.StableId, assets.Objectives[1], assets.Objectives[2], assets.MertEntranceCheckpoint),
+                        new ProgressionMilestone(ProgressionTriggerKind.EvidenceCollected, assets.DamagedImplantEvidence.StableId, assets.Objectives[2], assets.Objectives[3]),
+                        new ProgressionMilestone(ProgressionTriggerKind.EvidenceCollected, assets.MertDeathTimeEvidence.StableId, assets.Objectives[3], assets.Objectives[4], assets.CriticalEvidenceCheckpoint),
+                        new ProgressionMilestone(ProgressionTriggerKind.EvidenceCollected, assets.MertTerminalEvidence.StableId, assets.Objectives[4], assets.Objectives[5]),
+                        new ProgressionMilestone(ProgressionTriggerKind.MemoryUnlocked, assets.PhotoMemory.StableId, assets.Objectives[5], assets.Objectives[6]),
+                        new ProgressionMilestone(ProgressionTriggerKind.DeductionCompleted, assets.PostmortemDeduction.StableId, checkpoint: assets.FirstDeductionCheckpoint),
+                        new ProgressionMilestone(ProgressionTriggerKind.DeductionCompleted, assets.LockedRoomDeduction.StableId, assets.Objectives[6], storyFlagToSet: "flag.ch01.completed", chapterIdToComplete: "chapter.01")
+                    });
+                ChapterEndSequenceController chapterEnd = setup.Installer.gameObject.AddComponent<ChapterEndSequenceController>();
+                chapterEnd.Configure(
+                    assets.LockedRoomDeduction.StableId,
+                    assets.ChapterEndDialogue,
+                    setup.Ui.DialogueController);
+                setup.Installer.ConfigureProduction(
+                    setup.Ui.PauseMenuController,
+                    setup.Ui.ObjectivePresenter,
+                    progression,
+                    chapterEnd);
+                setup.Installer.ConfigureAudioHooks(CreateAudioHooks(
+                    assets,
+                    setup.Ui.TerminalController,
+                    LocationAmbienceKind.Rain,
+                    assets.LockedRoomDeduction.StableId));
             });
+        }
+
+        private static GameplayAudioHooks CreateAudioHooks(
+            OpeningAssets assets,
+            TerminalController terminal,
+            LocationAmbienceKind ambience,
+            string chapterEndDeductionId = "")
+        {
+            var root = new GameObject("Authored Audio Hooks");
+            AudioSource ambienceSource = root.AddComponent<AudioSource>();
+            ambienceSource.playOnAwake = false;
+            ambienceSource.loop = true;
+            AudioSource sfxSource = root.AddComponent<AudioSource>();
+            sfxSource.playOnAwake = false;
+            AudioCuePlayer player = root.AddComponent<AudioCuePlayer>();
+            player.Configure(assets.AudioCues, ambienceSource, sfxSource);
+            GameplayAudioHooks hooks = root.AddComponent<GameplayAudioHooks>();
+            hooks.Configure(player, terminal, ambience, chapterEndDeductionId);
+            return hooks;
+        }
+
+        private static void CreateEvidenceObject(
+            string name,
+            float x,
+            InspectData inspection,
+            EvidenceData evidence,
+            SceneSetup setup)
+        {
+            GameObject item = CreateInteractableBlock(name, new Vector3(x, -1.3f, 0f), new Vector2(0.62f, 0.72f), Cyan);
+            item.AddComponent<EvidenceInteractable>().Configure(setup.Ui.InspectController, inspection, evidence);
+        }
+
+        private static void CreateInspectionObject(
+            string name,
+            float x,
+            InspectData inspection,
+            SceneSetup setup,
+            Color color)
+        {
+            GameObject item = CreateInteractableBlock(name, new Vector3(x, -1.35f, 0f), new Vector2(0.55f, 0.58f), color);
+            item.AddComponent<InspectInteractable>().Configure(setup.Ui.InspectController, inspection);
         }
 
         private static SceneSetup CreateGameplayScene(string sceneTitle, LocationData location)
@@ -654,10 +1151,14 @@ namespace NullPointer.Editor
                 MemoryController = systems.AddComponent<MemoryController>(),
                 EvidenceBoardController = systems.AddComponent<EvidenceBoardController>(),
                 InteractionPrompt = systems.AddComponent<InteractionPromptController>(),
-                EvidenceNotification = systems.AddComponent<EvidenceNotificationController>()
+                EvidenceNotification = systems.AddComponent<EvidenceNotificationController>(),
+                PauseMenuController = systems.AddComponent<PauseMenuController>(),
+                ObjectivePresenter = systems.AddComponent<ObjectivePresenter>()
             };
 
             ConfigureHud(canvasObject.transform, ui);
+            ConfigureObjectiveHud(canvasObject.transform, ui);
+            ConfigurePauseInterface(canvasObject.transform, ui);
             ConfigureInspectPanel(canvasObject.transform, ui);
             ConfigureDialoguePanel(canvasObject.transform, ui);
             ConfigureTerminalPanel(canvasObject.transform, ui);
@@ -713,6 +1214,52 @@ namespace NullPointer.Editor
             notificationRoot.SetActive(false);
         }
 
+        private static void ConfigureObjectiveHud(Transform canvas, SceneUi ui)
+        {
+            GameObject root = CreateImage(
+                canvas,
+                "Objective HUD",
+                new Vector2(0f, 1f),
+                new Vector2(0f, 1f),
+                new Vector2(330f, -72f),
+                new Vector2(610f, 72f),
+                new Color(0.02f, 0.05f, 0.07f, 0.9f));
+            Text label = CreateText(root.transform, "Objective", string.Empty, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-30f, -16f), 24, TextAnchor.MiddleLeft, TextColor);
+            ui.ObjectivePresenter.Configure(root, label);
+        }
+
+        private static void ConfigurePauseInterface(Transform canvas, SceneUi ui)
+        {
+            GameObject pauseRoot = CreateModalRoot(canvas, "Pause Menu", new Color(0.005f, 0.012f, 0.025f, 0.94f));
+            GameObject frame = CreateImage(pauseRoot.transform, "Pause Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(620f, 650f), PanelColor);
+            CreateText(frame.transform, "Heading", "DURAKLATILDI", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -85f), new Vector2(500f, 70f), 42, TextAnchor.MiddleCenter, Cyan);
+            Button resume = CreateButton(frame.transform, "Resume", "DEVAM", new Vector2(430f, 68f), new Vector2(0f, 120f), Cyan, out _);
+            Button journal = CreateButton(frame.transform, "Journal", "SORUŞTURMA DEFTERİ", new Vector2(430f, 68f), new Vector2(0f, 30f), new Color(0.08f, 0.24f, 0.28f, 1f), out _);
+            Button settingsButton = CreateButton(frame.transform, "Settings", "AYARLAR", new Vector2(430f, 68f), new Vector2(0f, -60f), new Color(0.15f, 0.2f, 0.28f, 1f), out _);
+            Button mainMenu = CreateButton(frame.transform, "Main Menu", "ANA MENÜ", new Vector2(430f, 68f), new Vector2(0f, -150f), Red, out _);
+            PauseMenuPanel pausePanel = pauseRoot.AddComponent<PauseMenuPanel>();
+            pausePanel.Configure(resume, journal, settingsButton, mainMenu);
+
+            GameObject journalRoot = CreateModalRoot(canvas, "Investigation Journal", new Color(0.005f, 0.012f, 0.025f, 0.98f));
+            GameObject journalFrame = CreateImage(journalRoot.transform, "Journal Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1660f, 900f), PanelColor);
+            Text heading = CreateText(journalFrame.transform, "Heading", "DOSYALAR", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(260f, -65f), new Vector2(480f, 60f), 38, TextAnchor.MiddleLeft, Cyan);
+            Text content = CreateText(journalFrame.transform, "Content", string.Empty, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(550f, -10f), new Vector2(960f, 660f), 25, TextAnchor.UpperLeft, TextColor);
+            Button cases = CreateButton(journalFrame.transform, "Cases", "DOSYALAR", new Vector2(310f, 58f), new Vector2(-625f, 260f), Cyan, out _);
+            Button people = CreateButton(journalFrame.transform, "People", "KİŞİLER", new Vector2(310f, 58f), new Vector2(-625f, 188f), new Color(0.08f, 0.24f, 0.28f, 1f), out _);
+            Button evidence = CreateButton(journalFrame.transform, "Evidence", "KANITLAR", new Vector2(310f, 58f), new Vector2(-625f, 116f), new Color(0.08f, 0.24f, 0.28f, 1f), out _);
+            Button questions = CreateButton(journalFrame.transform, "Questions", "SORULAR", new Vector2(310f, 58f), new Vector2(-625f, 44f), new Color(0.08f, 0.24f, 0.28f, 1f), out _);
+            Button timeline = CreateButton(journalFrame.transform, "Timeline", "ZAMAN ÇİZELGESİ", new Vector2(310f, 58f), new Vector2(-625f, -28f), Amber, out _);
+            Button journalBack = CreateButton(journalFrame.transform, "Back", "GERİ", new Vector2(180f, 58f), new Vector2(690f, -370f), Red, out _);
+            JournalPanel journalPanel = journalRoot.AddComponent<JournalPanel>();
+            journalPanel.Configure(heading, content, cases, people, evidence, questions, timeline, journalBack);
+
+            SettingsPanel settingsPanel = CreateSettingsPanel(canvas, "Pause Settings");
+            ui.PauseMenuController.Configure(pausePanel, journalPanel, settingsPanel);
+            pauseRoot.SetActive(false);
+            journalRoot.SetActive(false);
+            settingsPanel.Hide();
+        }
+
         private static void ConfigureInspectPanel(Transform canvas, SceneUi ui)
         {
             GameObject root = CreateModalRoot(canvas, "Inspect Panel", new Color(0.01f, 0.025f, 0.035f, 0.94f));
@@ -741,6 +1288,7 @@ namespace NullPointer.Editor
             GameObject frame = CreateImage(root.transform, "Dialogue Frame", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 245f), new Vector2(1460f, 390f), PanelColor);
             Text speaker = CreateText(frame.transform, "Speaker", string.Empty, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(235f, -55f), new Vector2(420f, 55f), 30, TextAnchor.MiddleLeft, Amber);
             Text body = CreateText(frame.transform, "Body", string.Empty, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-160f, 50f), new Vector2(1000f, 180f), 30, TextAnchor.UpperLeft, TextColor);
+            Text history = CreateText(frame.transform, "History", string.Empty, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(170f, 35f), new Vector2(300f, 190f), 17, TextAnchor.LowerLeft, new Color(0.55f, 0.65f, 0.68f, 1f));
             Button continueButton = CreateButton(frame.transform, "Continue", "DEVAM", new Vector2(175f, 58f), new Vector2(500f, -130f), Cyan, out _);
             Button closeButton = CreateButton(frame.transform, "Close", "KAPAT", new Vector2(150f, 54f), new Vector2(500f, 145f), new Color(0.2f, 0.28f, 0.32f, 1f), out _);
             var choiceButtons = new Button[3];
@@ -751,7 +1299,7 @@ namespace NullPointer.Editor
             }
 
             DialoguePanel panel = root.AddComponent<DialoguePanel>();
-            panel.Configure(root, speaker, body, continueButton, closeButton, choiceButtons, choiceLabels);
+            panel.Configure(root, speaker, body, history, continueButton, closeButton, choiceButtons, choiceLabels);
             ui.DialogueController.Configure(panel);
             root.SetActive(false);
         }
@@ -813,6 +1361,83 @@ namespace NullPointer.Editor
             panel.Configure(root, status, solved, attempt, reset, close, evidenceButtons, evidenceLabels);
             ui.EvidenceBoardController.Configure(panel);
             root.SetActive(false);
+        }
+
+        private static SettingsPanel CreateSettingsPanel(Transform canvas, string name)
+        {
+            GameObject root = CreateModalRoot(canvas, name, new Color(0.005f, 0.012f, 0.025f, 0.98f));
+            GameObject frame = CreateImage(root.transform, "Settings Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1180f, 860f), PanelColor);
+            CreateText(frame.transform, "Heading", "AYARLAR", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -70f), new Vector2(1000f, 70f), 42, TextAnchor.MiddleLeft, Cyan);
+
+            Slider master = CreateLabeledSlider(frame.transform, "Master", "ANA SES", 245f, 0f, 1f);
+            Slider music = CreateLabeledSlider(frame.transform, "Music", "MÜZİK", 150f, 0f, 1f);
+            Slider sfx = CreateLabeledSlider(frame.transform, "SFX", "EFEKTLER", 55f, 0f, 1f);
+            Slider textSpeed = CreateLabeledSlider(frame.transform, "Text Speed", "METİN HIZI", -40f, 0f, 0.08f);
+            Toggle fullscreen = CreateLabeledToggle(frame.transform, "Fullscreen", "TAM EKRAN", -150f);
+            Dropdown resolution = CreateLabeledDropdown(frame.transform, "Resolution", "ÇÖZÜNÜRLÜK", -245f);
+            Button apply = CreateButton(frame.transform, "Apply", "UYGULA", new Vector2(210f, 62f), new Vector2(300f, -350f), Cyan, out _);
+            Button back = CreateButton(frame.transform, "Back", "GERİ", new Vector2(180f, 62f), new Vector2(520f, -350f), Red, out _);
+            SettingsPanel panel = root.AddComponent<SettingsPanel>();
+            panel.Configure(master, music, sfx, textSpeed, fullscreen, resolution, apply, back);
+            return panel;
+        }
+
+        private static Slider CreateLabeledSlider(
+            Transform parent,
+            string name,
+            string labelText,
+            float y,
+            float minimum,
+            float maximum)
+        {
+            CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-350f, y), new Vector2(260f, 45f), 23, TextAnchor.MiddleLeft, TextColor);
+            GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(150f, y), new Vector2(640f, 36f), new Color(0.06f, 0.1f, 0.14f, 1f));
+            GameObject fill = CreateImage(root.transform, "Fill", new Vector2(0f, 0f), new Vector2(0.8f, 1f), Vector2.zero, Vector2.zero, Cyan);
+            GameObject handle = CreateImage(root.transform, "Handle", new Vector2(0.8f, 0.5f), new Vector2(0.8f, 0.5f), Vector2.zero, new Vector2(28f, 48f), TextColor);
+            Slider slider = root.AddComponent<Slider>();
+            slider.fillRect = fill.GetComponent<RectTransform>();
+            slider.handleRect = handle.GetComponent<RectTransform>();
+            slider.targetGraphic = handle.GetComponent<Image>();
+            slider.minValue = minimum;
+            slider.maxValue = maximum;
+            return slider;
+        }
+
+        private static Toggle CreateLabeledToggle(Transform parent, string name, string labelText, float y)
+        {
+            CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-350f, y), new Vector2(260f, 45f), 23, TextAnchor.MiddleLeft, TextColor);
+            GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-140f, y), new Vector2(46f, 46f), new Color(0.08f, 0.14f, 0.18f, 1f));
+            Image checkmark = CreateImage(root.transform, "Checkmark", new Vector2(0.18f, 0.18f), new Vector2(0.82f, 0.82f), Vector2.zero, Vector2.zero, Cyan).GetComponent<Image>();
+            Toggle toggle = root.AddComponent<Toggle>();
+            toggle.targetGraphic = root.GetComponent<Image>();
+            toggle.graphic = checkmark;
+            return toggle;
+        }
+
+        private static Dropdown CreateLabeledDropdown(Transform parent, string name, string labelText, float y)
+        {
+            CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-350f, y), new Vector2(260f, 45f), 23, TextAnchor.MiddleLeft, TextColor);
+            GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(150f, y), new Vector2(640f, 52f), new Color(0.06f, 0.12f, 0.16f, 1f));
+            Text caption = CreateText(root.transform, "Label", "1920 × 1080", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-34f, -8f), 22, TextAnchor.MiddleLeft, TextColor);
+            GameObject template = CreateImage(root.transform, "Template", new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, -122f), new Vector2(0f, 190f), new Color(0.03f, 0.07f, 0.09f, 1f));
+            var scrollRect = template.AddComponent<ScrollRect>();
+            GameObject viewport = CreateImage(template.transform, "Viewport", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, Color.white);
+            viewport.AddComponent<Mask>().showMaskGraphic = false;
+            GameObject content = CreateRect(viewport.transform, "Content", new Vector2(0f, 1f), new Vector2(1f, 1f), Vector2.zero, new Vector2(0f, 40f));
+            GameObject item = CreateImage(content.transform, "Item", new Vector2(0f, 0.5f), new Vector2(1f, 0.5f), Vector2.zero, new Vector2(0f, 40f), new Color(0.06f, 0.13f, 0.17f, 1f));
+            Toggle toggle = item.AddComponent<Toggle>();
+            toggle.targetGraphic = item.GetComponent<Image>();
+            Text itemLabel = CreateText(item.transform, "Item Label", "Resolution", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-24f, -4f), 20, TextAnchor.MiddleLeft, TextColor);
+            scrollRect.viewport = viewport.GetComponent<RectTransform>();
+            scrollRect.content = content.GetComponent<RectTransform>();
+            scrollRect.horizontal = false;
+            Dropdown dropdown = root.AddComponent<Dropdown>();
+            dropdown.targetGraphic = root.GetComponent<Image>();
+            dropdown.template = template.GetComponent<RectTransform>();
+            dropdown.captionText = caption;
+            dropdown.itemText = itemLabel;
+            template.SetActive(false);
+            return dropdown;
         }
 
         private static void CreateCamera()
@@ -1030,6 +1655,7 @@ namespace NullPointer.Editor
             EditorBuildSettings.scenes = new[]
             {
                 new EditorBuildSettingsScene(BootstrapScenePath, true),
+                new EditorBuildSettingsScene(MainMenuScenePath, true),
                 new EditorBuildSettingsScene(ErenScenePath, true),
                 new EditorBuildSettingsScene(MertScenePath, true)
             };
@@ -1113,18 +1739,42 @@ namespace NullPointer.Editor
             public CharacterData Dispatch;
             public LocationData ErenLocation;
             public LocationData MertLocation;
+            public LocationData MainMenuLocation;
             public InspectData MedicationInspection;
             public InspectData ForeshadowInspection;
             public InspectData MertPhotoInspection;
             public InspectData DeathTimeInspection;
+            public InspectData CoffeeInspection;
+            public InspectData ImplantInspection;
+            public InspectData DoorInspection;
+            public InspectData NotesInspection;
+            public InspectData MedicalInspection;
+            public InspectData ErenDeviceInspection;
             public EvidenceData MertPhotoEvidence;
             public EvidenceData MertTerminalEvidence;
             public EvidenceData MertDeathTimeEvidence;
+            public EvidenceData DamagedImplantEvidence;
+            public EvidenceData DoorStatusEvidence;
+            public EvidenceData CallRecordEvidence;
+            public EvidenceData MemoryDeletionEvidence;
+            public EvidenceData ErenCallHistoryEvidence;
             public DeductionData PostmortemDeduction;
+            public DeductionData SuicideInconsistentDeduction;
+            public DeductionData LockedRoomDeduction;
             public TerminalData DispatchTerminal;
             public TerminalData MertTerminal;
             public MemoryData PhotoMemory;
             public DialogueData MertRecorderDialogue;
+            public DialogueData ChapterEndDialogue;
+            public ObjectiveData[] Objectives;
+            public CheckpointData ErenStartCheckpoint;
+            public CheckpointData DispatchCheckpoint;
+            public CheckpointData MertEntranceCheckpoint;
+            public CheckpointData CriticalEvidenceCheckpoint;
+            public CheckpointData FirstDeductionCheckpoint;
+            public JournalEntryData[] JournalEntries;
+            public InterrogationClaimData TimelineClaim;
+            public AudioCueSet AudioCues;
             public ContentCatalog Catalog;
         }
 
@@ -1146,6 +1796,8 @@ namespace NullPointer.Editor
             public EvidenceBoardController EvidenceBoardController;
             public InteractionPromptController InteractionPrompt;
             public EvidenceNotificationController EvidenceNotification;
+            public PauseMenuController PauseMenuController;
+            public ObjectivePresenter ObjectivePresenter;
         }
     }
 }

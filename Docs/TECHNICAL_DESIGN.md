@@ -14,7 +14,7 @@ This document defines the target technical architecture. It is a living design, 
 | Color space | Linear |
 | Input handling | New Input System only (`activeInputHandler: 1`) |
 | Input actions | Production foundation `Gameplay` map (Move, Interact, Pause) plus retained Unity `UI` navigation map |
-| Build scenes | Only `Assets/Scenes/SampleScene.unity`, enabled |
+| Build scenes | `SCN_Bootstrap` → `SCN_MainMenu` → `SCN_ErenApartment` → `SCN_MertApartment`; engineering scenes excluded |
 | Resolution baseline | 1920×1080 project default |
 | Test support | Unity Test Framework configured with EditMode and PlayMode assemblies plus command-line verification |
 | Existing game code | Core mode/state, input, horizontal player movement, and interaction foundation |
@@ -120,9 +120,9 @@ Adapters for scene loading, file storage, input, audio playback, localization-re
 
 ### Bootstrap Scene
 
-`SCN_Bootstrap` now owns the small `GameApplication` composition root. It constructs the current `GameState`, `EvidenceService`, `DeductionService`, and `MemoryService`; owns the authoritative `GameModeController`, input reader, pause handler, and `SceneLoader`; then asynchronously routes to the authored starting `LocationData`. This root is the sole `DontDestroyOnLoad` object because session state and transition ownership must survive single-scene loads. It contains no location presentation.
+`SCN_Bootstrap` owns the small `GameApplication` composition root. It constructs the current `GameState` plus evidence, deduction, memory, objective, checkpoint, chapter, journal, interrogation, save, and settings services; owns the authoritative `GameModeController`, input reader, pause handler, and `SceneLoader`; then asynchronously routes to `SCN_MainMenu`. This root is the sole `DontDestroyOnLoad` object because session state and transition ownership must survive single-scene loads. It contains no location presentation.
 
-`GameApplication` listens only at scene-load boundaries, finds the single explicit `OpeningSceneInstaller` among the loaded scene roots, and injects application services into scene-local controllers. Arbitrary gameplay scripts do not locate or access a global singleton. Save, audio, settings, and Main Menu services remain future work and are not stubbed into this root.
+`GameApplication` listens only at scene-load boundaries, finds the explicit gameplay or Main Menu installer among loaded scene roots, and injects application services into scene-local controllers. New Game creates a fresh session, activates the authored Eren-start checkpoint, writes the safe save, and loads the opening. Continue accepts only a validated save and resolves its checkpoint to an authored location/spawn pair. Arbitrary gameplay scripts do not locate or access a global singleton.
 
 ### Scene-Scoped Composition
 
@@ -157,9 +157,9 @@ Transient presentation state—open panels, hover target, current animation fram
 
 ### Implemented State Foundation
 
-Schema version 1 currently persists current case, location, checkpoint, story flags, collected evidence IDs, unlocked memory IDs, and completed deduction IDs. `GameState` exposes explicit mutation/query APIs and duplicate-safe ordinal sets. `GameStateSnapshot` is a serializable DTO; snapshot collections are sorted for deterministic output, and restore validates the schema while normalizing duplicates. Save-file I/O and migration orchestration remain intentionally unimplemented.
+Schema version 2 persists current case, location, checkpoint, story flags, collected evidence IDs, unlocked memory IDs, completed deductions, active/completed objectives, required dialogue/terminal progression IDs, and completed chapter IDs. `GameState` exposes explicit mutation/query APIs and duplicate-safe ordinal sets. `GameStateSnapshot` is a serializable DTO; snapshot collections are sorted for deterministic output, and restore validates the schema while normalizing duplicates.
 
-`GameModeService` is the single state owner behind a scene-wirable `GameModeController`. It exposes the current mode and a typed previous/current change event for Gameplay, Inspect, Dialogue, Terminal, EvidenceBoard, Memory, and Paused. Consumers receive the controller/service explicitly; there is no static singleton or scene lookup.
+`GameModeService` is the single state owner behind a scene-wirable `GameModeController`. It exposes the current mode and a typed previous/current change event for Gameplay, Inspect, Dialogue, Interrogation, Terminal, EvidenceBoard, Memory, and Paused. Consumers receive the controller/service explicitly; there is no static singleton or scene lookup.
 
 ## Stable IDs and Content Registry
 
@@ -200,7 +200,7 @@ The generic template gameplay actions have been replaced with:
 
 Keyboard and common gamepad bindings are present for all Gameplay actions. `GameplayInputReader` resolves the centralized action names and exposes `IGameplayInputSource`, allowing movement/interaction tests to provide input without synthesizing hardware events. The existing asset does not generate a C# wrapper.
 
-The persistent input reader mode-gates Move and Interact actions: they are enabled only in Gameplay. Pause remains enabled so the owning modal can close through the same device-agnostic input contract. `PauseInputHandler` handles only Gameplay/Paused; Inspect, Dialogue, Terminal, Evidence Board, and Memory own their cancel path.
+The persistent input reader mode-gates Move and Interact actions: they are enabled only in Gameplay. Pause remains enabled so the owning modal can close through the same device-agnostic input contract, and UI Cancel is routed to modal close only outside Gameplay. `PauseInputHandler` handles only Gameplay/Paused; Inspect, Dialogue, Interrogation, Terminal, Evidence Board, and Memory own their cancel path.
 
 ### Interaction
 
@@ -224,6 +224,18 @@ The persistent input reader mode-gates Move and Interact actions: they are enabl
 
 `TerminalData` contains a menu title and bounded authored entries categorized as Mail, Logs, Files, Security, Search, or Archive. Entries may add one evidence ID and/or story flag through domain APIs. `TerminalController` owns Terminal mode, controller/keyboard UI focus, entry viewing, evidence integration, and safe close. It never accesses host files or executes terminal text. Credentials, search, archives, and richer session persistence remain future work.
 
+Chapter 1 uses the implemented Mail, Logs, Files, and Security categories. Entries can be gated by a story flag, record stable read progress, and raise a typed event used by objective/checkpoint/audio integration. No unbounded or host-backed search is provided because Chapter 1 has no meaningful search corpus.
+
+### Objectives, Journal, Timeline, and Chapters
+
+`ObjectiveData` assets define ordered player guidance while `ObjectiveService` stores only stable active/completed IDs in `GameState`. Scene-local `ProgressionCoordinator` instances translate authored terminal/evidence/memory/deduction milestones into objective transitions, safe checkpoints, story flags, and chapter completion. Player, interaction, and UI code contain no chapter-specific branching.
+
+The journal is a projection over canonical state. `JournalEntryData` conditionally exposes Cases, People, Questions, and Timeline entries; collected evidence comes directly from `EvidenceService`. The timeline is authored as concise contradiction-oriented entries, not a second editable state store. `ChapterProgressionService` verifies required deductions before crossing a chapter boundary.
+
+### Interrogation
+
+Interrogation uses its own `GameMode.Interrogation`, controller, panel, interactable, authored claim data, and pure `InterrogationService`. Claims list acceptable contradicting evidence IDs and an unlocked branch flag. Irrelevant evidence produces restrained feedback without mutating state; a supported contradiction records stable dialogue progress and is duplicate-safe. Normal dialogue remains a separate runner/controller path. Chapter 1 contains a validated terminal-access claim fixture but no forced living-suspect scene.
+
 ### Audio
 
 Use mixer groups for Master, Music, Ambience, SFX, and Voice. A music/ambience controller handles transitions; pooled one-shot playback handles frequent SFX. User volume settings map to mixer parameters and persist outside individual saves.
@@ -243,6 +255,14 @@ All production transitions use `SceneLoader`. It rejects concurrent loads, raise
 - Save only at declared safe boundaries; UI must not claim success until durable write completes.
 - Global settings and per-playthrough state are separate files.
 - Windows storage uses Unity's persistent data path through an injected storage adapter.
+
+### Implemented Foundation
+
+`SaveManager` writes a versioned JSON envelope containing only `GameStateSnapshot`, primitives, and stable IDs. `FileSaveStorage` writes a temporary file and uses Windows atomic replacement with one `.bak` copy when replacing an existing save. Missing, malformed, and unsupported-schema files return explicit non-success results and never produce a partially restored session. The first shipping schema has no legacy migration yet; the envelope and state schemas are independently versioned so sequential migration can be introduced without changing storage or UI boundaries.
+
+Declared checkpoints are Eren start, dispatch complete, Mert entrance, first critical-evidence milestone, and first deduction complete. Saves occur at those safe boundaries and at Chapter 1 completion, not per frame or per incidental interaction. Development/tests can delete the slot through `SaveManager.Delete`.
+
+Settings use a separate `settings-v1.json` adapter and never share the story save. Master, music, and SFX values, fullscreen/windowed, supported resolution selection, and text speed are persisted. Master/display settings apply through Unity platform APIs; music/SFX values and nullable authored cue hooks are ready for the future mixer pass.
 
 ## UI Strategy
 
@@ -266,9 +286,18 @@ All menus require:
 | `Assets/Scenes/Gameplay` | Production locations and narrative sequences |
 | `Assets/Scenes/Test` | Focused developer/test harness scenes |
 
-Build Settings now start with `SCN_Bootstrap`, followed by `SCN_ErenApartment` and `SCN_MertApartment`. The template `SampleScene` remains untouched but is no longer enabled for production startup. `Assets/Scenes/Test/SCN_Test_GameplayFoundation.unity` remains an editor-only engineering harness and is intentionally excluded from Build Settings.
+Build Settings start with `SCN_Bootstrap`, followed by `SCN_MainMenu`, `SCN_ErenApartment`, and `SCN_MertApartment`. Bootstrap persists while the Main Menu owns only front-end presentation. The template `SampleScene` remains untouched but is not enabled for production startup. `Assets/Scenes/Test/SCN_Test_GameplayFoundation.unity` remains an editor-only engineering harness and is intentionally excluded from Build Settings.
 
-The explicit editor command **Null Pointer → Opening → Rebuild Authored Opening Content and Scenes** creates or updates the opening ScriptableObjects, registry, Bootstrap, both location scenes, and Build Settings. It is idempotent, preserves stable asset GUIDs, validates content IDs after generation, and refuses to discard an unsaved untitled scene during interactive use. Batch automation may replace only Unity's empty startup scene.
+The explicit editor command **Null Pointer → Opening → Rebuild Authored Opening Content and Scenes** creates or updates Chapter 1 ScriptableObjects, the content catalog, checkpoints, objectives, journal/timeline entries, Main Menu, Bootstrap, both location scenes, UI wiring, nullable audio hooks, and Build Settings. It is idempotent, preserves stable asset GUIDs, validates content IDs after generation, and refuses to discard an unsaved untitled scene during interactive use. Batch automation may replace only Unity's empty startup scene.
+
+## Manual Keyboard/Gamepad Focus Checklist
+
+- Main Menu: arrow keys/D-pad move focus; Enter/gamepad South submits; Continue is disabled with no valid save; Settings Back restores menu focus.
+- Gameplay: WASD/arrows and left stick move; Interact works from keyboard and gamepad; Escape/Start opens Pause without also interacting.
+- Modals: UI navigation reaches every visible button; Enter/gamepad South submits; Escape/Start or gamepad East closes/cancels; movement remains zero.
+- Dialogue: Submit reveals the current line before advancing; choices receive focus after reveal; history remains readable for the current conversation.
+- Pause: Resume, Investigation Journal, Settings, and Main Menu are reachable; closing Journal/Settings returns to Pause; resuming restores Gameplay once.
+- Journal/Timeline/Terminal/Evidence Board: initial focus is deterministic, hidden entries cannot receive focus, and device switching does not submit twice.
 
 ## Assembly Boundaries
 
@@ -282,6 +311,12 @@ Current boundaries:
 - `NullPointer.Evidence`, `NullPointer.Deduction`, `NullPointer.Inspect`, `NullPointer.Dialogue`, `NullPointer.Terminal`, and `NullPointer.Memory` — feature data, domain/application logic, interactables, and feature-owned presentation;
 - `NullPointer.SceneFlow` — location loading, spawn, and transition contracts;
 - `NullPointer.UI` — shared prompt and evidence notification presentation;
+- `NullPointer.Save` — versioned JSON persistence and injected atomic file storage;
+- `NullPointer.Progression` — objectives, checkpoints, chapter boundary rules, and objective HUD;
+- `NullPointer.Journal` — state-driven case/people/question/timeline projections;
+- `NullPointer.Interrogation` — authored claims, evidence challenge rules, and distinct modal presentation;
+- `NullPointer.Settings` and `NullPointer.Menus` — separately persisted settings plus Main/Pause/Journal UI;
+- `NullPointer.Audio` — nullable authored cue references and graceful playback hooks;
 - `NullPointer.Runtime` — Bootstrap composition and explicit scene installation;
 - `NullPointer.Editor` — content validation plus idempotent engineering/production scene generation;
 - `NullPointer.Tests.EditMode` — pure rules, input-asset configuration, and engineering-scene validation;
@@ -321,7 +356,7 @@ Dependencies point toward Core, and Player/Interaction share input only through 
 
 Tests must assert meaningful behavior. Scene or visual tests are added only when they protect a real regression risk.
 
-Current automated coverage includes mode transitions/events, duplicate-safe state and snapshots, input-map requirements, deterministic interaction selection, stable ID format/duplicates, evidence collection, deduction requirements/persistence, dialogue branching and invalid links, memory unlocks, authored content/production scene contracts, modal movement blocking, Inspect close flow, interaction dispatch, and Bootstrap startup. Latest verified result: 33 EditMode and 8 PlayMode tests passed.
+Current automated coverage includes mode transitions/events, schema-2 state and JSON saves, corruption/schema handling, authored checkpoints, objectives, journal unlocks, interrogation contradictions, the complete Chapter 1 happy path and boundary, Main Menu availability, settings persistence, keyboard/gamepad bindings, deterministic interaction selection, evidence/deduction/dialogue/memory rules, production scene contracts, modal movement blocking, Inspect close flow, interaction dispatch, and Bootstrap-to-Main-Menu startup. Latest verified result: 49 EditMode and 9 PlayMode tests passed (58 total).
 
 ## Validation and Observability
 

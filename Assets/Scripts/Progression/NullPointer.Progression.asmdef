@@ -1,0 +1,19 @@
+{
+    "name": "NullPointer.Progression",
+    "rootNamespace": "NullPointer.Progression",
+    "references": [
+        "NullPointer.Content",
+        "NullPointer.Core",
+        "NullPointer.Save",
+        "Unity.ugui"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

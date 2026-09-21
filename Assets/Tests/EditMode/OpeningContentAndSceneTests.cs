@@ -4,6 +4,7 @@ using NullPointer.Deduction;
 using NullPointer.Dialogue;
 using NullPointer.Inspect;
 using NullPointer.Memory;
+using NullPointer.Menus;
 using NullPointer.Player;
 using NullPointer.Runtime;
 using NullPointer.SceneFlow;
@@ -20,6 +21,7 @@ namespace NullPointer.Tests.EditMode
     {
         private const string CatalogPath = "Assets/Data/CAT_OpeningContent.asset";
         private const string BootstrapPath = "Assets/Scenes/Bootstrap/SCN_Bootstrap.unity";
+        private const string MainMenuPath = "Assets/Scenes/MainMenu/SCN_MainMenu.unity";
         private const string ErenPath = "Assets/Scenes/Gameplay/SCN_ErenApartment.unity";
         private const string MertPath = "Assets/Scenes/Gameplay/SCN_MertApartment.unity";
 
@@ -30,20 +32,21 @@ namespace NullPointer.Tests.EditMode
 
             Assert.That(catalog, Is.Not.Null);
             Assert.That(ContentIdValidator.Validate(catalog.AllContent), Is.Empty);
-            Assert.That(catalog.Evidence.Select(item => item.StableId), Is.EquivalentTo(new[]
-            {
-                "evidence.mert.photo",
-                "evidence.mert.terminal_log_0251",
-                "evidence.mert.death_time_0236"
-            }));
+            Assert.That(catalog.Evidence.Select(item => item.StableId), Does.Contain(
+                "evidence.mert.photo"));
+            Assert.That(catalog.Evidence.Select(item => item.StableId), Does.Contain(
+                "evidence.mert.terminal_log_0251"));
+            Assert.That(catalog.Evidence.Select(item => item.StableId), Does.Contain(
+                "evidence.mert.death_time_0236"));
 
-            DeductionData deduction = catalog.Deductions.Single();
-            Assert.That(deduction.StableId, Is.EqualTo("deduction.mert.postmortem_terminal"));
+            DeductionData deduction = catalog.Deductions.Single(item =>
+                item.StableId == "deduction.mert.postmortem_terminal");
             Assert.That(deduction.RequiredEvidenceIds, Is.EquivalentTo(new[]
             {
                 "evidence.mert.terminal_log_0251",
                 "evidence.mert.death_time_0236"
             }));
+            Assert.That(catalog.Deductions.Count, Is.EqualTo(3));
 
             DialogueData recorder = AssetDatabase.LoadAssetAtPath<DialogueData>(
                 "Assets/Data/Dialogue/DLG_MertDamagedRecorder.asset");
@@ -58,7 +61,7 @@ namespace NullPointer.Tests.EditMode
                 .Select(scene => scene.path)
                 .ToArray();
 
-            Assert.That(enabledScenes, Is.EqualTo(new[] { BootstrapPath, ErenPath, MertPath }));
+            Assert.That(enabledScenes, Is.EqualTo(new[] { BootstrapPath, MainMenuPath, ErenPath, MertPath }));
             Assert.That(enabledScenes.Any(path => path.Contains("/Test/")), Is.False);
         }
 
@@ -70,6 +73,28 @@ namespace NullPointer.Tests.EditMode
                 Assert.That(FindInRoots<GameApplication>(roots), Is.Not.Null);
                 Assert.That(FindInRoots<SceneLoader>(roots), Is.Not.Null);
             });
+        }
+
+        [Test]
+        public void MainMenuScene_ContainsFunctionalMenuAndInstaller()
+        {
+            WithScene(MainMenuPath, roots =>
+            {
+                Assert.That(FindInRoots<MainMenuController>(roots), Is.Not.Null);
+                Assert.That(FindInRoots<MainMenuSceneInstaller>(roots), Is.Not.Null);
+                Assert.That(FindInRoots<SettingsPanel>(roots), Is.Not.Null);
+            });
+        }
+
+        [Test]
+        public void ChapterOneCatalog_ContainsAuthoredObjectivesCheckpointsAndJournal()
+        {
+            ContentCatalog catalog = AssetDatabase.LoadAssetAtPath<ContentCatalog>(CatalogPath);
+
+            Assert.That(catalog.Objectives.Count, Is.EqualTo(7));
+            Assert.That(catalog.Checkpoints.Count, Is.EqualTo(5));
+            Assert.That(catalog.JournalEntries.Count, Is.GreaterThanOrEqualTo(12));
+            Assert.That(catalog.InterrogationClaims.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -90,11 +115,13 @@ namespace NullPointer.Tests.EditMode
         {
             WithScene(MertPath, roots =>
             {
-                Assert.That(FindAllInRoots<EvidenceInteractable>(roots).Length, Is.GreaterThanOrEqualTo(2));
+                Assert.That(FindAllInRoots<EvidenceInteractable>(roots).Length, Is.GreaterThanOrEqualTo(4));
                 Assert.That(FindInRoots<EvidenceBoardInteractable>(roots), Is.Not.Null);
                 Assert.That(FindInRoots<MemoryEvidenceTrigger>(roots), Is.Not.Null);
                 Assert.That(FindInRoots<TerminalInteractable>(roots), Is.Not.Null);
                 Assert.That(FindInRoots<DialogueInteractable>(roots), Is.Not.Null);
+                Assert.That(FindInRoots<ProgressionCoordinator>(roots), Is.Not.Null);
+                Assert.That(FindInRoots<PauseMenuController>(roots), Is.Not.Null);
             });
         }
 

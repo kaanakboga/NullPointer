@@ -128,11 +128,15 @@ Minimum player-facing fields:
 - Critical narrative content cannot be lost permanently through puzzle failure.
 - Effects offer intensity controls and avoid sustained flashing.
 
-### Implemented Opening Foundation
+### Implemented Chapter 1 Vertical Slice
 
-The current production opening starts at 03:17 in Eren's apartment. The player can inspect neurological medication and a damaged photograph, read the Sector 7 dispatch assignment, and use the resulting story flag to leave for Mert's apartment. At Mert's apartment the player can collect the physical photograph, a 02:51 terminal access log, and a 02:36 biometric death-time record; experience a brief authored memory glitch; hear an optional damaged recording; and use the functional evidence board to conclude that the terminal was accessed after Mert's death.
+The production flow now boots through a functional Main Menu and starts at 03:17 in Eren's apartment. New Game establishes the opening checkpoint and objectives; Continue is available only for a valid local save. The player reads the Sector 7 dispatch, may inspect Eren's medication and cut photograph, checks Eren's local call history, and travels to Mert's apartment through the authored transition.
 
-This is the first implementation of the core loop with production data and production scene paths. Placeholder geometry and uGUI styling are intentionally restrained neo-noir stand-ins. The board uses button selection rather than final drag/drop/string presentation, the memory is presentation-only rather than a reconstruction puzzle, and no objective/notebook/save layer is implied by this milestone.
+Mert's apartment now contains a deliberately mixed investigation set: atmospheric coffee and medical equipment, lore-bearing notes, and evidence-bearing photograph, death-time record, damaged implant, door latch, terminal records, memory-deletion time, and mismatched call histories. The photograph triggers the fragmented laboratory memory. Terminal information is divided among Logs, Files, Mail, and Security, with the last-contact record withheld until the first timeline contradiction is established.
+
+The Chapter 1 deduction chain moves from postmortem terminal access, to an inconsistent apparent-suicide timeline, to the conclusion that the locked-room appearance cannot be accepted at face value. It ends by revealing Mert's attempted call to Eren, the absence of the corresponding record on Eren's device, and `NLP-0417` as the next lead without naming Project Lazarus or the responsible party.
+
+Objectives, safe checkpoints, local JSON save/continue, the pause menu, the investigation journal, the case timeline, settings, and the Chapter 1 completion boundary are functional. Placeholder geometry and restrained uGUI styling remain temporary. The evidence board still uses button selection rather than final drag/string presentation, the memory remains presentation-only rather than a reconstruction puzzle, and the interrogation layer is production-ready but represented by a controlled claim/evidence fixture because Chapter 1 has no appropriate living suspect scene.
 
 ### Notebook / Investigation Journal
 

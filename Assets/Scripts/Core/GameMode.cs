@@ -8,6 +8,7 @@ namespace NullPointer.Core
         Terminal = 3,
         EvidenceBoard = 4,
         Memory = 5,
-        Paused = 6
+        Paused = 6,
+        Interrogation = 7
     }
 }

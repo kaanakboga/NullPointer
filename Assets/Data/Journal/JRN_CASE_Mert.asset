@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a179d565b5c49024f8d928760c46fb3f, type: 3}
+  m_Name: JRN_CASE_Mert
+  m_EditorClassIdentifier: NullPointer.Journal::NullPointer.Journal.JournalEntryData
+  _stableId: journal.case.mert
+  _editorDescription: "Chapter 1 journal entry: Mert Ersoy \u2014 \u015E\xFCpheli
+    \xD6l\xFCm."
+  _section: 0
+  _title: "Mert Ersoy \u2014 \u015E\xFCpheli \xD6l\xFCm"
+  _body: "02:36 \xF6l\xFCm kayd\u0131. Bellek b\xFCt\xFCnl\xFC\u011F\xFC anomalisi.
+    Resm\xEE intihar de\u011Ferlendirmesi do\u011Frulanmad\u0131."
+  _requiredStoryFlag: 
+  _requiredEvidenceId: 
+  _requiredDeductionId: 
+  _displayOrder: 10

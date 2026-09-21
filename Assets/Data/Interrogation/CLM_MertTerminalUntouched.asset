@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9f6eec123aa3f649b38efe5a738da08, type: 3}
+  m_Name: CLM_MertTerminalUntouched
+  m_EditorClassIdentifier: NullPointer.Interrogation::NullPointer.Interrogation.InterrogationClaimData
+  _stableId: claim.mert.terminal_untouched
+  _editorDescription: Reusable Chapter 1 contradiction fixture for later testimony.
+  _statement: "Mert'in \xF6l\xFCm\xFCnden sonra terminale kimse dokunmad\u0131."
+  _contradictingEvidenceIds:
+  - evidence.mert.terminal_log_0251
+  _contradictionStoryFlag: flag.interrogation.postmortem_access_contradiction
+  _successResponse: "02:51 kayd\u0131 bu ifadeyle \xE7eli\u015Fiyor. Tan\u0131k ayr\u0131nt\u0131y\u0131
+    geri \xE7ekmek zorunda kal\u0131r."
+  _irrelevantResponse: "Bu kan\u0131t s\xF6z konusu eri\u015Fim iddias\u0131n\u0131
+    do\u011Frudan s\u0131nam\u0131yor."

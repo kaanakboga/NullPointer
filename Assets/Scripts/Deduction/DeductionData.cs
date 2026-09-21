@@ -8,12 +8,15 @@ namespace NullPointer.Deduction
     public sealed class DeductionData : AuthoredContentAsset
     {
         [SerializeField] private List<string> _requiredEvidenceIds = new List<string>();
+        [SerializeField] private List<string> _requiredDeductionIds = new List<string>();
         [SerializeField] private string _resultTitle = string.Empty;
         [SerializeField, TextArea] private string _resultText = string.Empty;
         [SerializeField] private string _resultingEvidenceId = string.Empty;
         [SerializeField] private List<string> _storyFlagsToSet = new List<string>();
 
         public IReadOnlyList<string> RequiredEvidenceIds => _requiredEvidenceIds;
+
+        public IReadOnlyList<string> RequiredDeductionIds => _requiredDeductionIds;
 
         public string ResultTitle => _resultTitle;
 

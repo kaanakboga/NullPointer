@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a179d565b5c49024f8d928760c46fb3f, type: 3}
+  m_Name: JRN_Q_Knew
+  m_EditorClassIdentifier: NullPointer.Journal::NullPointer.Journal.JournalEntryData
+  _stableId: journal.question.mert_knew_eren
+  _editorDescription: "Chapter 1 journal entry: Mert beni neden tan\u0131yordu?."
+  _section: 2
+  _title: "Mert beni neden tan\u0131yordu?"
+  _body: "Foto\u011Fraf fiziksel; dijital bir e\u015Fle\u015Fme hatas\u0131yla kolayca
+    a\xE7\u0131klanamaz."
+  _requiredStoryFlag: 
+  _requiredEvidenceId: evidence.mert.photo
+  _requiredDeductionId: 
+  _displayOrder: 20

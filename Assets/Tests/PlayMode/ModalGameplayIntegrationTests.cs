@@ -16,6 +16,7 @@ namespace NullPointer.Tests.PlayMode
         [TestCase(GameMode.Terminal)]
         [TestCase(GameMode.Memory)]
         [TestCase(GameMode.EvidenceBoard)]
+        [TestCase(GameMode.Interrogation)]
         public void BlockingMode_ImmediatelyStopsPlayerHorizontalMovement(GameMode blockingMode)
         {
             var modesObject = new GameObject("Modes");

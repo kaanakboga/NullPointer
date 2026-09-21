@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd7b15893a0211745ba36ff35c6907d0, type: 3}
+  m_Name: EV_MERT_DOOR_STATUS
+  m_EditorClassIdentifier: NullPointer.Evidence::NullPointer.Evidence.EvidenceData
+  _stableId: evidence.mert.door_status
+  _editorDescription: "Opening evidence: Kap\u0131 Durumu."
+  _displayName: "Kap\u0131 Durumu"
+  _description: "G\xF6zlem: \u0130\xE7 kilit kapal\u0131; ancak mekanik acil mandal\u0131
+    yak\u0131n zamanda kullan\u0131lm\u0131\u015F."
+  _evidenceType: 0
+  _caseId: case.mert.suspicious_death
+  _isCritical: 0
+  _icon: {fileID: 0}

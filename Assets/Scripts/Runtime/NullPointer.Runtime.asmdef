@@ -15,6 +15,13 @@
         "NullPointer.SceneFlow",
         "NullPointer.Terminal",
         "NullPointer.UI",
+        "NullPointer.Save",
+        "NullPointer.Progression",
+        "NullPointer.Journal",
+        "NullPointer.Interrogation",
+        "NullPointer.Settings",
+        "NullPointer.Menus",
+        "NullPointer.Audio",
         "Unity.InputSystem"
     ],
     "includePlatforms": [],

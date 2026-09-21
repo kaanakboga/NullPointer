@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a179d565b5c49024f8d928760c46fb3f, type: 3}
+  m_Name: JRN_Q_0251
+  m_EditorClassIdentifier: NullPointer.Journal::NullPointer.Journal.JournalEntryData
+  _stableId: journal.question.terminal_0251
+  _editorDescription: "Chapter 1 journal entry: 02:51'de terminali kim kulland\u0131?."
+  _section: 2
+  _title: "02:51'de terminali kim kulland\u0131?"
+  _body: "Manuel eri\u015Fim, \xF6l\xFCm kayd\u0131ndan on be\u015F dakika sonra."
+  _requiredStoryFlag: 
+  _requiredEvidenceId: evidence.mert.terminal_log_0251
+  _requiredDeductionId: 
+  _displayOrder: 30

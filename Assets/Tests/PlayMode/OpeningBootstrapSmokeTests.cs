@@ -1,5 +1,6 @@
 using System.Collections;
-using NullPointer.Player;
+using NullPointer.Core;
+using NullPointer.Menus;
 using NullPointer.Runtime;
 using NUnit.Framework;
 using UnityEngine;
@@ -42,7 +43,7 @@ namespace NullPointer.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Bootstrap_LoadsAndInstallsErenApartment()
+        public IEnumerator Bootstrap_LoadsAndInstallsMainMenuWithoutGameplayInput()
         {
             AsyncOperation bootstrapLoad = SceneManager.LoadSceneAsync("SCN_Bootstrap", LoadSceneMode.Single);
             while (!bootstrapLoad.isDone)
@@ -51,20 +52,20 @@ namespace NullPointer.Tests.PlayMode
             }
 
             float deadline = Time.realtimeSinceStartup + 10f;
-            while (SceneManager.GetActiveScene().name != "SCN_ErenApartment" &&
+            while (SceneManager.GetActiveScene().name != "SCN_MainMenu" &&
                    Time.realtimeSinceStartup < deadline)
             {
                 yield return null;
             }
 
             GameApplication application = Object.FindFirstObjectByType<GameApplication>();
-            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+            MainMenuController menu = Object.FindFirstObjectByType<MainMenuController>();
 
-            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("SCN_ErenApartment"));
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("SCN_MainMenu"));
             Assert.That(application, Is.Not.Null);
-            Assert.That(player, Is.Not.Null);
-            Assert.That(application.GameState.LocationId, Is.EqualTo("location.eren.apartment"));
-            Assert.That(player.CanMove, Is.True);
+            Assert.That(menu, Is.Not.Null);
+            Assert.That(application.GameState.LocationId, Is.EqualTo("location.system.main_menu"));
+            Assert.That(application.GameModes.CurrentMode, Is.EqualTo(GameMode.Paused));
 
         }
     }

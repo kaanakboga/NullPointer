@@ -6,12 +6,16 @@ namespace NullPointer.Core
 {
     public sealed class GameState
     {
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
 
         private readonly HashSet<string> _storyFlags = new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> _collectedEvidenceIds = new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> _unlockedMemoryIds = new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> _completedDeductionIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> _activeObjectiveIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> _completedObjectiveIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> _dialogueProgressIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> _completedChapterIds = new HashSet<string>(StringComparer.Ordinal);
 
         public string CurrentCaseId { get; private set; } = string.Empty;
 
@@ -26,6 +30,14 @@ namespace NullPointer.Core
         public IReadOnlyCollection<string> UnlockedMemoryIds => _unlockedMemoryIds;
 
         public IReadOnlyCollection<string> CompletedDeductionIds => _completedDeductionIds;
+
+        public IReadOnlyCollection<string> ActiveObjectiveIds => _activeObjectiveIds;
+
+        public IReadOnlyCollection<string> CompletedObjectiveIds => _completedObjectiveIds;
+
+        public IReadOnlyCollection<string> DialogueProgressIds => _dialogueProgressIds;
+
+        public IReadOnlyCollection<string> CompletedChapterIds => _completedChapterIds;
 
         public void SetCurrentCase(string caseId)
         {
@@ -102,6 +114,49 @@ namespace NullPointer.Core
             return _completedDeductionIds.Contains(RequireId(deductionId, nameof(deductionId)));
         }
 
+        public bool StartObjective(string objectiveId)
+        {
+            string id = RequireId(objectiveId, nameof(objectiveId));
+            return !_completedObjectiveIds.Contains(id) && _activeObjectiveIds.Add(id);
+        }
+
+        public bool CompleteObjective(string objectiveId)
+        {
+            string id = RequireId(objectiveId, nameof(objectiveId));
+            _activeObjectiveIds.Remove(id);
+            return _completedObjectiveIds.Add(id);
+        }
+
+        public bool IsObjectiveActive(string objectiveId)
+        {
+            return _activeObjectiveIds.Contains(RequireId(objectiveId, nameof(objectiveId)));
+        }
+
+        public bool HasCompletedObjective(string objectiveId)
+        {
+            return _completedObjectiveIds.Contains(RequireId(objectiveId, nameof(objectiveId)));
+        }
+
+        public bool RecordDialogueProgress(string progressId)
+        {
+            return _dialogueProgressIds.Add(RequireId(progressId, nameof(progressId)));
+        }
+
+        public bool HasDialogueProgress(string progressId)
+        {
+            return _dialogueProgressIds.Contains(RequireId(progressId, nameof(progressId)));
+        }
+
+        public bool CompleteChapter(string chapterId)
+        {
+            return _completedChapterIds.Add(RequireId(chapterId, nameof(chapterId)));
+        }
+
+        public bool HasCompletedChapter(string chapterId)
+        {
+            return _completedChapterIds.Contains(RequireId(chapterId, nameof(chapterId)));
+        }
+
         public GameStateSnapshot CreateSnapshot()
         {
             return new GameStateSnapshot
@@ -113,7 +168,11 @@ namespace NullPointer.Core
                 StoryFlags = SortedCopy(_storyFlags),
                 CollectedEvidenceIds = SortedCopy(_collectedEvidenceIds),
                 UnlockedMemoryIds = SortedCopy(_unlockedMemoryIds),
-                CompletedDeductionIds = SortedCopy(_completedDeductionIds)
+                CompletedDeductionIds = SortedCopy(_completedDeductionIds),
+                ActiveObjectiveIds = SortedCopy(_activeObjectiveIds),
+                CompletedObjectiveIds = SortedCopy(_completedObjectiveIds),
+                DialogueProgressIds = SortedCopy(_dialogueProgressIds),
+                CompletedChapterIds = SortedCopy(_completedChapterIds)
             };
         }
 
@@ -138,6 +197,10 @@ namespace NullPointer.Core
             RestoreIds(snapshot.CollectedEvidenceIds, state.CollectEvidence);
             RestoreIds(snapshot.UnlockedMemoryIds, state.UnlockMemory);
             RestoreIds(snapshot.CompletedDeductionIds, state.CompleteDeduction);
+            RestoreIds(snapshot.CompletedObjectiveIds, state.CompleteObjective);
+            RestoreIds(snapshot.ActiveObjectiveIds, state.StartObjective);
+            RestoreIds(snapshot.DialogueProgressIds, state.RecordDialogueProgress);
+            RestoreIds(snapshot.CompletedChapterIds, state.CompleteChapter);
             return state;
         }
 

@@ -1,0 +1,22 @@
+{
+    "name": "NullPointer.Menus",
+    "rootNamespace": "NullPointer.Menus",
+    "references": [
+        "NullPointer.Core",
+        "NullPointer.Input",
+        "NullPointer.Journal",
+        "NullPointer.Evidence",
+        "NullPointer.Save",
+        "NullPointer.Settings",
+        "Unity.ugui"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -24,11 +24,15 @@ MonoBehaviour:
     _duration: 1.25
     _overlayColor: {r: 0.85, g: 0.1, b: 0.16, a: 0.42}
     _audioCue: {fileID: 0}
-  - _text: "MERT: \u201CBa\u015Flad\u0131ktan sonra geri d\xF6n\xFC\u015F yok.\u201D"
+  - _text: "MERT: \u201CBunu ba\u015Flat\u0131rsak geri d\xF6n\xFC\u015F\xFC yok.\u201D"
     _duration: 2
     _overlayColor: {r: 0.95, g: 0.58, b: 0.12, a: 0.35}
     _audioCue: {fileID: 0}
-  - _text: "B\u0130R S\u0130LUET // kimlik \xE7\xF6z\xFClemedi"
+  - _text: "EREN // yans\u0131ma do\u011Frulanamad\u0131"
+    _duration: 1.25
+    _overlayColor: {r: 0.05, g: 0.65, b: 0.72, a: 0.42}
+    _audioCue: {fileID: 0}
+  - _text: "\u0130K\u0130 BEL\u0130RS\u0130Z F\u0130G\xDCR // kimlik \xE7\xF6z\xFClemedi"
     _duration: 1.25
     _overlayColor: {r: 0.15, g: 0.2, b: 0.25, a: 0.65}
     _audioCue: {fileID: 0}

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a179d565b5c49024f8d928760c46fb3f, type: 3}
+  m_Name: JRN_Q_NLP
+  m_EditorClassIdentifier: NullPointer.Journal::NullPointer.Journal.JournalEntryData
+  _stableId: journal.question.nlp
+  _editorDescription: 'Chapter 1 journal entry: NLP nedir?.'
+  _section: 2
+  _title: NLP nedir?
+  _body: "NLP-0417 bir dosya, deney ya da ki\u015Fi kodu olabilir. Hen\xFCz do\u011Frulanmad\u0131."
+  _requiredStoryFlag: flag.mert.nlp_0417_seen
+  _requiredEvidenceId: 
+  _requiredDeductionId: 
+  _displayOrder: 10

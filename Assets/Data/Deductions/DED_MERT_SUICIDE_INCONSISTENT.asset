@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0e33a05005524e40b62d90176789466, type: 3}
+  m_Name: DED_MERT_SUICIDE_INCONSISTENT
+  m_EditorClassIdentifier: NullPointer.Deduction::NullPointer.Deduction.DeductionData
+  _stableId: deduction.mert.suicide_timeline_inconsistent
+  _editorDescription: The apparent-suicide timeline conflicts with physical and deletion
+    records.
+  _requiredEvidenceIds:
+  - evidence.mert.terminal_log_0251
+  - evidence.mert.death_time_0236
+  - evidence.mert.memory_deletion_0229
+  - evidence.mert.damaged_implant
+  _requiredDeductionIds:
+  - deduction.mert.postmortem_terminal
+  _resultTitle: "Resm\xEE Zaman \xC7izelgesi Tutars\u0131z"
+  _resultText: "Bellek silme i\u015Flemi, implant hasar\u0131 ve \xF6l\xFCm sonras\u0131
+    eri\u015Fim; olay\u0131n basit bir intihar olarak kapanamayaca\u011F\u0131n\u0131
+    g\xF6steriyor."
+  _resultingEvidenceId: 
+  _storyFlagsToSet:
+  - flag.mert.suicide_timeline_inconsistent

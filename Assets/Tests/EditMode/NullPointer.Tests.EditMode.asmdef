@@ -15,6 +15,12 @@
         "NullPointer.Input",
         "NullPointer.Interaction",
         "NullPointer.Player",
+        "NullPointer.Save",
+        "NullPointer.Progression",
+        "NullPointer.Journal",
+        "NullPointer.Interrogation",
+        "NullPointer.Menus",
+        "NullPointer.Settings",
         "Unity.InputSystem",
         "Unity.ugui"
     ],

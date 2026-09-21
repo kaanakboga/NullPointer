@@ -110,6 +110,19 @@ The current authored opening content fixes these surface-level beats without cha
 
 The memory does not name Lazarus, identify the other figure, explain Eren's body, or disclose `NLP-0`. The damaged optional recording advises trusting the timeline rather than memory; it is foreshadowing, not proof of the central twist.
 
+### Implemented Chapter 1 Resolution
+
+The playable Chapter 1 investigation now extends the opening through a restrained chapter-end hook:
+
+1. Physical implant damage and a 02:29 manual memory-deletion record support deliberate alteration from independent sources.
+2. The 02:36 death time and 02:51 manual terminal access establish the first contradiction.
+3. The recent mechanical door-latch use prevents the locked-room appearance from being treated as conclusive.
+4. Mert's last contact attempt targeted Eren Vardar shortly before death.
+5. Eren's own device has no corresponding call record.
+6. `NLP-0417` links the damaged terminal file, Mert's notes, and the next investigation lead.
+
+The implemented ending does not identify who used the terminal, prove murder, reveal Project Lazarus, disclose `NLP-0`, or resolve why Eren lacks the call. Those remain later-chapter questions.
+
 ### Chapter 3 — Lazarus
 
 Purpose: expose the operational shape and ethical scale of Project Lazarus. Terminal investigation and memory reconstruction connect Mert, Eren, and the identifier system.

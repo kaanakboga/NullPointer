@@ -46,7 +46,7 @@ namespace NullPointer.Terminal
             }
         }
 
-        public void Show(TerminalData terminal)
+        public void Show(TerminalData terminal, System.Collections.Generic.IReadOnlyList<TerminalEntry> entries)
         {
             _panelRoot.SetActive(true);
             _titleLabel.text = terminal == null ? string.Empty : terminal.MenuTitle;
@@ -55,16 +55,16 @@ namespace NullPointer.Terminal
 
             for (int index = 0; index < _entryButtons.Length; index++)
             {
-                bool isVisible = terminal != null && index < terminal.Entries.Count;
+                bool isVisible = terminal != null && entries != null && index < entries.Count;
                 _entryButtons[index].gameObject.SetActive(isVisible);
                 if (isVisible && index < _entryLabels.Length)
                 {
-                    TerminalEntry entry = terminal.Entries[index];
+                    TerminalEntry entry = entries[index];
                     _entryLabels[index].text = $"[{entry.Category}] {entry.Title}";
                 }
             }
 
-            GameObject initialFocus = terminal != null && terminal.Entries.Count > 0
+            GameObject initialFocus = entries != null && entries.Count > 0
                 ? _entryButtons[0].gameObject
                 : _closeButton.gameObject;
             EventSystem.current?.SetSelectedGameObject(initialFocus);

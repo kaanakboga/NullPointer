@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a1ec8031ac720640a52a89ed2b732fd, type: 3}
+  m_Name: INSP_MertDoorStatus
+  m_EditorClassIdentifier: NullPointer.Inspect::NullPointer.Inspect.InspectData
+  _stableId: location.mert.apartment.door
+  _editorDescription: "Authored inspection: \u0130\xE7 Kap\u0131 Kayd\u0131."
+  _title: "\u0130\xE7 Kap\u0131 Kayd\u0131"
+  _description: "Kap\u0131 i\xE7eriden kilitli g\xF6r\xFCnse de acil servis mandal\u0131
+    k\u0131sa s\xFCre \xF6nce mekanik olarak kullan\u0131lm\u0131\u015F."

@@ -5,6 +5,7 @@ namespace NullPointer.Deduction
         Completed,
         AlreadyCompleted,
         MissingEvidence,
+        MissingPrerequisite,
         UnknownDeduction,
         InvalidDefinition
     }

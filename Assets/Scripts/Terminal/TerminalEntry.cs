@@ -12,6 +12,7 @@ namespace NullPointer.Terminal
         [SerializeField, TextArea] private string _body = string.Empty;
         [SerializeField] private string _evidenceId = string.Empty;
         [SerializeField] private string _storyFlagToSet = string.Empty;
+        [SerializeField] private string _requiredStoryFlag = string.Empty;
 
         public string EntryId => _entryId;
 
@@ -24,5 +25,7 @@ namespace NullPointer.Terminal
         public string EvidenceId => _evidenceId;
 
         public string StoryFlagToSet => _storyFlagToSet;
+
+        public string RequiredStoryFlag => _requiredStoryFlag;
     }
 }

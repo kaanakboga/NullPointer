@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45fe3edadb1723548987bd2f4403f233, type: 3}
+  m_Name: AUD_CH01_Hooks
+  m_EditorClassIdentifier: NullPointer.Audio::NullPointer.Audio.AudioCueSet
+  _rainAmbience: {fileID: 0}
+  _electricalHum: {fileID: 0}
+  _distantTraffic: {fileID: 0}
+  _terminalBeep: {fileID: 0}
+  _uiInteraction: {fileID: 0}
+  _evidenceAcquired: {fileID: 0}
+  _memoryGlitch: {fileID: 0}
+  _chapterEndSting: {fileID: 0}

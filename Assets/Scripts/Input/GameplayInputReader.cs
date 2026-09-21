@@ -14,6 +14,7 @@ namespace NullPointer.Input
         private InputAction _moveAction;
         private InputAction _interactAction;
         private InputAction _pauseAction;
+        private InputAction _cancelAction;
         private GameModeController _gameModeController;
         private bool _isBound;
         private bool _isModeSubscribed;
@@ -44,6 +45,7 @@ namespace NullPointer.Input
             if (isActiveAndEnabled && TryBind())
             {
                 _gameplayMap.Enable();
+                _cancelAction.Enable();
             }
         }
 
@@ -52,6 +54,7 @@ namespace NullPointer.Input
             if (TryBind())
             {
                 _gameplayMap.Enable();
+                _cancelAction?.Enable();
                 ApplyModeGate();
             }
 
@@ -65,6 +68,8 @@ namespace NullPointer.Input
             {
                 _gameplayMap.Disable();
             }
+
+            _cancelAction?.Disable();
 
             Unbind();
         }
@@ -86,8 +91,10 @@ namespace NullPointer.Input
             _moveAction = _gameplayMap?.FindAction(GameplayInputActionNames.Move, false);
             _interactAction = _gameplayMap?.FindAction(GameplayInputActionNames.Interact, false);
             _pauseAction = _gameplayMap?.FindAction(GameplayInputActionNames.Pause, false);
+            _cancelAction = _actions.FindAction("UI/Cancel", false);
 
-            if (_gameplayMap == null || _moveAction == null || _interactAction == null || _pauseAction == null)
+            if (_gameplayMap == null || _moveAction == null || _interactAction == null ||
+                _pauseAction == null || _cancelAction == null)
             {
                 Debug.LogError(
                     "[Input] The configured asset must contain Gameplay/Move, Gameplay/Interact, and Gameplay/Pause actions.",
@@ -98,6 +105,7 @@ namespace NullPointer.Input
 
             _interactAction.performed += OnInteractPerformed;
             _pauseAction.performed += OnPausePerformed;
+            _cancelAction.performed += OnCancelPerformed;
             _isBound = true;
             return true;
         }
@@ -108,6 +116,7 @@ namespace NullPointer.Input
             {
                 _interactAction.performed -= OnInteractPerformed;
                 _pauseAction.performed -= OnPausePerformed;
+                _cancelAction.performed -= OnCancelPerformed;
             }
 
             _isBound = false;
@@ -120,6 +129,7 @@ namespace NullPointer.Input
             _moveAction = null;
             _interactAction = null;
             _pauseAction = null;
+            _cancelAction = null;
         }
 
         private void OnInteractPerformed(InputAction.CallbackContext context)
@@ -130,6 +140,14 @@ namespace NullPointer.Input
         private void OnPausePerformed(InputAction.CallbackContext context)
         {
             PausePressed?.Invoke();
+        }
+
+        private void OnCancelPerformed(InputAction.CallbackContext context)
+        {
+            if (_gameModeController != null && _gameModeController.CurrentMode != GameMode.Gameplay)
+            {
+                PausePressed?.Invoke();
+            }
         }
 
         private void SubscribeToModeChanges()

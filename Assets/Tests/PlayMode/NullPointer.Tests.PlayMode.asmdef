@@ -16,6 +16,7 @@
         "NullPointer.Input",
         "NullPointer.Player",
         "NullPointer.Interaction",
+        "NullPointer.Menus",
         "Unity.ugui"
     ],
     "includePlatforms": [],

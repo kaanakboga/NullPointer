@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using NullPointer.Core;
 using NullPointer.Evidence;
 using NullPointer.Input;
@@ -16,9 +18,12 @@ namespace NullPointer.Terminal
         private GameState _gameState;
         private EvidenceService _evidenceService;
         private TerminalData _currentTerminal;
+        private IReadOnlyList<TerminalEntry> _visibleEntries = Array.Empty<TerminalEntry>();
         private bool _isInputSubscribed;
 
         public bool IsOpen => _gameModes != null && _gameModes.CurrentMode == GameMode.Terminal;
+
+        public event Action<TerminalEntryOpened> EntryOpened;
 
         public void Configure(TerminalPanel panel)
         {
@@ -47,19 +52,24 @@ namespace NullPointer.Terminal
             }
 
             _currentTerminal = terminal;
+            _visibleEntries = terminal.Entries
+                .Where(entry => entry != null &&
+                                (string.IsNullOrWhiteSpace(entry.RequiredStoryFlag) ||
+                                 _gameState.HasStoryFlag(entry.RequiredStoryFlag)))
+                .ToArray();
             _gameModes.SetMode(GameMode.Terminal);
-            _panel.Show(terminal);
+            _panel.Show(terminal, _visibleEntries);
             Subscribe();
         }
 
         public void SelectEntry(int index)
         {
-            if (!IsOpen || _currentTerminal == null || index < 0 || index >= _currentTerminal.Entries.Count)
+            if (!IsOpen || _currentTerminal == null || index < 0 || index >= _visibleEntries.Count)
             {
                 return;
             }
 
-            TerminalEntry entry = _currentTerminal.Entries[index];
+            TerminalEntry entry = _visibleEntries[index];
             bool collected = false;
             if (!string.IsNullOrWhiteSpace(entry.EvidenceId))
             {
@@ -73,6 +83,11 @@ namespace NullPointer.Terminal
                 _gameState.SetStoryFlag(entry.StoryFlagToSet);
             }
 
+
+            _gameState.RecordDialogueProgress(
+                $"terminal.read.{_currentTerminal.StableId}.{entry.EntryId}");
+            EntryOpened?.Invoke(new TerminalEntryOpened(_currentTerminal, entry));
+
             _panel.ShowEntry(entry, collected);
         }
 
@@ -85,6 +100,7 @@ namespace NullPointer.Terminal
 
             Unsubscribe();
             _currentTerminal = null;
+            _visibleEntries = Array.Empty<TerminalEntry>();
             _panel.Hide();
             _gameModes.SetMode(GameMode.Gameplay);
         }

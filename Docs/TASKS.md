@@ -18,12 +18,12 @@ The backlog covers the complete game target. It is not a promise that every impl
 | NP-CORE-004 | DONE | Implement and test the stable content-ID format/value rules, including empty, malformed, and duplicate diagnostics. |
 | NP-CORE-005 | IN PROGRESS | Implement a content registry that indexes authored assets by stable ID and reports missing/duplicate entries with asset context. The explicit typed opening catalog, feature dictionaries, and path-aware duplicate validator are complete; a general missing-reference lookup API remains. |
 | NP-CORE-006 | NOT STARTED | Implement typed story flags plus pure condition/effect evaluation with EditMode tests; no UI or scene dependency. |
-| NP-CORE-007 | IN PROGRESS | Define the versioned `GameState`/session model for chapter, checkpoint, evidence, deduction, dialogue, terminal, memory, and ending state; test invariant-preserving transitions. Schema 1 foundations for case/location/checkpoint, flags, evidence, memories, and deductions are complete; feature-specific state remains. |
+| NP-CORE-007 | IN PROGRESS | Define the versioned `GameState`/session model for chapter, checkpoint, evidence, deduction, dialogue, terminal, memory, and ending state; test invariant-preserving transitions. Schema 2 now covers case/location/checkpoint, flags, evidence, memories, deductions, objectives, dialogue progress, and completed chapters; annotations, credentials, reconstruction, relationship, ending, and playtime state remain. |
 | NP-CORE-008 | DONE | Create `SCN_Bootstrap` and a small composition root that initializes only required application-lifetime services and routes deterministically to a test destination. |
 | NP-CORE-009 | IN PROGRESS | Implement the scene-loading contract with guarded single-load behavior, transition hooks, failure reporting, and a test adapter. Async guarded loads, typed hooks, location state, and spawn forwarding are complete; a test adapter and player-facing load failure remain. |
 | NP-CORE-010 | IN PROGRESS | Add project-wide editor validation entry points for stable IDs and required content references; validator output must identify the asset and repair action. Stable ID scanning reports asset paths; broader required-reference/graph/build-key repair diagnostics remain. |
 | NP-CORE-011 | NOT STARTED | Add development-only state inspection and safe story-jump hooks that cannot enter release builds. |
-| NP-CORE-013 | DONE | Implement the authoritative, testable GameMode service/controller and typed transitions for Gameplay, Inspect, Dialogue, Terminal, EvidenceBoard, Memory, and Paused. |
+| NP-CORE-013 | DONE | Implement the authoritative, testable GameMode service/controller and typed transitions for Gameplay, Inspect, Dialogue, Interrogation, Terminal, EvidenceBoard, Memory, and Paused. |
 | NP-CORE-014 | DONE | Add reusable exact-version Unity batch compile/EditMode/PlayMode verification with ignored logs, NUnit result validation, and non-zero failure behavior. |
 
 ## Phase 1 — Controllable Investigation Space
@@ -52,37 +52,37 @@ The backlog covers the complete game target. It is not a promise that every impl
 | NP-EVIDENCE-001 | IN PROGRESS | Define `EvidenceData`, evidence categories, relations, and editor validation; keep mutable discovery data out of assets. Core presentation/category/case/critical/icon data and stable-ID validation are complete; relations and full reference validation remain. |
 | NP-EVIDENCE-002 | IN PROGRESS | Implement evidence discovery/update state with idempotent behavior, new/read markers, annotations, and typed notifications. Duplicate-safe discovery, queries, UI projection, and typed collection events are complete; read/annotation state remains. |
 | NP-EVIDENCE-003 | DONE | Implement evidence pickup/inspection integration and verify that repeat interaction cannot duplicate state or effects. |
-| NP-EVIDENCE-004 | IN PROGRESS | Define `CaseData` and objective data with explicit prerequisite and completion rules. Stable case data is complete; objectives and progression rules remain. |
-| NP-EVIDENCE-005 | NOT STARTED | Implement case/objective progression and journal projections with tests for legal and illegal transitions. |
+| NP-EVIDENCE-004 | IN PROGRESS | Define `CaseData` and objective data with explicit prerequisite and completion rules. Stable case and ordered Chapter 1 objective data are complete; general prerequisite graphs remain. |
+| NP-EVIDENCE-005 | IN PROGRESS | Implement case/objective progression and journal projections with tests for legal and illegal transitions. Chapter 1 objective transitions plus Cases/People/Evidence/Questions/Timeline projections are complete; full-game case lifecycle remains. |
 | NP-EVIDENCE-006 | NOT STARTED | Build the evidence database list/detail UI with filters, relations, unread state, and full controller navigation. |
 | NP-EVIDENCE-007 | IN PROGRESS | Define `DeductionData` with evidence/annotation requirements, optional alternatives, and validated completion effects. Required evidence, result text/evidence, and flag effects are complete; annotations, alternatives, and full reference validation remain. |
 | NP-EVIDENCE-008 | DONE | Implement pure deduction validation, solve state, and useful incorrect/incomplete feedback without consuming evidence. |
 | NP-EVIDENCE-009 | IN PROGRESS | Build an evidence-board working-hypothesis UI with deterministic selection/connection behavior and reset. Functional selection, exact authored matching, reset, and solved-state projection are complete; final connection/string interaction remains. |
-| NP-EVIDENCE-010 | IN PROGRESS | Integrate solved deductions with flags, objectives, dialogue conditions, and permanent notebook records. GameState completion and flags are complete; objectives, dialogue conditions, and notebook records remain. |
+| NP-EVIDENCE-010 | IN PROGRESS | Integrate solved deductions with flags, objectives, dialogue conditions, and permanent notebook records. Chapter 1 deductions now update flags, objectives, checkpoint, journal/timeline visibility, and chapter completion; general dialogue-condition coverage remains. |
 | NP-UI-001 | IN PROGRESS | Establish the production UI technology and shared screen/focus/navigation conventions through a documented spike. The opening uses a consistent uGUI modal baseline with explicit initial focus; shared focus restoration/accessibility conventions still require a full spike. |
-| NP-UI-002 | NOT STARTED | Build the notebook shell with Objectives, Evidence, Deductions, People, and Locations tabs backed by projections of canonical state. |
+| NP-UI-002 | IN PROGRESS | Build the notebook shell with Objectives, Evidence, Deductions, People, and Locations tabs backed by projections of canonical state. The requested Chapter 1 Cases/People/Evidence/Questions shell and timeline are functional; objectives/deductions/locations and final layout remain. |
 | NP-UI-003 | IN PROGRESS | Implement toast/notification queuing for evidence, objective, and deduction updates without obscuring critical text. Evidence acquisition notification is complete; queuing plus objective/deduction variants remain. |
-| NP-CORE-012 | IN PROGRESS | Assemble a greybox vertical slice: enter one room, inspect clues, collect evidence, solve one deduction, update an objective, and exit through a gated transition. Two connected production greyboxes now support inspect/evidence/deduction/terminal/memory/dialogue; objective progression remains. |
-| NP-QA-001 | NOT STARTED | Add an automated vertical-slice happy-path test plus a manual keyboard/gamepad checklist; close all progression blockers before expanding scope. |
+| NP-CORE-012 | DONE | Assemble a greybox vertical slice: enter one room, inspect clues, collect evidence, solve one deduction, update an objective, and exit through a gated transition. The connected 03:17 → Mert apartment Chapter 1 slice now includes menus, objectives, checkpoints, journal, terminal, memory, deduction chain, and ending hook. |
+| NP-QA-001 | DONE | Add an automated vertical-slice happy-path test plus a manual keyboard/gamepad checklist; close all progression blockers before expanding scope. Deterministic state integration coverage and the checklist are in place. |
 
 ## Phase 3 — Save, Checkpoints, Menus, and Settings
 
 | ID | Status | Task / acceptance outcome |
 | --- | --- | --- |
-| NP-SAVE-001 | NOT STARTED | Define the versioned save DTO, slot metadata, and mapping to/from `GameState`; exclude live Unity object references. |
-| NP-SAVE-002 | NOT STARTED | Implement an injected Windows file-storage adapter with bounded paths and test in-memory storage. |
-| NP-SAVE-003 | NOT STARTED | Implement serialize/validate/deserialize round trips with malformed and unknown-content-ID handling. |
-| NP-SAVE-004 | NOT STARTED | Implement atomic slot writes and one backup; simulate interrupted/corrupt writes and verify last valid data survives. |
+| NP-SAVE-001 | DONE | Define the versioned save DTO, slot metadata, and mapping to/from `GameState`; exclude live Unity object references. |
+| NP-SAVE-002 | DONE | Implement an injected Windows file-storage adapter with bounded paths and test in-memory storage. |
+| NP-SAVE-003 | IN PROGRESS | Implement serialize/validate/deserialize round trips with malformed and unknown-content-ID handling. Round trip, duplicates, missing, malformed, and schema validation are covered; catalog-wide unknown-ID migration diagnostics remain. |
+| NP-SAVE-004 | IN PROGRESS | Implement atomic slot writes and one backup; simulate interrupted/corrupt writes and verify last valid data survives. Atomic temp/replace plus backup creation are complete; interrupted-write and backup-recovery simulation remain. |
 | NP-SAVE-005 | NOT STARTED | Implement save schema migration pipeline and fixtures beginning with schema version 1. |
-| NP-SAVE-006 | NOT STARTED | Implement checkpoint definitions and safe-boundary capture/restore, including location spawn and objective state. |
-| NP-SAVE-007 | NOT STARTED | Add autosave feedback, write serialization/queuing, and input-safe error handling. |
-| NP-SAVE-008 | NOT STARTED | Implement manual save/load/delete slot commands with sequence restrictions and destructive-action confirmation. |
-| NP-SAVE-009 | NOT STARTED | Add EditMode and PlayMode coverage for round trip, backup recovery, migration, checkpoint restore, and repeated rapid save requests. |
-| NP-UI-004 | NOT STARTED | Build Main Menu with New Game, Continue, Load, Settings, Credits, and Quit state handling. |
-| NP-UI-005 | NOT STARTED | Build Pause Menu with Resume, Notebook, Save/Load availability, Settings, Main Menu, and Quit confirmation. |
+| NP-SAVE-006 | DONE | Implement checkpoint definitions and safe-boundary capture/restore, including location spawn and objective state. Five authored Chapter 1 checkpoints resolve location/spawn and persist the schema-2 objective state. |
+| NP-SAVE-007 | IN PROGRESS | Add autosave feedback, write serialization/queuing, and input-safe error handling. Safe-boundary writes and non-destructive results exist; player-facing feedback and request serialization remain. |
+| NP-SAVE-008 | IN PROGRESS | Implement manual save/load/delete slot commands with sequence restrictions and destructive-action confirmation. Session commands support save/load/new/delete/reset; slot UI, confirmation, and broader restrictions remain. |
+| NP-SAVE-009 | IN PROGRESS | Add EditMode and PlayMode coverage for round trip, backup recovery, migration, checkpoint restore, and repeated rapid save requests. Round-trip/corruption/schema/checkpoint coverage is complete; backup recovery, migrations, rapid writes, and relaunch PlayMode coverage remain. |
+| NP-UI-004 | IN PROGRESS | Build Main Menu with New Game, Continue, Load, Settings, Credits, and Quit state handling. Requested New Game/validated Continue/Settings/Quit are functional; separate Load and Credits screens remain backlog scope. |
+| NP-UI-005 | IN PROGRESS | Build Pause Menu with Resume, Notebook, Save/Load availability, Settings, Main Menu, and Quit confirmation. Requested Resume/Journal/Settings/Main Menu are functional; explicit Save/Load and confirmations remain backlog scope. |
 | NP-UI-006 | NOT STARTED | Implement the save-slot UI with timestamp, playtime, location/chapter label, version compatibility, empty/corrupt state, and controller navigation. |
-| NP-UI-007 | NOT STARTED | Implement global settings data/storage for audio, display, controls, text, and accessibility separately from save slots. |
-| NP-UI-008 | NOT STARTED | Build settings screens with apply/revert semantics for display changes and live preview for safe presentation/audio settings. |
+| NP-UI-007 | IN PROGRESS | Implement global settings data/storage for audio, display, controls, text, and accessibility separately from save slots. Master/music/SFX, fullscreen, resolution, and text speed persist separately; rebinding and broader accessibility remain. |
+| NP-UI-008 | IN PROGRESS | Build settings screens with apply/revert semantics for display changes and live preview for safe presentation/audio settings. Main/Pause settings screens apply requested fields; timed display revert and mixer-backed previews remain. |
 | NP-UI-009 | NOT STARTED | Implement input rebinding UI with conflict detection, reset defaults, cancellation, and persistence for keyboard/gamepad. |
 
 ## Phase 4 — Dialogue and Interrogation
@@ -92,12 +92,12 @@ The backlog covers the complete game target. It is not a promise that every impl
 | NP-DIALOGUE-001 | IN PROGRESS | Define `CharacterData` and speaker presentation fields with stable IDs and required-reference validation. Stable speaker name/role/portrait data is complete; required-reference validation remains. |
 | NP-DIALOGUE-002 | IN PROGRESS | Define dialogue conversation/node/line/choice data with conditions, effects, next links, and editor validation for broken/unreachable required nodes. The data model and runtime-safe invalid-link handling are complete; editor graph reachability validation remains. |
 | NP-DIALOGUE-003 | DONE | Implement the pure dialogue runner for lines, branches, choices, conditions, effects, and completion; cover branch behavior in EditMode tests. |
-| NP-DIALOGUE-004 | NOT STARTED | Implement dialogue history and important-choice state for conditional follow-ups and save/load. |
-| NP-DIALOGUE-005 | IN PROGRESS | Build the dialogue presentation screen with speaker, text reveal, instant-complete, continue, choices, and controller focus. Speaker/text/continue/conditional choices/focus are complete; reveal and instant-complete remain. |
+| NP-DIALOGUE-004 | IN PROGRESS | Implement dialogue history and important-choice state for conditional follow-ups and save/load. Current-conversation history and stable node/terminal progress persistence are complete; authored important-choice consequences remain. |
+| NP-DIALOGUE-005 | DONE | Build the dialogue presentation screen with speaker, text reveal, instant-complete, continue, choices, and controller focus. |
 | NP-DIALOGUE-006 | IN PROGRESS | Add conversation entry/exit integration that owns input maps, player movement lock, camera staging hooks, and safe interruption cleanup. Mode/input lock and cancel cleanup are complete; camera staging and interruption policy remain. |
 | NP-DIALOGUE-007 | NOT STARTED | Add evidence/topic selection within authored conversation nodes without exposing unavailable evidence. |
-| NP-DIALOGUE-008 | NOT STARTED | Define interrogation statements, contradiction prompts, accepted evidence, failure feedback, and completion effects. |
-| NP-DIALOGUE-009 | NOT STARTED | Implement interrogation logic and presentation with retry-safe state and fair contradiction feedback. |
+| NP-DIALOGUE-008 | DONE | Define interrogation statements, contradiction prompts, accepted evidence, failure feedback, and completion effects. |
+| NP-DIALOGUE-009 | DONE | Implement interrogation logic and presentation with retry-safe state and fair contradiction feedback. The first claim fixture is automated rather than forced into a Chapter 1 suspect scene. |
 | NP-DIALOGUE-010 | NOT STARTED | Implement relationship/trust variables only for authored uses, with bounded transitions and visible narrative consequences. |
 | NP-DIALOGUE-011 | NOT STARTED | Create a test conversation containing conditions, a persistent choice, evidence challenge, and interruption/checkpoint boundary; add end-to-end coverage. |
 
@@ -107,9 +107,9 @@ The backlog covers the complete game target. It is not a promise that every impl
 | --- | --- | --- |
 | NP-TERMINAL-001 | IN PROGRESS | Define authored terminal, account/credential, directory, message, file, record, and query data with stable IDs. Stable terminal and categorized entry data are complete; accounts, credentials, directory hierarchy, and queries remain. |
 | NP-TERMINAL-002 | NOT STARTED | Implement virtual database navigation/search and access checks as pure bounded logic; never access or execute host files. |
-| NP-TERMINAL-003 | NOT STARTED | Implement terminal session state for discovered files, queries, credentials, and story effects with save support. |
+| NP-TERMINAL-003 | IN PROGRESS | Implement terminal session state for discovered files, queries, credentials, and story effects with save support. Stable read-progress IDs and story effects persist; credentials/search state remain. |
 | NP-TERMINAL-004 | IN PROGRESS | Build diegetic terminal UI for login, navigation, search, file reading, locked results, history, and exit with keyboard/gamepad support. Categorized entry navigation/reading/focus/exit are complete; login, search, locks, and history remain. |
-| NP-TERMINAL-005 | IN PROGRESS | Integrate terminal discoveries with evidence, objectives, flags, and notifications through domain APIs. Evidence and flags are integrated; objectives remain. |
+| NP-TERMINAL-005 | DONE | Integrate terminal discoveries with evidence, objectives, flags, and notifications through domain APIs. |
 | NP-TERMINAL-006 | NOT STARTED | Add a restricted Mnemosyne database test dataset with one credential gate, one searchable identifier, and one evidence-producing record. |
 | NP-TERMINAL-007 | NOT STARTED | Test access control, bounded search, state persistence, duplicate discovery, UI focus restoration, and interaction exit. |
 
@@ -168,9 +168,9 @@ The backlog covers the complete game target. It is not a promise that every impl
 | NP-STORY-002 | NOT STARTED | Create the master clue/reveal dependency map proving each mandatory deduction and reveal has a fair acquisition route. |
 | NP-STORY-003 | NOT STARTED | Create the full chapter/scene/beat outline with location, objective, entry state, exit state, estimated time, and required assets. |
 | NP-STORY-004 | NOT STARTED | Define the complete stable-ID catalog for chapters, locations, characters, cases, evidence, deductions, memories, and ending variables. |
-| NP-STORY-005 | IN PROGRESS | Author and implement the Prologue critical path, optional observations, checkpoint, and chapter handoff. The 03:17 apartment/dispatch/opening transition is functional; checkpoint/objective polish and full handoff remain. |
-| NP-STORY-006 | IN PROGRESS | Author and implement Chapter 1 exploration/evidence/objectives. Mert apartment evidence, terminal, deduction, photograph, and first memory are functional; objectives and full chapter content remain. |
-| NP-STORY-007 | NOT STARTED | Author and implement Chapter 1 dialogue/interrogation/terminal content and chapter-completion deduction. |
+| NP-STORY-005 | DONE | Author and implement the Prologue critical path, optional observations, checkpoint, and chapter handoff. |
+| NP-STORY-006 | DONE | Author and implement Chapter 1 exploration/evidence/objectives. The production greybox supports atmospheric/lore/evidence interactions, objectives, checkpoints, terminal, memory, timeline, and deduction progression. |
+| NP-STORY-007 | DONE | Author and implement Chapter 1 dialogue/interrogation/terminal content and chapter-completion deduction. Chapter 1 uses recorder/end-hook dialogue, layered terminal content, the three-step deduction chain, and a tested interrogation fixture without inventing a living suspect scene. |
 | NP-STORY-008 | NOT STARTED | Author and implement Chapter 2 exploration, photograph discovery, “Dördümüzden biri hatırlamalı.” clue chain, and identity case thread. |
 | NP-STORY-009 | NOT STARTED | Author and implement Chapter 2 conversations/interrogations, optional character content, and chapter transition. |
 | NP-STORY-010 | NOT STARTED | Author and implement Chapter 3 Project Lazarus terminal/evidence path and restricted-access progression. |
@@ -201,7 +201,7 @@ The backlog covers the complete game target. It is not a promise that every impl
 | ID | Status | Task / acceptance outcome |
 | --- | --- | --- |
 | NP-QA-002 | NOT STARTED | Build a content validator covering duplicate/missing IDs, broken references, invalid conditions/effects, unreachable mandatory dialogue, and invalid build-scene keys. |
-| NP-QA-003 | NOT STARTED | Create automated critical-state fixtures for every chapter start, major reveal, and ending decision checkpoint. |
+| NP-QA-003 | IN PROGRESS | Create automated critical-state fixtures for every chapter start, major reveal, and ending decision checkpoint. Chapter 1 checkpoints and completion are covered; Chapters 2–5 and endings remain. |
 | NP-QA-004 | NOT STARTED | Run complete critical-path keyboard/mouse playthroughs from New Game to each ending with no developer shortcuts. |
 | NP-QA-005 | NOT STARTED | Run complete critical-path gamepad playthroughs and document supported controller behavior/disconnect recovery. |
 | NP-QA-006 | NOT STARTED | Verify save/load at every declared save point and checkpoint, including quit/relaunch and backup recovery. |
@@ -216,7 +216,7 @@ The backlog covers the complete game target. It is not a promise that every impl
 | NP-QA-015 | NOT STARTED | Achieve zero known progression blockers, save-loss defects, release-build exceptions, and unhandled missing-content errors. |
 | NP-BUILD-001 | NOT STARTED | Define supported Windows versions, minimum/recommended hardware, architecture, graphics API policy, and target performance with evidence. |
 | NP-BUILD-002 | NOT STARTED | Configure product/company metadata, application identifier, versioning, icons, cursor, splash behavior, and Windows player settings. |
-| NP-BUILD-003 | IN PROGRESS | Replace template Build Settings with Bootstrap/Main Menu/production scene flow; exclude all test scenes and validate scene references. Bootstrap and both opening production scenes are enabled and tests excluded; Main Menu and full build-scene validation remain. |
+| NP-BUILD-003 | DONE | Replace template Build Settings with Bootstrap/Main Menu/production scene flow; exclude all test scenes and validate scene references. |
 | NP-BUILD-004 | NOT STARTED | Create a reproducible local/CI Windows build entry point that fails on compiler errors, failing validators, or failing required tests. |
 | NP-BUILD-005 | NOT STARTED | Produce and smoke-test Development builds on a clean user profile with no pre-existing save/settings data. |
 | NP-BUILD-006 | NOT STARTED | Produce release-candidate builds and verify install/portable layout, first launch, save location, permissions, and uninstall/update expectations. |
@@ -227,4 +227,4 @@ The backlog covers the complete game target. It is not a promise that every impl
 
 ## First Recommended Next Task
 
-**NP-QA-001 — Complete a vertical-slice happy-path test and manual keyboard/gamepad checklist.** The opening now has the necessary production data and scenes; the next task should automate the complete dispatch → transition → three clues → memory → deduction flow and close controller/focus regressions before adding more content.
+**NP-SAVE-004 / NP-SAVE-005 — Harden backup recovery and introduce the first explicit migration fixture.** Chapter 1 now has a complete state boundary and deterministic happy-path coverage; the next phase should prove interrupted-write recovery and schema evolution before Chapter 2 adds new persistent domains.

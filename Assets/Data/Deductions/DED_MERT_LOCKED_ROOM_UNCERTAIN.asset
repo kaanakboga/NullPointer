@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0e33a05005524e40b62d90176789466, type: 3}
+  m_Name: DED_MERT_LOCKED_ROOM_UNCERTAIN
+  m_EditorClassIdentifier: NullPointer.Deduction::NullPointer.Deduction.DeductionData
+  _stableId: deduction.mert.locked_room_unreliable
+  _editorDescription: Chapter 1 conclusion connecting the door and mismatched call
+    histories.
+  _requiredEvidenceIds:
+  - evidence.mert.door_status
+  - evidence.mert.last_call_eren
+  - evidence.eren.call_history_gap
+  _requiredDeductionIds:
+  - deduction.mert.suicide_timeline_inconsistent
+  _resultTitle: "Kilitli Oda G\xF6r\xFCn\xFC\u015F\xFC G\xFCvenilir De\u011Fil"
+  _resultText: "Mekanik kap\u0131 izi ve e\u015Fle\u015Fmeyen arama ge\xE7mi\u015Fleri,
+    kapal\u0131 oda anlat\u0131s\u0131n\u0131n y\xFCzeyde g\xF6r\xFCnd\xFC\u011F\xFC
+    gibi kabul edilemeyece\u011Fini g\xF6steriyor."
+  _resultingEvidenceId: 
+  _storyFlagsToSet:
+  - flag.ch01.locked_room_unreliable

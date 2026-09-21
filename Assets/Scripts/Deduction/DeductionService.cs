@@ -90,6 +90,18 @@ namespace NullPointer.Deduction
                     missingIds);
             }
 
+            bool missingPrerequisite = deduction.RequiredDeductionIds
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct(StringComparer.Ordinal)
+                .Any(id => !_gameState.HasCompletedDeduction(id));
+            if (missingPrerequisite)
+            {
+                return new DeductionAttemptResult(
+                    DeductionAttemptStatus.MissingPrerequisite,
+                    deduction,
+                    Array.Empty<string>());
+            }
+
             _gameState.CompleteDeduction(deduction.StableId);
 
             if (!string.IsNullOrWhiteSpace(deduction.ResultingEvidenceId))

@@ -14,5 +14,9 @@ namespace NullPointer.Core
         public List<string> CollectedEvidenceIds = new List<string>();
         public List<string> UnlockedMemoryIds = new List<string>();
         public List<string> CompletedDeductionIds = new List<string>();
+        public List<string> ActiveObjectiveIds = new List<string>();
+        public List<string> CompletedObjectiveIds = new List<string>();
+        public List<string> DialogueProgressIds = new List<string>();
+        public List<string> CompletedChapterIds = new List<string>();
     }
 }

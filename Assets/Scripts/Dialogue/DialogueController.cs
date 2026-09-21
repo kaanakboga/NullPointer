@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NullPointer.Core;
 using NullPointer.Evidence;
 using NullPointer.Input;
@@ -17,14 +18,23 @@ namespace NullPointer.Dialogue
         private EvidenceService _evidenceService;
         private DialogueRunner _runner;
         private bool _isInputSubscribed;
+        private readonly List<string> _history = new List<string>();
+        private float _textSecondsPerCharacter = 0.025f;
 
         public event Action<DialogueAction> ExternalActionRequested;
 
         public bool IsOpen => _gameModes != null && _gameModes.CurrentMode == GameMode.Dialogue;
 
+        public IReadOnlyList<string> History => _history;
+
         public void Configure(DialoguePanel panel)
         {
             _panel = panel;
+        }
+
+        public void SetTextSpeed(float secondsPerCharacter)
+        {
+            _textSecondsPerCharacter = Mathf.Clamp(secondsPerCharacter, 0f, 0.08f);
         }
 
         public void Initialize(
@@ -52,6 +62,7 @@ namespace NullPointer.Dialogue
             }
 
             _gameModes.SetMode(GameMode.Dialogue);
+            _history.Clear();
             Render();
             Subscribe();
             return true;
@@ -60,6 +71,12 @@ namespace NullPointer.Dialogue
         public void Advance()
         {
             if (!IsOpen || _runner == null)
+            {
+                return;
+            }
+
+
+            if (_panel.RevealImmediately())
             {
                 return;
             }
@@ -122,7 +139,17 @@ namespace NullPointer.Dialogue
 
         private void Render()
         {
-            _panel.Show(_runner.CurrentNode, _runner.AvailableChoices);
+            DialogueNode node = _runner.CurrentNode;
+            string speaker = node?.Speaker == null ? string.Empty : node.Speaker.DisplayName;
+            _history.Add(string.IsNullOrWhiteSpace(speaker)
+                ? node?.Text ?? string.Empty
+                : $"{speaker}: {node?.Text}");
+            if (node != null)
+            {
+                _gameState.RecordDialogueProgress($"dialogue.progress.{node.NodeId}");
+            }
+
+            _panel.Show(node, _runner.AvailableChoices, _history, _textSecondsPerCharacter);
         }
 
         private void Subscribe()

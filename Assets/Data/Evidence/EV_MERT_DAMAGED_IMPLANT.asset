@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd7b15893a0211745ba36ff35c6907d0, type: 3}
+  m_Name: EV_MERT_DAMAGED_IMPLANT
+  m_EditorClassIdentifier: NullPointer.Evidence::NullPointer.Evidence.EvidenceData
+  _stableId: evidence.mert.damaged_implant
+  _editorDescription: "Opening evidence: Hasarl\u0131 Bellek \u0130mplant\u0131."
+  _displayName: "Hasarl\u0131 Bellek \u0130mplant\u0131"
+  _description: "G\xF6zlem: \u0130mplant do\u011Frulama hatt\u0131 \xF6l\xFCmden
+    k\u0131sa s\xFCre \xF6nce fiziksel olarak devre d\u0131\u015F\u0131 b\u0131rak\u0131lm\u0131\u015F."
+  _evidenceType: 0
+  _caseId: case.mert.suspicious_death
+  _isCritical: 1
+  _icon: {fileID: 0}
