@@ -30,6 +30,12 @@ namespace NullPointer.SceneFlow
 
         public string InteractionPrompt => _interactionPrompt;
 
+        public LocationData TargetLocation => _targetLocation;
+
+        public string TargetSpawnPointId => _targetSpawnPointId;
+
+        public string RequiredStoryFlag => _requiredStoryFlag;
+
         public void Configure(
             LocationData targetLocation,
             string targetSpawnPointId,

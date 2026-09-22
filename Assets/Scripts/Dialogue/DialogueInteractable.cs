@@ -19,6 +19,8 @@ namespace NullPointer.Dialogue
 
         public string InteractionPrompt => _interactionPrompt;
 
+        public DialogueData Dialogue => _dialogue;
+
         public void Configure(DialogueController controller, DialogueData dialogue)
         {
             _controller = controller;

@@ -125,7 +125,8 @@ namespace NullPointer.Runtime
                 application.GameModes,
                 application,
                 application.JournalService,
-                application.SettingsManager);
+                application.SettingsManager,
+                application.PauseHandler);
 
             foreach (SceneTransitionInteractable transition in _sceneTransitions)
             {

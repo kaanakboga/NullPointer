@@ -1,4 +1,5 @@
 using System;
+using NullPointer.Input;
 using NullPointer.Settings;
 using UnityEngine;
 
@@ -11,6 +12,8 @@ namespace NullPointer.Menus
         [SerializeField] private SettingsPanel _settingsPanel;
         private IGameSessionCommands _commands;
         private SettingsManager _settings;
+        private IGameplayInputSource _input;
+        private bool _settingsOpen;
 
         public bool ContinueEnabled => MainMenuAvailability.CanContinue(_commands);
 
@@ -20,13 +23,24 @@ namespace NullPointer.Menus
             _settingsPanel = settingsPanel;
         }
 
-        public void Initialize(IGameSessionCommands commands, SettingsManager settings)
+        public void Initialize(
+            IGameSessionCommands commands,
+            SettingsManager settings,
+            IGameplayInputSource input)
         {
+            if (_input != null)
+            {
+                _input.PausePressed -= OnCancelPressed;
+            }
+
             _commands = commands ?? throw new ArgumentNullException(nameof(commands));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _input = input ?? throw new ArgumentNullException(nameof(input));
+            _input.PausePressed += OnCancelPressed;
             _panel.Bind(this);
-            _settingsPanel.Bind(_settings, () => _panel.Show(ContinueEnabled));
+            _settingsPanel.Bind(_settings, CloseSettings);
             _settingsPanel.Hide();
+            _settingsOpen = false;
             _panel.Show(ContinueEnabled);
         }
 
@@ -46,12 +60,35 @@ namespace NullPointer.Menus
         public void OpenSettings()
         {
             _panel.Hide();
+            _settingsOpen = true;
             _settingsPanel.Show(_settings.Current);
         }
 
         public void Quit()
         {
             _commands?.QuitGame();
+        }
+
+        private void CloseSettings()
+        {
+            _settingsOpen = false;
+            _panel.Show(ContinueEnabled);
+        }
+
+        private void OnCancelPressed()
+        {
+            if (_settingsOpen)
+            {
+                _settingsPanel.Close();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_input != null)
+            {
+                _input.PausePressed -= OnCancelPressed;
+            }
         }
     }
 }

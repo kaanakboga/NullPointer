@@ -56,11 +56,15 @@ namespace NullPointer.Runtime
 
         public SettingsManager SettingsManager { get; private set; }
 
+        public string SaveFilePath { get; private set; } = string.Empty;
+
         public bool HasContinue => SaveManager != null && SaveManager.HasValidSave;
 
         public GameModeController GameModes => _gameModes;
 
         public GameplayInputReader InputReader => _inputReader;
+
+        public PauseInputHandler PauseHandler => _pauseHandler;
 
         public SceneLoader SceneLoader => _sceneLoader;
 
@@ -100,9 +104,11 @@ namespace NullPointer.Runtime
             }
 
             DontDestroyOnLoad(gameObject);
+            SaveFilePath = System.IO.Path.Combine(Application.persistentDataPath, "save-v1.json");
             SaveManager = new SaveManager(
-                new FileSaveStorage(System.IO.Path.Combine(Application.persistentDataPath, "save-v1.json")),
-                Application.version);
+                new FileSaveStorage(SaveFilePath),
+                Application.version,
+                ReportSaveDiagnostic);
             SettingsManager = new SettingsManager(
                 new FileSettingsStorage(System.IO.Path.Combine(Application.persistentDataPath, "settings-v1.json")));
             SettingsManager.Apply(false);
@@ -147,8 +153,20 @@ namespace NullPointer.Runtime
 
             RebuildSession(load.GameState);
             _pauseHandler.enabled = true;
-            _gameModes.SetMode(GameMode.Gameplay);
-            CheckpointData checkpoint = CheckpointService.Current;
+            string fallbackCheckpointId = _startingCheckpoint == null
+                ? string.Empty
+                : _startingCheckpoint.StableId;
+            var recovery = new LoadedSessionRecovery(_gameModes, CheckpointService);
+            CheckpointData checkpoint = recovery.Restore(
+                fallbackCheckpointId,
+                out bool usedFallback);
+            if (usedFallback && checkpoint != null)
+            {
+                Debug.LogWarning(
+                    $"[Save] Loaded checkpoint was invalid. Restored safe checkpoint '{checkpoint.StableId}'.");
+                SaveManager.Save(GameState);
+            }
+
             return checkpoint != null &&
                    _sceneLoader.LoadLocation(checkpoint.Location, checkpoint.SpawnPointId);
         }
@@ -194,6 +212,33 @@ namespace NullPointer.Runtime
             JournalService = new JournalService(GameState, EvidenceService, _contentCatalog.JournalEntries);
             InterrogationService = new InterrogationService(GameState, _contentCatalog.InterrogationClaims);
             _sceneLoader.Initialize(GameState);
+        }
+
+        private static void ReportSaveDiagnostic(SaveDiagnostic diagnostic)
+        {
+            if (diagnostic == null)
+            {
+                return;
+            }
+
+            string message = $"[Save] {diagnostic.Message}";
+            switch (diagnostic.Severity)
+            {
+                case SaveDiagnosticSeverity.Error:
+                    Debug.LogError(message);
+                    break;
+                case SaveDiagnosticSeverity.Warning:
+                    Debug.LogWarning(message);
+                    break;
+                default:
+                    Debug.Log(message);
+                    break;
+            }
+
+            if (diagnostic.Exception != null)
+            {
+                Debug.LogException(diagnostic.Exception);
+            }
         }
 
         private void OnDestroy()

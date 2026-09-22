@@ -143,6 +143,8 @@ Do not rename imported assets merely to change capitalization if that risks GUID
 - Every save schema has an explicit integer version.
 - A schema change includes migration or a documented compatibility break before release.
 - Save writes are atomic with validation and backup; failures are surfaced without destroying the last valid save.
+- Never overwrite a future-schema primary save. Backup recovery requires full validation, restores the primary atomically, and preserves the known-good backup.
+- Every schema upgrade is sequential, has a checked-in legacy fixture, normalizes data through explicit APIs, and is covered by a regression test.
 - Checkpoints occur only at known-safe boundaries.
 - State transitions use APIs that preserve invariants; no arbitrary dictionary or field writes from presentation code.
 - Global settings are stored separately from save slots.
@@ -157,6 +159,8 @@ Do not rename imported assets merely to change capitalization if that risks GUID
 - Bug fixes include a regression test when the failure is deterministic and reasonably testable.
 - Tests must clean up created files, scenes, objects, and static state.
 - A task is not complete with known compiler errors, failing relevant tests, or an unverified changed scene/prefab.
+- A production Windows build must pass the full Unity verifier and production content validator; test scenes and editor-only diagnostics are excluded from player builds.
+- Pixel-art assets under `Assets/Art` follow `ART_BIBLE.md` import rules. Intentional exceptions are documented and reviewed rather than silently overriding the importer.
 
 ## Documentation and Change Tracking
 

@@ -21,14 +21,25 @@ namespace NullPointer.Save
             _temporaryPath = _path + ".tmp";
         }
 
-        public bool Exists => File.Exists(_path);
+        public bool PrimaryExists => File.Exists(_path);
 
-        public string Read()
+        public bool BackupExists => File.Exists(_backupPath);
+
+        public string PrimaryPath => _path;
+
+        public string BackupPath => _backupPath;
+
+        public string ReadPrimary()
         {
             return File.ReadAllText(_path);
         }
 
-        public void WriteAtomic(string contents)
+        public string ReadBackup()
+        {
+            return File.ReadAllText(_backupPath);
+        }
+
+        public void WriteAtomic(string contents, SaveBackupBehavior backupBehavior)
         {
             string directory = Path.GetDirectoryName(_path);
             if (!string.IsNullOrEmpty(directory))
@@ -41,7 +52,44 @@ namespace NullPointer.Save
             {
                 if (File.Exists(_path))
                 {
-                    File.Replace(_temporaryPath, _path, _backupPath, true);
+                    string backupPath = backupBehavior == SaveBackupBehavior.RotatePrimaryToBackup
+                        ? _backupPath
+                        : null;
+                    File.Replace(_temporaryPath, _path, backupPath, true);
+                }
+                else
+                {
+                    File.Move(_temporaryPath, _path);
+                }
+            }
+            finally
+            {
+                if (File.Exists(_temporaryPath))
+                {
+                    File.Delete(_temporaryPath);
+                }
+            }
+        }
+
+        public void RestoreBackupToPrimary()
+        {
+            if (!File.Exists(_backupPath))
+            {
+                throw new FileNotFoundException("The save backup does not exist.", _backupPath);
+            }
+
+            string directory = Path.GetDirectoryName(_path);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            File.Copy(_backupPath, _temporaryPath, true);
+            try
+            {
+                if (File.Exists(_path))
+                {
+                    File.Replace(_temporaryPath, _path, null, true);
                 }
                 else
                 {

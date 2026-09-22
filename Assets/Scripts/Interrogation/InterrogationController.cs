@@ -82,7 +82,11 @@ namespace NullPointer.Interrogation
 
         private void OnDisable()
         {
-            if (_input != null)
+            if (IsOpen)
+            {
+                Close();
+            }
+            else if (_input != null)
             {
                 _input.PausePressed -= Close;
             }

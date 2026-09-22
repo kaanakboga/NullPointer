@@ -131,7 +131,14 @@ namespace NullPointer.Inspect
 
         private void OnDisable()
         {
-            Unsubscribe();
+            if (IsOpen)
+            {
+                Close();
+            }
+            else
+            {
+                Unsubscribe();
+            }
         }
     }
 }

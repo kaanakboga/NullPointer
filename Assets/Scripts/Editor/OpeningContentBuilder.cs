@@ -66,13 +66,7 @@ namespace NullPointer.Editor
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            IReadOnlyList<ContentIdDiagnostic> diagnostics = ContentValidationMenu.ValidateAll();
-            if (diagnostics.Count > 0)
-            {
-                throw new InvalidOperationException(string.Join(
-                    Environment.NewLine,
-                    diagnostics.Select(diagnostic => diagnostic.Message)));
-            }
+            ProductionContentValidator.ValidateOrThrow();
 
             Debug.Log("[Opening] Authored opening content and production scenes rebuilt successfully.");
         }
@@ -786,6 +780,7 @@ namespace NullPointer.Editor
                 Camera camera = cameraObject.AddComponent<Camera>();
                 camera.clearFlags = CameraClearFlags.SolidColor;
                 camera.backgroundColor = BackgroundColor;
+                cameraObject.AddComponent<AudioListener>();
             });
         }
 
@@ -804,6 +799,7 @@ namespace NullPointer.Editor
                 CanvasScaler scaler = canvasObject.AddComponent<CanvasScaler>();
                 scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
                 scaler.referenceResolution = new Vector2(1920f, 1080f);
+                scaler.matchWidthOrHeight = 0.5f;
                 canvasObject.AddComponent<GraphicRaycaster>();
 
                 GameObject backdrop = CreateImage(
@@ -1116,8 +1112,10 @@ namespace NullPointer.Editor
             renderer.color = new Color(0.3f, 0.78f, 0.88f, 1f);
             renderer.sortingOrder = 2;
             Rigidbody2D body = playerObject.AddComponent<Rigidbody2D>();
-            body.gravityScale = 3f;
-            body.freezeRotation = true;
+            body.bodyType = RigidbodyType2D.Dynamic;
+            body.gravityScale = 0f;
+            body.constraints = RigidbodyConstraints2D.FreezePositionY |
+                               RigidbodyConstraints2D.FreezeRotation;
             playerObject.AddComponent<BoxCollider2D>();
             PlayerController player = playerObject.AddComponent<PlayerController>();
             player.SetMoveSpeed(4f);
@@ -1450,6 +1448,7 @@ namespace NullPointer.Editor
             camera.orthographicSize = 4.8f;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = BackgroundColor;
+            cameraObject.AddComponent<AudioListener>();
         }
 
         private static GameObject CreateInteractableBlock(

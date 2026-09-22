@@ -16,7 +16,7 @@ namespace NullPointer.Runtime
         public void Install(GameApplication application)
         {
             application.PrepareMainMenu();
-            _controller.Initialize(application, application.SettingsManager);
+            _controller.Initialize(application, application.SettingsManager, application.InputReader);
         }
     }
 }

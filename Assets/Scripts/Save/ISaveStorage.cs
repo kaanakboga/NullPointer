@@ -2,11 +2,17 @@ namespace NullPointer.Save
 {
     public interface ISaveStorage
     {
-        bool Exists { get; }
+        bool PrimaryExists { get; }
 
-        string Read();
+        bool BackupExists { get; }
 
-        void WriteAtomic(string contents);
+        string ReadPrimary();
+
+        string ReadBackup();
+
+        void WriteAtomic(string contents, SaveBackupBehavior backupBehavior);
+
+        void RestoreBackupToPrimary();
 
         void Delete();
     }

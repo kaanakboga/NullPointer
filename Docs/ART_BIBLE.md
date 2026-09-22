@@ -26,14 +26,18 @@ Memory distortion uses a limited vocabulary: displaced pixel blocks, channel sep
 
 - Production reference canvas: **480×270**, scaling cleanly to 1920×1080 at 4×.
 - Compose essential gameplay for 16:9 while testing wider Windows aspect ratios.
-- Choose a consistent pixels-per-unit standard during the first art spike; do not mix arbitrary sprite scales.
-- Candidate baseline: 16 PPU for environment tiles with adult characters approximately 48–64 source pixels tall.
-- Pixel art uses nearest-neighbor filtering, no compression artifacts, and intentional pivots.
+- World art uses **16 pixels per unit** and a **16×16 source-pixel construction grid**. Do not mix arbitrary world sprite scales.
+- Adult exploration characters target **48–64 source pixels tall** and approximately **24–40 pixels wide**, with exceptions documented against the same grid.
+- World pixel art under `Assets/Art` imports with Point filtering, mipmaps disabled, NPOT scaling disabled, and uncompressed texture data. UI sprites use 100 PPU with the same filtering/compression discipline.
 - Avoid subpixel shimmer. Camera motion and sprite placement must be tested with the chosen pixel-perfect strategy.
 - Rotation and non-integer scaling of pixel sprites are exceptional effects, not routine layout tools.
 - UI text is optimized for legibility and may use higher-resolution raster/vector rendering rather than pretending to share the world sprite grid.
 
-The reference canvas and PPU remain subject to a documented art spike before bulk asset production. Existing final art must not begin until the spike is approved.
+The 480×270 reference canvas, 16 PPU world scale, and 16-pixel grid are the production baseline. The Phase 5 art spike validates camera/pixel-perfect behavior and style execution against this locked technical baseline; it does not reopen arbitrary scale selection.
+
+### Sorting and Normal Maps
+
+World renderers use this back-to-front sorting-layer order: `Default`, `Background`, `Environment`, `PropsBack`, `Characters`, `PropsFront`, `Effects`, `Foreground`, `WorldUI`. New layers require a documented rendering need. Normal maps are opt-in and use the `_Normal` filename suffix so Unity imports them as normal maps; they must support a deliberate URP 2D lighting decision rather than decorate every sprite.
 
 ## Core Palette
 
@@ -127,6 +131,7 @@ Constraints:
 - UI transitions are short and consistent.
 - Memory reconstruction may use stepped or discontinuous motion; ordinary scenes should not.
 - Any camera shake has intensity controls and a zero setting.
+- Animation clips use `<Prefix>_<Subject>_<Action>_<DirectionOrVariant>` where useful, for example `CHR_Eren_Walk_Right`; sprite source frames append a zero-padded frame number.
 
 ## Asset Naming and Delivery
 
@@ -143,6 +148,8 @@ Suggested prefixes:
 - `PAL_` palettes.
 
 Before final import, verify license/provenance, color mode, transparent edges, filtering, compression, pixels per unit, pivot, atlas compatibility, and naming.
+
+AI-assisted visual output is staged outside final production folders until a human reviews anatomy/perspective, palette, pixel cleanup, tiling/seams, alpha edges, consistency, and rights/provenance. Record the tool/model, date, prompt/reference ownership, license/usage terms, and human edits. Generated images are references or raw material, never automatically approved final assets.
 
 ## Audio-Visual Coordination
 

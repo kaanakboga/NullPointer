@@ -22,7 +22,7 @@ The backlog covers the complete game target. It is not a promise that every impl
 | NP-CORE-008 | DONE | Create `SCN_Bootstrap` and a small composition root that initializes only required application-lifetime services and routes deterministically to a test destination. |
 | NP-CORE-009 | IN PROGRESS | Implement the scene-loading contract with guarded single-load behavior, transition hooks, failure reporting, and a test adapter. Async guarded loads, typed hooks, location state, and spawn forwarding are complete; a test adapter and player-facing load failure remain. |
 | NP-CORE-010 | IN PROGRESS | Add project-wide editor validation entry points for stable IDs and required content references; validator output must identify the asset and repair action. Stable ID scanning reports asset paths; broader required-reference/graph/build-key repair diagnostics remain. |
-| NP-CORE-011 | NOT STARTED | Add development-only state inspection and safe story-jump hooks that cannot enter release builds. |
+| NP-CORE-011 | IN PROGRESS | Add development-only state inspection and safe story-jump hooks that cannot enter release builds. The editor-only save/state diagnostics window is complete; general safe story-jump hooks remain. |
 | NP-CORE-013 | DONE | Implement the authoritative, testable GameMode service/controller and typed transitions for Gameplay, Inspect, Dialogue, Interrogation, Terminal, EvidenceBoard, Memory, and Paused. |
 | NP-CORE-014 | DONE | Add reusable exact-version Unity batch compile/EditMode/PlayMode verification with ignored logs, NUnit result validation, and non-zero failure behavior. |
 
@@ -32,11 +32,11 @@ The backlog covers the complete game target. It is not a promise that every impl
 | --- | --- | --- |
 | NP-PLAYER-001 | DONE | Replace template combat-oriented input actions with reviewed Gameplay and UI maps for keyboard/mouse and gamepad; preserve generated-asset workflow consistently. |
 | NP-PLAYER-002 | DONE | Implement testable movement intent, speed configuration, and movement locking rules without animation or interaction coupling. |
-| NP-PLAYER-003 | DONE | Implement the 2D player controller with collision-safe movement and predictable enable/disable lifecycle. |
+| NP-PLAYER-003 | DONE | Implement the 2D player controller with collision-safe movement and predictable enable/disable lifecycle. Production players use an explicit gravity-free horizontal plane with Dynamic Rigidbody2D collision response; both apartment scenes have idle/movement regression coverage. |
 | NP-PLAYER-004 | NOT STARTED | Add player facing and locomotion animation presentation using placeholder art without changing movement authority. |
 | NP-PLAYER-005 | IN PROGRESS | Implement stable spawn-point selection and restoration by validated spawn ID. Scene transitions now forward spawn IDs with deterministic fallback; duplicate/missing spawn validation and checkpoint restoration remain. |
 | NP-PLAYER-006 | NOT STARTED | Configure a pixel-stable follow camera prototype and verify movement at target integer scales and common aspect ratios. |
-| NP-PLAYER-007 | IN PROGRESS | Add PlayMode coverage for movement, input-map switching, collision, pause lock, and spawn behavior. Movement, modal blocking, Inspect close, and Bootstrap scene installation are covered; hardware input-map switching, collision-edge, and explicit spawn variants remain. |
+| NP-PLAYER-007 | IN PROGRESS | Add PlayMode coverage for movement, input-map switching, collision, pause lock, and spawn behavior. Movement, production-scene Y stability, modal blocking, Inspect close, and Bootstrap scene installation are covered; hardware input-map switching, collision-edge, and explicit spawn variants remain. |
 | NP-INT-001 | IN PROGRESS | Define focused interaction contracts and result types for inspectable, pickup, character, terminal, door, and transition composition. The neutral `IInteractable` availability/priority/transform/invoke contract is complete; result and specialized composition contracts remain. |
 | NP-INT-002 | DONE | Implement deterministic nearby-target discovery and focus scoring with EditMode tests for tie and invalid-target cases. |
 | NP-INT-003 | DONE | Implement the player interactor lifecycle, ensuring disabled/blocking UI states cannot dispatch interactions. |
@@ -72,12 +72,12 @@ The backlog covers the complete game target. It is not a promise that every impl
 | NP-SAVE-001 | DONE | Define the versioned save DTO, slot metadata, and mapping to/from `GameState`; exclude live Unity object references. |
 | NP-SAVE-002 | DONE | Implement an injected Windows file-storage adapter with bounded paths and test in-memory storage. |
 | NP-SAVE-003 | IN PROGRESS | Implement serialize/validate/deserialize round trips with malformed and unknown-content-ID handling. Round trip, duplicates, missing, malformed, and schema validation are covered; catalog-wide unknown-ID migration diagnostics remain. |
-| NP-SAVE-004 | IN PROGRESS | Implement atomic slot writes and one backup; simulate interrupted/corrupt writes and verify last valid data survives. Atomic temp/replace plus backup creation are complete; interrupted-write and backup-recovery simulation remain. |
-| NP-SAVE-005 | NOT STARTED | Implement save schema migration pipeline and fixtures beginning with schema version 1. |
+| NP-SAVE-004 | DONE | Implement atomic slot writes and one backup; simulate interrupted/corrupt writes and verify last valid data survives. Real-filesystem tests cover replacement, interrupted writes, corrupt-primary replacement, backup preservation, and validated recovery. |
+| NP-SAVE-005 | DONE | Implement save schema migration pipeline and fixtures beginning with schema version 1. Schema-1 envelope/state data upgrades sequentially to schema 2 and is covered by a checked-in fixture. |
 | NP-SAVE-006 | DONE | Implement checkpoint definitions and safe-boundary capture/restore, including location spawn and objective state. Five authored Chapter 1 checkpoints resolve location/spawn and persist the schema-2 objective state. |
 | NP-SAVE-007 | IN PROGRESS | Add autosave feedback, write serialization/queuing, and input-safe error handling. Safe-boundary writes and non-destructive results exist; player-facing feedback and request serialization remain. |
 | NP-SAVE-008 | IN PROGRESS | Implement manual save/load/delete slot commands with sequence restrictions and destructive-action confirmation. Session commands support save/load/new/delete/reset; slot UI, confirmation, and broader restrictions remain. |
-| NP-SAVE-009 | IN PROGRESS | Add EditMode and PlayMode coverage for round trip, backup recovery, migration, checkpoint restore, and repeated rapid save requests. Round-trip/corruption/schema/checkpoint coverage is complete; backup recovery, migrations, rapid writes, and relaunch PlayMode coverage remain. |
+| NP-SAVE-009 | IN PROGRESS | Add EditMode and PlayMode coverage for round trip, backup recovery, migration, checkpoint restore, and repeated rapid save requests. Round trip, corruption/future schema, backup recovery/preservation, migration fixture, checkpoint fallback, and fresh-manager disk relaunch are covered; rapid concurrent requests and a player-level relaunch remain. |
 | NP-UI-004 | IN PROGRESS | Build Main Menu with New Game, Continue, Load, Settings, Credits, and Quit state handling. Requested New Game/validated Continue/Settings/Quit are functional; separate Load and Credits screens remain backlog scope. |
 | NP-UI-005 | IN PROGRESS | Build Pause Menu with Resume, Notebook, Save/Load availability, Settings, Main Menu, and Quit confirmation. Requested Resume/Journal/Settings/Main Menu are functional; explicit Save/Load and confirmations remain backlog scope. |
 | NP-UI-006 | NOT STARTED | Implement the save-slot UI with timestamp, playtime, location/chapter label, version compatibility, empty/corrupt state, and controller navigation. |
@@ -148,7 +148,7 @@ The backlog covers the complete game target. It is not a promise that every impl
 | ID | Status | Task / acceptance outcome |
 | --- | --- | --- |
 | NP-ART-001 | NOT STARTED | Produce an art spike comparing candidate PPU/character scale and approve the final reference canvas, grid, camera, and import rules. |
-| NP-ART-002 | NOT STARTED | Create Unity import presets for environment, character, UI, and effect sprites; verify no filtering/compression/pivot regressions. |
+| NP-ART-002 | IN PROGRESS | Create Unity import presets for environment, character, UI, and effect sprites; verify no filtering/compression/pivot regressions. Automatic `Assets/Art` point/no-mipmap/uncompressed/PPU rules, `_Normal` handling, and sorting layers are configured; representative final-asset regression coverage remains. |
 | NP-ART-003 | NOT STARTED | Create approved core palette assets, lighting examples, and grayscale/readability reference. |
 | NP-ART-004 | NOT STARTED | Produce final Eren exploration sprite set and restrained locomotion/interaction animations. |
 | NP-ART-005 | NOT STARTED | Define and produce the supporting-character sprite/portrait pipeline, then complete cast assets as the narrative roster locks. |
@@ -200,11 +200,11 @@ The backlog covers the complete game target. It is not a promise that every impl
 
 | ID | Status | Task / acceptance outcome |
 | --- | --- | --- |
-| NP-QA-002 | NOT STARTED | Build a content validator covering duplicate/missing IDs, broken references, invalid conditions/effects, unreachable mandatory dialogue, and invalid build-scene keys. |
+| NP-QA-002 | IN PROGRESS | Build a content validator covering duplicate/missing IDs, broken references, invalid conditions/effects, unreachable mandatory dialogue, and invalid build-scene keys. The production build gate covers IDs/catalog types, scene order, missing scripts/references, Chapter 1 links/routes/gates, EventSystems, AudioListeners, and build scenes; generalized condition/effect and reachability graph analysis remains. |
 | NP-QA-003 | IN PROGRESS | Create automated critical-state fixtures for every chapter start, major reveal, and ending decision checkpoint. Chapter 1 checkpoints and completion are covered; Chapters 2–5 and endings remain. |
 | NP-QA-004 | NOT STARTED | Run complete critical-path keyboard/mouse playthroughs from New Game to each ending with no developer shortcuts. |
 | NP-QA-005 | NOT STARTED | Run complete critical-path gamepad playthroughs and document supported controller behavior/disconnect recovery. |
-| NP-QA-006 | NOT STARTED | Verify save/load at every declared save point and checkpoint, including quit/relaunch and backup recovery. |
+| NP-QA-006 | IN PROGRESS | Verify save/load at every declared save point and checkpoint, including quit/relaunch and backup recovery. Automated disk relaunch, checkpoint normalization/fallback, migration, and backup recovery are covered; exact player-build checkpoint-by-checkpoint manual verification remains. |
 | NP-QA-007 | NOT STARTED | Verify all dialogue branches, interrogation outcomes, deductions, terminal gates, memories, and optional-content re-entry states. |
 | NP-QA-008 | NOT STARTED | Run accessibility test matrix with reduced glitch/flashing/shake, subtitle variants, text speeds, and no color-only interpretation. |
 | NP-QA-009 | NOT STARTED | Test supported Windows resolutions, window modes, DPI/UI scaling, 16:9, wider aspect ratios, minimize/restore, and display apply/revert. |
@@ -217,8 +217,8 @@ The backlog covers the complete game target. It is not a promise that every impl
 | NP-BUILD-001 | NOT STARTED | Define supported Windows versions, minimum/recommended hardware, architecture, graphics API policy, and target performance with evidence. |
 | NP-BUILD-002 | NOT STARTED | Configure product/company metadata, application identifier, versioning, icons, cursor, splash behavior, and Windows player settings. |
 | NP-BUILD-003 | DONE | Replace template Build Settings with Bootstrap/Main Menu/production scene flow; exclude all test scenes and validate scene references. |
-| NP-BUILD-004 | NOT STARTED | Create a reproducible local/CI Windows build entry point that fails on compiler errors, failing validators, or failing required tests. |
-| NP-BUILD-005 | NOT STARTED | Produce and smoke-test Development builds on a clean user profile with no pre-existing save/settings data. |
+| NP-BUILD-004 | DONE | Create a reproducible local/CI Windows build entry point that fails on compiler errors, failing validators, or failing required tests. `Tools/Build-Windows.ps1` version-checks Unity, runs full verification by default, validates production content/scenes, and builds Windows x86-64 with non-zero failure propagation. |
+| NP-BUILD-005 | IN PROGRESS | Produce and smoke-test Development builds on a clean user profile with no pre-existing save/settings data. A development player is reproducibly built and process/log smoke-tested; clean-profile interactive Chapter 1 and input/settings passes remain. |
 | NP-BUILD-006 | NOT STARTED | Produce release-candidate builds and verify install/portable layout, first launch, save location, permissions, and uninstall/update expectations. |
 | NP-BUILD-007 | NOT STARTED | Verify release logging/crash behavior contains actionable diagnostics without development tools, secrets, or private save content. |
 | NP-BUILD-008 | NOT STARTED | Prepare store/package assets, release notes, support/known-issues material, and final credits/licenses bundle for the chosen distributor. |
@@ -227,4 +227,4 @@ The backlog covers the complete game target. It is not a promise that every impl
 
 ## First Recommended Next Task
 
-**NP-SAVE-004 / NP-SAVE-005 — Harden backup recovery and introduce the first explicit migration fixture.** Chapter 1 now has a complete state boundary and deterministic happy-path coverage; the next phase should prove interrupted-write recovery and schema evolution before Chapter 2 adds new persistent domains.
+**NP-ART-001 — Execute the focused Phase 5 art spike against the locked 480×270 / 16 PPU technical baseline.** Compare camera/pixel-perfect behavior and produce representative Eren, environment, UI, lighting, and reduced-glitch samples before bulk final-art production. Keep the remaining player-build manual QA checklist active alongside the spike.

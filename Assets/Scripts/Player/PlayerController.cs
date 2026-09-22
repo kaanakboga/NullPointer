@@ -9,6 +9,9 @@ namespace NullPointer.Player
     [AddComponentMenu("Null Pointer/Player/Player Controller")]
     public sealed class PlayerController : MonoBehaviour
     {
+        private const RigidbodyConstraints2D HorizontalMovementConstraints =
+            RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
+
         [SerializeField] private Rigidbody2D _rigidbody;
         [SerializeField] private GameModeController _gameModeController;
         [SerializeField] private GameplayInputReader _inputReader;
@@ -34,6 +37,7 @@ namespace NullPointer.Player
             _gameModeController = gameModeController;
             _inputReader = inputSource as GameplayInputReader;
             _inputSource = inputSource;
+            ConfigureHorizontalBody();
             SubscribeToModeChanges();
 
             if (!CanMove)
@@ -51,6 +55,7 @@ namespace NullPointer.Player
         {
             _rigidbody ??= GetComponent<Rigidbody2D>();
             _inputSource ??= _inputReader;
+            ConfigureHorizontalBody();
         }
 
         private void OnEnable()
@@ -87,6 +92,7 @@ namespace NullPointer.Player
 
             Vector2 velocity = _rigidbody.linearVelocity;
             velocity.x = _horizontalInput * _moveSpeed;
+            velocity.y = 0f;
             _rigidbody.linearVelocity = velocity;
         }
 
@@ -128,9 +134,22 @@ namespace NullPointer.Player
                 return;
             }
 
-            Vector2 velocity = _rigidbody.linearVelocity;
-            velocity.x = 0f;
-            _rigidbody.linearVelocity = velocity;
+            _rigidbody.linearVelocity = Vector2.zero;
+        }
+
+        private void ConfigureHorizontalBody()
+        {
+            if (_rigidbody == null)
+            {
+                return;
+            }
+
+            // Exploration has no jump, fall, slope, or vertical traversal mechanics. Keep a
+            // dynamic body for horizontal collision response while owning the movement plane.
+            _rigidbody.bodyType = RigidbodyType2D.Dynamic;
+            _rigidbody.gravityScale = 0f;
+            _rigidbody.constraints = HorizontalMovementConstraints;
+            _rigidbody.linearVelocity = Vector2.zero;
         }
     }
 }

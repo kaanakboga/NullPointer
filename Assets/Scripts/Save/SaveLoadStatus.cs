@@ -3,9 +3,10 @@ namespace NullPointer.Save
     public enum SaveLoadStatus
     {
         Success = 0,
-        MissingFile = 1,
-        Corrupted = 2,
-        UnsupportedSchema = 3,
-        StorageFailure = 4
+        RecoveredFromBackup = 1,
+        MissingFile = 2,
+        Corrupted = 3,
+        UnsupportedSchema = 4,
+        StorageFailure = 5
     }
 }

@@ -18,6 +18,7 @@ namespace NullPointer.Input
         private GameModeController _gameModeController;
         private bool _isBound;
         private bool _isModeSubscribed;
+        private int _lastPausePressedFrame = -1;
 
         public event Action InteractPressed;
         public event Action PausePressed;
@@ -139,15 +140,26 @@ namespace NullPointer.Input
 
         private void OnPausePerformed(InputAction.CallbackContext context)
         {
-            PausePressed?.Invoke();
+            RaisePausePressedOncePerFrame();
         }
 
         private void OnCancelPerformed(InputAction.CallbackContext context)
         {
             if (_gameModeController != null && _gameModeController.CurrentMode != GameMode.Gameplay)
             {
-                PausePressed?.Invoke();
+                RaisePausePressedOncePerFrame();
             }
+        }
+
+        private void RaisePausePressedOncePerFrame()
+        {
+            if (_lastPausePressedFrame == Time.frameCount)
+            {
+                return;
+            }
+
+            _lastPausePressedFrame = Time.frameCount;
+            PausePressed?.Invoke();
         }
 
         private void SubscribeToModeChanges()

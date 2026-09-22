@@ -202,6 +202,10 @@ Keyboard and common gamepad bindings are present for all Gameplay actions. `Game
 
 The persistent input reader mode-gates Move and Interact actions: they are enabled only in Gameplay. Pause remains enabled so the owning modal can close through the same device-agnostic input contract, and UI Cancel is routed to modal close only outside Gameplay. `PauseInputHandler` handles only Gameplay/Paused; Inspect, Dialogue, Interrogation, Terminal, Evidence Board, and Memory own their cancel path.
 
+### Player Movement
+
+Exploration is a single horizontal movement plane: the game has no jumping, falling, slopes, or vertical traversal. `PlayerController` therefore uses a Dynamic `Rigidbody2D` for horizontal collision response while explicitly setting zero gravity and freezing Y position and rotation. It also clears vertical velocity during initialization and movement. Production scenes serialize the same invariant, so stability does not depend on decorative floor geometry or installer timing. Spawn points may safely reposition the body onto the authored plane before horizontal simulation resumes.
+
 ### Interaction
 
 `PlayerInteractionDetector` performs a bounded, reused-buffer 2D overlap query only while Gameplay mode is active. Candidates expose availability, priority, and an interaction transform through `IInteractable`. Selection orders by priority, squared distance, then a stable per-instance tie key; unavailable and duplicate targets are ignored. The active target is readable and raises a specific change event. Input dispatch is blocked in every non-Gameplay mode. Optional `IInteractionPromptSource` text feeds the reusable prompt UI. Inspect, evidence, dialogue, terminal, evidence-board, memory, and scene-transition interactables compose on this neutral contract without adding story-specific knowledge to the player controller.
@@ -258,11 +262,15 @@ All production transitions use `SceneLoader`. It rejects concurrent loads, raise
 
 ### Implemented Foundation
 
-`SaveManager` writes a versioned JSON envelope containing only `GameStateSnapshot`, primitives, and stable IDs. `FileSaveStorage` writes a temporary file and uses Windows atomic replacement with one `.bak` copy when replacing an existing save. Missing, malformed, and unsupported-schema files return explicit non-success results and never produce a partially restored session. The first shipping schema has no legacy migration yet; the envelope and state schemas are independently versioned so sequential migration can be introduced without changing storage or UI boundaries.
+`SaveManager` writes schema-2 JSON envelopes containing only `GameStateSnapshot`, primitives, stable IDs, and a SHA-256 payload hash. `FileSaveStorage` writes a sibling temporary file and atomically replaces the primary while retaining one `.bak` recovery copy. A known-good backup is preserved when an invalid primary is replaced, and a validated backup can restore a missing or corrupt primary without consuming the backup. Missing, malformed, read-failed, corrupt-hash, and future-schema inputs produce explicit outcomes; unsupported future primaries are never overwritten or silently replaced by an older backup.
+
+`SaveMigrationPipeline` owns sequential format upgrades. The checked-in schema-1 fixture upgrades the envelope and state to schema 2, normalizes duplicate/stable-ID collections, and is then validated through the same hash/current-schema path as a new save. A successful backup load reports `RecoveredFromBackup`, its source, and whether migration occurred. Player-facing messages remain safe and brief while development diagnostics receive the technical cause. The editor-only **Null Pointer → Development → Save Diagnostics** window can inspect state and paths, create/reload/corrupt/restore/delete the slot, and is excluded from players.
 
 Declared checkpoints are Eren start, dispatch complete, Mert entrance, first critical-evidence milestone, and first deduction complete. Saves occur at those safe boundaries and at Chapter 1 completion, not per frame or per incidental interaction. Development/tests can delete the slot through `SaveManager.Delete`.
 
 Settings use a separate `settings-v1.json` adapter and never share the story save. Master, music, and SFX values, fullscreen/windowed, supported resolution selection, and text speed are persisted. Master/display settings apply through Unity platform APIs; music/SFX values and nullable authored cue hooks are ready for the future mixer pass.
+
+Loaded sessions always normalize transient modal modes to Gameplay and resolve the persisted checkpoint against authored data. An invalid or removed checkpoint falls back to the declared safe start checkpoint and is re-saved rather than leaving the player in an unusable scene/mode.
 
 ## UI Strategy
 
@@ -289,6 +297,12 @@ All menus require:
 Build Settings start with `SCN_Bootstrap`, followed by `SCN_MainMenu`, `SCN_ErenApartment`, and `SCN_MertApartment`. Bootstrap persists while the Main Menu owns only front-end presentation. The template `SampleScene` remains untouched but is not enabled for production startup. `Assets/Scenes/Test/SCN_Test_GameplayFoundation.unity` remains an editor-only engineering harness and is intentionally excluded from Build Settings.
 
 The explicit editor command **Null Pointer → Opening → Rebuild Authored Opening Content and Scenes** creates or updates Chapter 1 ScriptableObjects, the content catalog, checkpoints, objectives, journal/timeline entries, Main Menu, Bootstrap, both location scenes, UI wiring, nullable audio hooks, and Build Settings. It is idempotent, preserves stable asset GUIDs, validates content IDs after generation, and refuses to discard an unsaved untitled scene during interactive use. Batch automation may replace only Unity's empty startup scene.
+
+## Windows Build and Content Gates
+
+`Tools/Build-Windows.ps1` is the reproducible Windows x86-64 entry point. It discovers and version-checks the same Unity 6000.5.4f1 editor as verification, runs `Tools/Verify-Unity.ps1 -Mode All` by default, and then invokes the requested Development or Release build method. `-Clean` is guarded to the project-owned `Builds` directory. Build products live under ignored `Builds/Windows-Development` or `Builds/Windows-Release`; build logs live under ignored `Logs/Build`. Any compiler, test, content-validator, or Unity build failure returns non-zero.
+
+`ProductionContentValidator` is both an editor command and a build gate. It verifies exact production scene order with no test scene, stable and typed catalog IDs, referenced locations/checkpoints/dialogue/terminal/deduction/journal/interrogation content, mandatory Chapter 1 acquisition routes and gates, scene readability, missing scripts, installer references, and exactly one EventSystem and AudioListener per UI production scene. `WindowsPlayerBuild` uses only the validated production scene list and produces `NullPointer.exe` for Windows x86-64. Product metadata is `Null Pointer: Anılar Silinmeden Önce`; company/identifier branding remains unchanged until explicitly approved.
 
 ## Manual Keyboard/Gamepad Focus Checklist
 
@@ -356,14 +370,14 @@ Dependencies point toward Core, and Player/Interaction share input only through 
 
 Tests must assert meaningful behavior. Scene or visual tests are added only when they protect a real regression risk.
 
-Current automated coverage includes mode transitions/events, schema-2 state and JSON saves, corruption/schema handling, authored checkpoints, objectives, journal unlocks, interrogation contradictions, the complete Chapter 1 happy path and boundary, Main Menu availability, settings persistence, keyboard/gamepad bindings, deterministic interaction selection, evidence/deduction/dialogue/memory rules, production scene contracts, modal movement blocking, Inspect close flow, interaction dispatch, and Bootstrap-to-Main-Menu startup. Latest verified result: 49 EditMode and 9 PlayMode tests passed (58 total).
+Current automated coverage includes mode transitions/events, schema-2 state and JSON saves, schema-1 fixture migration, payload integrity, real-filesystem atomic replacement, backup recovery/preservation, fresh-process-equivalent relaunch restoration, corruption/future-schema handling, authored checkpoints, objectives, journal unlocks, interrogation contradictions, the complete Chapter 1 happy path and boundary, Main Menu availability, save/settings separation, keyboard/gamepad bindings, deterministic interaction selection, evidence/deduction/dialogue/memory rules, production content/build-scene validation, modal movement blocking and cancel interception, defensive modal disable recovery, production-scene horizontal-plane stability, interaction dispatch, and Bootstrap-to-Main-Menu startup. Latest independently verified result: 74 EditMode and 11 PlayMode tests passed (85 total).
 
 ## Validation and Observability
 
 - Content assets implement editor validation for required references and ID format.
-- A project-wide validator reports duplicate IDs, broken references, unreachable required content, and invalid condition targets.
+- The production validator reports duplicate/missing IDs, broken references, missing acquisition routes, invalid Chapter 1 gates, missing scene components, and invalid build-scene keys before a player build.
 - Runtime logs use clear categories and avoid leaking full save contents.
-- Development builds may expose a read-only state inspector and story jump tools; release builds exclude them.
+- The editor exposes safe save/state diagnostics; no development diagnostic UI is compiled into players. General story-jump tools remain backlog work.
 
 ## Performance and Platform Targets
 
@@ -385,4 +399,4 @@ Specific minimum hardware will be set before content-complete QA. Until then:
 
 ## Current Foundation Limit
 
-This phase establishes a playable authored opening foundation, not the complete vertical slice. SaveManager, objective/case progression, dialogue history, terminal credentials/search, memory reconstruction puzzles, final evidence-board interaction art, final localization, full accessibility options, final audiovisual assets, and production fades remain outside scope. The Bootstrap session is deliberately in-memory only.
+This phase establishes a hardened, buildable Chapter 1 greybox foundation, not the complete game. Save-slot UI, save-request serialization, terminal credentials/search, memory reconstruction puzzles, final evidence-board interaction art, final localization, full accessibility options, final audiovisual assets, and production fades remain outside scope. Player-build manual QA remains distinct from automated state-level relaunch and structural validation.

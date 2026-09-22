@@ -178,7 +178,14 @@ namespace NullPointer.Dialogue
 
         private void OnDisable()
         {
-            Unsubscribe();
+            if (IsOpen)
+            {
+                Close();
+            }
+            else
+            {
+                Unsubscribe();
+            }
         }
     }
 }

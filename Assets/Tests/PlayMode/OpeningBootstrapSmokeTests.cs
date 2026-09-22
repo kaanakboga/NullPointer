@@ -14,7 +14,7 @@ namespace NullPointer.Tests.PlayMode
         [UnityTearDown]
         public IEnumerator TearDown()
         {
-            GameApplication application = Object.FindFirstObjectByType<GameApplication>();
+            GameApplication application = Object.FindAnyObjectByType<GameApplication>();
             if (application != null)
             {
                 Object.Destroy(application.gameObject);
@@ -58,8 +58,8 @@ namespace NullPointer.Tests.PlayMode
                 yield return null;
             }
 
-            GameApplication application = Object.FindFirstObjectByType<GameApplication>();
-            MainMenuController menu = Object.FindFirstObjectByType<MainMenuController>();
+            GameApplication application = Object.FindAnyObjectByType<GameApplication>();
+            MainMenuController menu = Object.FindAnyObjectByType<MainMenuController>();
 
             Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("SCN_MainMenu"));
             Assert.That(application, Is.Not.Null);

@@ -40,10 +40,29 @@ namespace NullPointer.Progression
                 : null;
         }
 
+        public CheckpointData RestoreLoadedCheckpoint(string fallbackCheckpointId, out bool usedFallback)
+        {
+            CheckpointData checkpoint = Current;
+            usedFallback = !IsUsable(checkpoint);
+            if (usedFallback)
+            {
+                checkpoint = Resolve(fallbackCheckpointId);
+            }
+
+            if (!IsUsable(checkpoint))
+            {
+                return null;
+            }
+
+            _gameState.SetCheckpoint(checkpoint.StableId);
+            _gameState.SetLocation(checkpoint.Location.StableId);
+            return checkpoint;
+        }
+
         public SaveLoadResult Activate(string checkpointId, bool saveImmediately = true)
         {
             CheckpointData checkpoint = Resolve(checkpointId);
-            if (checkpoint == null || checkpoint.Location == null || string.IsNullOrWhiteSpace(checkpoint.SpawnPointId))
+            if (!IsUsable(checkpoint))
             {
                 return new SaveLoadResult(SaveLoadStatus.Corrupted, null, $"Checkpoint '{checkpointId}' is invalid.");
             }
@@ -54,6 +73,13 @@ namespace NullPointer.Progression
             return saveImmediately
                 ? _saveManager.Save(_gameState)
                 : new SaveLoadResult(SaveLoadStatus.Success, _gameState, "Checkpoint activated.");
+        }
+
+        private static bool IsUsable(CheckpointData checkpoint)
+        {
+            return checkpoint != null && checkpoint.Location != null &&
+                   !string.IsNullOrWhiteSpace(checkpoint.Location.SceneName) &&
+                   !string.IsNullOrWhiteSpace(checkpoint.SpawnPointId);
         }
     }
 }

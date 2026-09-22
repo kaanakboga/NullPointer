@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using NullPointer.Core;
 using UnityEngine;
 
@@ -11,6 +13,7 @@ namespace NullPointer.Input
 
         private IGameplayInputSource _inputSource;
         private GameMode _modeBeforePause = GameMode.Gameplay;
+        private readonly List<Func<bool>> _cancelInterceptors = new List<Func<bool>>();
 
         public void Initialize(GameModeController gameModeController, IGameplayInputSource inputSource)
         {
@@ -23,6 +26,14 @@ namespace NullPointer.Input
 
         public void TogglePause()
         {
+            for (int index = _cancelInterceptors.Count - 1; index >= 0; index--)
+            {
+                if (_cancelInterceptors[index]?.Invoke() == true)
+                {
+                    return;
+                }
+            }
+
             if (_gameModeController == null)
             {
                 return;
@@ -41,6 +52,22 @@ namespace NullPointer.Input
 
             _modeBeforePause = _gameModeController.CurrentMode;
             _gameModeController.SetMode(GameMode.Paused);
+        }
+
+        public void RegisterCancelInterceptor(Func<bool> interceptor)
+        {
+            if (interceptor != null && !_cancelInterceptors.Contains(interceptor))
+            {
+                _cancelInterceptors.Add(interceptor);
+            }
+        }
+
+        public void UnregisterCancelInterceptor(Func<bool> interceptor)
+        {
+            if (interceptor != null)
+            {
+                _cancelInterceptors.Remove(interceptor);
+            }
         }
 
         private void Awake()

@@ -10,6 +10,8 @@ namespace NullPointer.Memory
         [SerializeField] private MemoryController _controller;
         [SerializeField] private MemoryData _memory;
 
+        public MemoryData Memory => _memory;
+
         public void Configure(MemoryController controller, MemoryData memory)
         {
             _controller = controller;

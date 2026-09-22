@@ -6,6 +6,15 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 
 ### Added
 
+- Added schema-2 save payload integrity, sequential schema-1 migration with a checked-in legacy fixture, validated primary/backup loading, atomic backup restoration, and non-destructive future-schema handling.
+- Added real-filesystem persistence tests covering atomic replacement, interrupted writes, corrupt-primary replacement, backup preservation/recovery, and a fresh-manager disk relaunch with checkpoint/mode restoration.
+- Added editor-only save diagnostics for state/path inspection and safe create, reload, corruption, restore, and delete operations.
+- Added defensive modal teardown recovery and nested pause/settings/journal cancel interception, including same-frame Pause/UI-Cancel deduplication.
+- Added the production content/build validator for scene order, test-scene exclusion, stable IDs, catalog/reference integrity, Chapter 1 acquisition/gate links, missing scripts, installer wiring, EventSystems, AudioListeners, and UI scaling structure.
+- Added reproducible Windows x86-64 Development/Release build automation with exact Unity-version checks, full-verifier integration, guarded clean output, ignored build logs/artifacts, and non-zero failure behavior.
+- Added production pixel-art import enforcement, normal-map suffix handling, and deterministic 2D sorting-layer setup.
+- Added `QA_CHAPTER1.md` separating automated evidence from the exact-player manual keyboard, gamepad, settings, resolution, save/relaunch, and clean-exit checklist.
+
 - Established the planned production folders for art, audio, data, prefabs, scenes, scripts, and tests without relocating template assets.
 - Added populated project documentation:
   - `GAME_DESIGN.md`
@@ -34,7 +43,7 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 - Added production greybox scenes `SCN_ErenApartment` and `SCN_MertApartment`, connected through the authored dispatch flag while preserving the engineering scene.
 - Added opening content for the 03:17 dispatch, neurological medication, environmental foreshadowing, Mert photograph/inscription, 02:51 terminal access, 02:36 death time, postmortem-terminal deduction, optional damaged recording, and first photograph-triggered memory glitch.
 - Added the idempotent **Rebuild Authored Opening Content and Scenes** editor command; repeated batch runs rebuild 19 data assets and 3 production scenes successfully without duplicate content IDs.
-- Expanded automated coverage to 49 EditMode and 9 PlayMode tests (58 total), including save corruption/schema handling, checkpoints, objectives, journal unlocks, interrogation logic, Chapter 1 happy path/completion, Main Menu state, settings, input-device bindings, production scenes, and modal blocking.
+- Expanded automated coverage to 74 EditMode and 11 PlayMode tests (85 total), including save migration/recovery/relaunch, content/build validation, checkpoints, objectives, journal unlocks, interrogation logic, Chapter 1 happy path/completion, Main Menu state, settings separation, input-device bindings, production-scene horizontal-plane stability, and modal blocking/recovery.
 - Added the schema-2 `GameState` fields required for active/completed objectives, dialogue/terminal progression, and completed chapter boundaries.
 - Added a versioned local JSON `SaveManager`, injected atomic Windows file storage with backup creation, explicit missing/corrupt/unsupported-schema outcomes, New Game/Save/Load/Continue/delete commands, and deterministic round-trip tests.
 - Added five authored Chapter 1 checkpoints with safe location/spawn restoration and checkpoint-boundary saves.
@@ -55,6 +64,14 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 
 ### Changed
 
+- Fixed production player physics in both apartment scenes: horizontal-only exploration now uses a Dynamic Rigidbody2D with zero gravity, frozen Y/rotation, and controller-enforced vertical-velocity cleanup instead of relying on greybox floor coverage.
+- Added a production-scene PlayMode regression that reproduces the former Eren fall, then verifies idle Y stability and horizontal movement in both Eren and Mert apartments.
+- Upgraded the save envelope from schema 1 to schema 2 while retaining explicit compatibility through migration; settings remain in an independent file and are unaffected by New Game/save deletion.
+- Normalized loaded modal modes to Gameplay and added safe fallback when a persisted checkpoint is missing or unusable.
+- Hardened modal owners so unexpected disable/scene teardown cannot strand gameplay in a blocked mode.
+- Rebuilt production scenes with one AudioListener per scene and consistent 1920×1080 CanvasScaler matching; locked world art to 480×270, 16 PPU, and a 16-pixel grid.
+- Set the Windows product name to `Null Pointer: Anılar Silinmeden Önce` without inventing company or application-identifier branding.
+
 - Aligned the direct URP manifest request from `17.6.0` to Unity 6000.5.4f1's built-in `17.5.0`; the lock file already resolved `17.5.0` and no unrelated package changed.
 - Replaced the generic template gameplay actions with Move, Interact, and Pause while preserving Unity UI navigation actions.
 - Mode-gated Move and Interact at the input adapter while keeping Pause available for modal close; modal owners now control their own safe cancel paths.
@@ -64,6 +81,6 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 
 ### Notes
 
-- Backup recovery/migration fixtures, save-slot UI, terminal credentials/search, memory reconstruction puzzles, final UI/art/audio, voice acting, and Chapter 2+ remain intentionally unimplemented.
+- Save-slot UI/request queuing, terminal credentials/search, memory reconstruction puzzles, final UI/art/audio, voice acting, and Chapter 2+ remain intentionally unimplemented.
 - Chapter 1 is a coherent production-functional greybox with placeholder geometry and restrained uGUI visuals; it is not final art or final-duration content.
 - No package was installed or upgraded, and no commit was created automatically.

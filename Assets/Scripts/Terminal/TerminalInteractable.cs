@@ -19,6 +19,8 @@ namespace NullPointer.Terminal
 
         public string InteractionPrompt => _interactionPrompt;
 
+        public TerminalData Terminal => _terminal;
+
         public void Configure(TerminalController controller, TerminalData terminal)
         {
             _controller = controller;

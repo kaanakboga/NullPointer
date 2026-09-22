@@ -26,6 +26,10 @@ namespace NullPointer.Inspect
 
         public string InteractionPrompt => _interactionPrompt;
 
+        public InspectData Inspection => _inspection;
+
+        public EvidenceData Evidence => _evidence;
+
         public void Configure(
             InspectController controller,
             InspectData inspection,

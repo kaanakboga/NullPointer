@@ -2,6 +2,7 @@ using System.Collections;
 using NullPointer.Core;
 using NullPointer.Evidence;
 using NullPointer.Inspect;
+using NullPointer.Input;
 using NullPointer.Player;
 using NUnit.Framework;
 using UnityEngine;
@@ -90,10 +91,50 @@ namespace NullPointer.Tests.PlayMode
 
                 Assert.That(modes.CurrentMode, Is.EqualTo(GameMode.Gameplay));
                 Assert.That(panelObject.activeSelf, Is.False);
+
+                controller.Open(inspection);
+                controllerObject.SetActive(false);
+
+                Assert.That(modes.CurrentMode, Is.EqualTo(GameMode.Gameplay));
+                Assert.That(panelObject.activeSelf, Is.False);
             }
             finally
             {
                 Object.DestroyImmediate(inspection);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void PauseCancelInterceptor_ConsumesNestedModalCancelBeforeGameplayResume()
+        {
+            var root = new GameObject("Pause Input Test");
+            try
+            {
+                GameModeController modes = root.AddComponent<GameModeController>();
+                PauseInputHandler handler = root.AddComponent<PauseInputHandler>();
+                var input = new FakeGameplayInputSource();
+                handler.Initialize(modes, input);
+                modes.SetMode(GameMode.Paused);
+                int consumed = 0;
+                bool Intercept()
+                {
+                    consumed++;
+                    return true;
+                }
+
+                handler.RegisterCancelInterceptor(Intercept);
+                input.PressPause();
+
+                Assert.That(consumed, Is.EqualTo(1));
+                Assert.That(modes.CurrentMode, Is.EqualTo(GameMode.Paused));
+
+                handler.UnregisterCancelInterceptor(Intercept);
+                input.PressPause();
+                Assert.That(modes.CurrentMode, Is.EqualTo(GameMode.Gameplay));
+            }
+            finally
+            {
                 Object.DestroyImmediate(root);
             }
         }

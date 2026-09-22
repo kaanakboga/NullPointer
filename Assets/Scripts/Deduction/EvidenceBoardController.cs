@@ -169,7 +169,14 @@ namespace NullPointer.Deduction
 
         private void OnDisable()
         {
-            Unsubscribe();
+            if (IsOpen)
+            {
+                Close();
+            }
+            else
+            {
+                Unsubscribe();
+            }
         }
     }
 }

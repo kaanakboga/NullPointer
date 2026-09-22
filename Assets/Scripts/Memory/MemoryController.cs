@@ -127,7 +127,7 @@ namespace NullPointer.Memory
 
         private void OnDisable()
         {
-            StopSequence(false);
+            StopSequence(true);
         }
     }
 }

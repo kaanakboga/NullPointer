@@ -1,0 +1,21 @@
+{
+  "SchemaVersion": 1,
+  "GameVersion": "0.1.0-legacy",
+  "SavedAtUtc": "2026-09-20T12:00:00.0000000Z",
+  "State": {
+    "SchemaVersion": 1,
+    "CurrentCaseId": "case.mert.suspicious_death",
+    "LocationId": "location.mert.apartment",
+    "CheckpointId": "checkpoint.ch01.mert_entrance",
+    "StoryFlags": [
+      "flag.dispatch.mert_assignment_received"
+    ],
+    "CollectedEvidenceIds": [
+      "evidence.mert.photo"
+    ],
+    "UnlockedMemoryIds": [
+      "memory.mert.photo_glitch"
+    ],
+    "CompletedDeductionIds": []
+  }
+}
