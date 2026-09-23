@@ -9,6 +9,7 @@
         "NullPointer.Dialogue",
         "NullPointer.Inspect",
         "NullPointer.Memory",
+        "NullPointer.Visual",
         "NullPointer.Runtime",
         "NullPointer.SceneFlow",
         "NullPointer.Terminal",

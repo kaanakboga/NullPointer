@@ -5,7 +5,7 @@ Use this checklist against the exact Windows Development artifact produced by `T
 ## Automated Gate — Completed in Repository Verification
 
 - Exact Unity 6000.5.4f1 compile succeeds.
-- 74 EditMode and 11 PlayMode tests pass, including production-scene idle Y stability and horizontal movement in both apartments.
+- 89 EditMode and 12 PlayMode tests pass (101 total), including production-scene idle Y stability/horizontal movement, Phase 5A visual-root/final-art preservation, import isolation, default-off memory FX, and interrupt-safe unscaled UI motion.
 - Production content validation passes for Bootstrap, Main Menu, Eren Apartment, and Mert Apartment.
 - Build Settings contain those four scenes in that order and no engineering/test scene.
 - Schema-1 migration, payload integrity, corrupt/missing primary recovery, backup preservation, settings/save separation, and fresh-manager disk relaunch are covered.

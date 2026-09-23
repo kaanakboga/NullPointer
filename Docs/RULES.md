@@ -162,6 +162,19 @@ Do not rename imported assets merely to change capitalization if that risks GUID
 - A production Windows build must pass the full Unity verifier and production content validator; test scenes and editor-only diagnostics are excluded from player builds.
 - Pixel-art assets under `Assets/Art` follow `ART_BIBLE.md` import rules. Intentional exceptions are documented and reviewed rather than silently overriding the importer.
 
+## Visual Production and Builder Ownership
+
+- `Docs/ART_ASSET_MANIFEST.md` is the contract for generated/commissioned raster deliverables. Asset IDs, dimensions, filenames, destination, PPU, pivots, layers, variants, dependencies, and provenance must be reviewed before promotion.
+- AI-assisted images are staged as reference/raw material until a human approves anatomy, perspective, light, palette, pixel cleanup, seams, alpha, narrative consistency, and rights. Never label a procedural placeholder or unreviewed generation as final art.
+- Automatic texture rules apply only to the owned `Characters`, `Environments`, `UI`, `Effects`, and `Icons` folders. `Source`, `Reference`, and unrelated textures remain untouched. Multiple-sprite import is permitted only in explicit `SpriteSheets`/`Atlases` folders.
+- Scene/editor builders own structure: objects, colliders, installers, controllers, layout anchors, and placeholders. Artists do not directly edit builder-owned gameplay structure.
+- Final sprites on builder-owned objects are assigned only through `FinalArtSlot` using a unique stable slot ID and manifest asset ID. Builder regeneration must capture and restore these references; direct sprite references on disposable generated objects are not preservation-safe.
+- Missing optional final art must leave a safe placeholder and must not break interaction, progression, or scene loading.
+- A manually composed art hierarchy that cannot fit a slot requires an explicit separately owned prefab/art-root boundary before integration.
+- Visual motion and FX are presentation-only. They do not set `GameMode`, mutate progression, delay command execution, or become a second source of state.
+- Memory distortion is OFF during normal gameplay and resets on completion, skip, disable, and scene changes. Accessibility-critical text and controls are protected from distortion.
+- The Phase 5A preview scene is non-production and remains excluded from Build Settings.
+
 ## Documentation and Change Tracking
 
 - Update `TASKS.md` when task scope/status changes.

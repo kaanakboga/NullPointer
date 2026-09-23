@@ -23,6 +23,7 @@
         "NullPointer.Settings",
         "NullPointer.Menus",
         "NullPointer.Audio",
+        "NullPointer.Visual",
         "Unity.InputSystem",
         "Unity.ugui"
     ],

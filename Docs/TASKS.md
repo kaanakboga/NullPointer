@@ -147,9 +147,9 @@ The backlog covers the complete game target. It is not a promise that every impl
 
 | ID | Status | Task / acceptance outcome |
 | --- | --- | --- |
-| NP-ART-001 | NOT STARTED | Produce an art spike comparing candidate PPU/character scale and approve the final reference canvas, grid, camera, and import rules. |
-| NP-ART-002 | IN PROGRESS | Create Unity import presets for environment, character, UI, and effect sprites; verify no filtering/compression/pivot regressions. Automatic `Assets/Art` point/no-mipmap/uncompressed/PPU rules, `_Normal` handling, and sorting layers are configured; representative final-asset regression coverage remains. |
-| NP-ART-003 | NOT STARTED | Create approved core palette assets, lighting examples, and grayscale/readability reference. |
+| NP-ART-001 | IN PROGRESS | Produce an art spike comparing candidate PPU/character scale and approve the final reference canvas, grid, camera, and import rules. Phase 5A locks 480×270, 16 PPU, 32×64 Eren frames, 512×512 portraits, 1920×1080 UI, import/pivot/layer standards, and a procedural style preview; representative imported character/environment art and Pixel Perfect Camera behavior still require Phase 5B validation. |
+| NP-ART-002 | DONE | Create Unity import conventions for environment, character, UI, icon, and effect sprites; verify no filtering/compression/sprite-mode regressions and do not affect unrelated/source/reference textures. Category-scoped rules, explicit `SpriteSheets`/`Atlases`, `_Normal` handling, stable sorting layers, and EditMode coverage are complete. |
+| NP-ART-003 | IN PROGRESS | Create approved core palette assets, lighting examples, and grayscale/readability reference. The semantic `VT_CyberNoir` theme, exact palette, lighting/VFX specification, and controlled preview are complete; final-art lighting and grayscale samples remain Phase 5B work. |
 | NP-ART-004 | NOT STARTED | Produce final Eren exploration sprite set and restrained locomotion/interaction animations. |
 | NP-ART-005 | NOT STARTED | Define and produce the supporting-character sprite/portrait pipeline, then complete cast assets as the narrative roster locks. |
 | NP-ART-006 | NOT STARTED | Create the reusable urban/interior environment kit and prop language for investigation spaces. |
@@ -159,6 +159,7 @@ The backlog covers the complete game target. It is not a promise that every impl
 | NP-ART-010 | NOT STARTED | Complete Chapter 2 and Chapter 3 environment/lighting art and conduct interaction-readability review. |
 | NP-ART-011 | NOT STARTED | Complete Chapter 4 and Chapter 5 environment/lighting art and conduct interaction-readability review. |
 | NP-ART-012 | NOT STARTED | Run global atlas, texture memory, overdraw, pixel stability, palette consistency, and asset provenance passes. |
+| NP-ART-013 | DONE | Complete Phase 5A visual foundation: production visual audit, 94-item external-art manifest, objective visual QA contract, semantic theme data, UI motion/button foundation, screen/environment FX hooks, default-off memory-distortion prototype, globally unique final-art slots with builder preservation, placeholder mapping, and an excluded procedural preview scene. |
 
 ## Phase 9 — Narrative Preproduction and Content Production
 
@@ -227,4 +228,4 @@ The backlog covers the complete game target. It is not a promise that every impl
 
 ## First Recommended Next Task
 
-**NP-ART-001 — Execute the focused Phase 5 art spike against the locked 480×270 / 16 PPU technical baseline.** Compare camera/pixel-perfect behavior and produce representative Eren, environment, UI, lighting, and reduced-glitch samples before bulk final-art production. Keep the remaining player-build manual QA checklist active alongside the spike.
+**Phase 5B / NP-ART-001 — Produce and human-review the first representative art slice.** Use the manifest to create Eren's master/side/idle/walk set plus one Eren Apartment layered composition and Main Menu layer stack; validate the Pixel Perfect Camera, integer scaling, lighting, grayscale readability, reduced-FX presentation, and provenance before bulk production or full UI replacement. Keep Chapter 2 and gameplay redesign out of scope.

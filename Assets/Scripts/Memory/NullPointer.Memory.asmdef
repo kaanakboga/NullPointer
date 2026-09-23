@@ -8,6 +8,7 @@
         "NullPointer.Interaction",
         "NullPointer.Inspect",
         "NullPointer.Evidence",
+        "NullPointer.Visual",
         "Unity.ugui"
     ],
     "includePlatforms": [],

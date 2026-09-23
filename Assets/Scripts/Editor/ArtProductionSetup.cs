@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -30,13 +31,25 @@ namespace NullPointer.Editor
 
             var serialized = new SerializedObject(assets[0]);
             SerializedProperty layers = serialized.FindProperty("m_SortingLayers");
-            layers.arraySize = SortingLayerNames.Length;
-            for (int index = 0; index < SortingLayerNames.Length; index++)
+            var existing = new HashSet<string>(StringComparer.Ordinal);
+            for (int index = 0; index < layers.arraySize; index++)
             {
-                string name = SortingLayerNames[index];
+                SerializedProperty layer = layers.GetArrayElementAtIndex(index);
+                existing.Add(layer.FindPropertyRelative("name").stringValue);
+            }
+
+            foreach (string name in SortingLayerNames)
+            {
+                if (existing.Contains(name))
+                {
+                    continue;
+                }
+
+                int index = layers.arraySize;
+                layers.arraySize = index + 1;
                 SerializedProperty layer = layers.GetArrayElementAtIndex(index);
                 layer.FindPropertyRelative("name").stringValue = name;
-                layer.FindPropertyRelative("uniqueID").longValue = index == 0
+                layer.FindPropertyRelative("uniqueID").longValue = string.Equals(name, "Default", StringComparison.Ordinal)
                     ? 0
                     : unchecked((uint)Animator.StringToHash("NullPointer.SortingLayer." + name));
                 layer.FindPropertyRelative("locked").boolValue = false;

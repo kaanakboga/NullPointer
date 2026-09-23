@@ -6,6 +6,14 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 
 ### Added
 
+- Added Phase 5A.1 preview-layout regression coverage for the 1920×1080 reference, 2560×1440, and representative 2560×1600 16:10 viewport.
+- Added the Phase 5A visual-production contract: a production-facing visual audit, objective visual QA rejection checklist, placeholder-to-asset inventory, and a 94-entry production asset manifest covering Eren, both apartments, Main Menu, shared UI, evidence, memory/VFX, and chapter transitions.
+- Added the authored `VT_CyberNoir` semantic theme, locked palette/typography/motion/lighting/VFX/pixel standards, and the excluded `SCN_VisualStylePreview` demonstration with cyber-noir controls, panel motion, scanlines, and default-off memory distortion.
+- Added reusable presentation-only fade/slide/scale/reveal/modal transitions, focus pulse, cyber-noir button states, screen/environment FX layers, and authored memory-distortion profile/controller infrastructure without a tween package or gameplay-state ownership.
+- Added globally unique `FinalArtSlot` references and editor preservation logic so idempotent scene regeneration retains manually approved final sprites by stable slot ID while missing optional art falls back safely.
+- Added category-scoped art import conventions for character, environment, UI, icon, effect, normal-map, sprite-sheet, and atlas paths while excluding source/reference and unrelated textures.
+- Added Phase 5A EditMode validation for theme values, production visual roots, slot uniqueness/preservation/fallback, importer isolation/category rules, preview EventSystem ownership, and memory FX default state.
+
 - Added schema-2 save payload integrity, sequential schema-1 migration with a checked-in legacy fixture, validated primary/backup loading, atomic backup restoration, and non-destructive future-schema handling.
 - Added real-filesystem persistence tests covering atomic replacement, interrupted writes, corrupt-primary replacement, backup preservation/recovery, and a fresh-manager disk relaunch with checkpoint/mode restoration.
 - Added editor-only save diagnostics for state/path inspection and safe create, reload, corruption, restore, and delete operations.
@@ -43,7 +51,7 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 - Added production greybox scenes `SCN_ErenApartment` and `SCN_MertApartment`, connected through the authored dispatch flag while preserving the engineering scene.
 - Added opening content for the 03:17 dispatch, neurological medication, environmental foreshadowing, Mert photograph/inscription, 02:51 terminal access, 02:36 death time, postmortem-terminal deduction, optional damaged recording, and first photograph-triggered memory glitch.
 - Added the idempotent **Rebuild Authored Opening Content and Scenes** editor command; repeated batch runs rebuild 19 data assets and 3 production scenes successfully without duplicate content IDs.
-- Expanded automated coverage to 74 EditMode and 11 PlayMode tests (85 total), including save migration/recovery/relaunch, content/build validation, checkpoints, objectives, journal unlocks, interrogation logic, Chapter 1 happy path/completion, Main Menu state, settings separation, input-device bindings, production-scene horizontal-plane stability, and modal blocking/recovery.
+- Expanded automated coverage to 89 EditMode and 12 PlayMode tests (101 total), including save migration/recovery/relaunch, content/build/visual validation, checkpoints, objectives, journal unlocks, interrogation logic, Chapter 1 happy path/completion, Main Menu state, settings separation, input-device bindings, production-scene horizontal-plane stability, modal blocking/recovery, importer isolation, final-art preservation, and interrupt-safe unscaled UI motion.
 - Added the schema-2 `GameState` fields required for active/completed objectives, dialogue/terminal progression, and completed chapter boundaries.
 - Added a versioned local JSON `SaveManager`, injected atomic Windows file storage with backup creation, explicit missing/corrupt/unsupported-schema outcomes, New Game/Save/Load/Continue/delete commands, and deterministic round-trip tests.
 - Added five authored Chapter 1 checkpoints with safe location/spawn restoration and checkpoint-boundary saves.
@@ -63,6 +71,13 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 - Added deterministic Chapter 1 happy-path, chapter boundary, save corruption/schema, checkpoint, objective, journal, interrogation, Main Menu availability, settings, and input-device coverage.
 
 ### Changed
+
+- Corrected every animated sheet and reusable atlas specification to state per-cell dimensions, frame/cell count, columns, rows, total dimensions, playback timing, and Unity mirroring policy; Eren idle is now the intended 2× 32×64 layout in a 64×64 total sheet.
+- Classified the full manifest as final raster art, reusable texture/mask/atlas, or Unity-procedural visual, and removed giant full-screen rain, reflection, and chapter-sting animation sheets from the external-generation burden.
+- Made the first Eren and Eren-apartment production batches approval-gated and dependency-explicit without changing the locked cyber-noir direction.
+- Rebuilt `SCN_VisualStylePreview` around the existing 1920×1080, 0.5-match CanvasScaler with explicit 96×72 safe margins and edge-correct pivots so essential content remains in view at supported 16:9 and 16:10 resolutions.
+- Extended the opening scene builder to create visual-root anchors and manifest-linked art slots for Main Menu, Eren Apartment, Mert Apartment, Eren, and current Chapter 1 props, while preserving final-art references across structural regeneration.
+- Expanded the art bible and technical/rules documentation into the authoritative Phase 5A production standard; procedural preview assets are explicitly non-final and Chapter 2/full UI replacement remain out of scope.
 
 - Fixed production player physics in both apartment scenes: horizontal-only exploration now uses a Dynamic Rigidbody2D with zero gravity, frozen Y/rotation, and controller-enforced vertical-velocity cleanup instead of relying on greybox floor coverage.
 - Added a production-scene PlayMode regression that reproduces the former Eren fall, then verifies idle Y stability and horizontal movement in both Eren and Mert apartments.

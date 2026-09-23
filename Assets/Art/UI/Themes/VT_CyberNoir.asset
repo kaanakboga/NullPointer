@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eece205f83f37c14fb3e2bf35ec43599, type: 3}
+  m_Name: VT_CyberNoir
+  m_EditorClassIdentifier: NullPointer.Visual::NullPointer.Visual.VisualTheme
+  _nearBlack: {r: 0.02745098, g: 0.039215688, b: 0.05882353, a: 1}
+  _deepNavy: {r: 0.047058824, g: 0.08235294, b: 0.13725491, a: 1}
+  _charcoal: {r: 0.08627451, g: 0.101960786, b: 0.1254902, a: 1}
+  _panel: {r: 0.05490196, g: 0.09411765, b: 0.14509805, a: 0.9607843}
+  _primaryAccent: {r: 0.3019608, g: 0.6392157, b: 0.6509804, a: 1}
+  _secondaryAccent: {r: 0.3647059, g: 0.3019608, b: 0.50980395, a: 1}
+  _warningAccent: {r: 0.8235294, g: 0.5411765, b: 0.23921569, a: 1}
+  _dangerAccent: {r: 0.72156864, g: 0.2901961, b: 0.3372549, a: 1}
+  _focusAccent: {r: 0.6039216, g: 0.78431374, b: 0.77254903, a: 1}
+  _primaryText: {r: 0.8784314, g: 0.89411765, b: 0.8980392, a: 1}
+  _secondaryText: {r: 0.5294118, g: 0.5882353, b: 0.627451, a: 1}
+  _disabled: {r: 0.24705882, g: 0.28627452, b: 0.31764707, a: 0.72156864}
+  _microDuration: 0.16
+  _panelDuration: 0.24
+  _revealDuration: 0.46
+  _focusPulsePeriod: 1.2
+  _panelOpacity: 0.96
+  _backdropOpacity: 0.82
+  _disabledOpacity: 0.46
+  _subtleFxOpacity: 0.08

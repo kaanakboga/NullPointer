@@ -370,7 +370,7 @@ Dependencies point toward Core, and Player/Interaction share input only through 
 
 Tests must assert meaningful behavior. Scene or visual tests are added only when they protect a real regression risk.
 
-Current automated coverage includes mode transitions/events, schema-2 state and JSON saves, schema-1 fixture migration, payload integrity, real-filesystem atomic replacement, backup recovery/preservation, fresh-process-equivalent relaunch restoration, corruption/future-schema handling, authored checkpoints, objectives, journal unlocks, interrogation contradictions, the complete Chapter 1 happy path and boundary, Main Menu availability, save/settings separation, keyboard/gamepad bindings, deterministic interaction selection, evidence/deduction/dialogue/memory rules, production content/build-scene validation, modal movement blocking and cancel interception, defensive modal disable recovery, production-scene horizontal-plane stability, interaction dispatch, and Bootstrap-to-Main-Menu startup. Latest independently verified result: 74 EditMode and 11 PlayMode tests passed (85 total).
+Current automated coverage includes mode transitions/events, schema-2 state and JSON saves, schema-1 fixture migration, payload integrity, real-filesystem atomic replacement, backup recovery/preservation, fresh-process-equivalent relaunch restoration, corruption/future-schema handling, authored checkpoints, objectives, journal unlocks, interrogation contradictions, the complete Chapter 1 happy path and boundary, Main Menu availability, save/settings separation, keyboard/gamepad bindings, deterministic interaction selection, evidence/deduction/dialogue/memory rules, production content/build-scene validation, modal movement blocking and cancel interception, defensive modal disable recovery, production-scene horizontal-plane stability, interaction dispatch, Bootstrap-to-Main-Menu startup, visual theme/import validation, final-art slot preservation, default-off memory FX, and unscaled interrupt-safe UI motion. Latest independently verified result: 89 EditMode and 12 PlayMode tests passed (101 total).
 
 ## Validation and Observability
 
@@ -389,6 +389,48 @@ Specific minimum hardware will be set before content-complete QA. Until then:
 - prefer atlas-friendly sprite import settings and bounded texture sizes;
 - profile representative content in player builds, not only the Editor;
 - async or staged-load heavy locations while keeping save transitions safe.
+
+## Phase 5A Visual Architecture
+
+### Theme and Presentation Boundaries
+
+`NullPointer.Visual` is a presentation-only runtime assembly. `VisualTheme` is the authored semantic source for surfaces, accents, text/disabled/focus colors, motion durations, and shared opacity. The Phase 5A source asset is `Assets/Art/UI/Themes/VT_CyberNoir.asset`. Feature panels may reference it directly or receive it through generated/prefab configuration; no global visual manager is introduced and the theme never owns gameplay state.
+
+`VisualRootAnchor` marks the one visual composition root expected in each production-facing scene. It records a stable visual-root ID, root kind, and theme reference without becoming a lifetime service. The Main Menu and both apartment scenes receive these anchors through `OpeningContentBuilder`; the dedicated preview uses `DevelopmentPreview` and remains outside Build Settings.
+
+### UI Motion and Controls
+
+- `UiTransition` composes fade, slide, and scale into an interrupt-safe entrance/reveal/exit component. It supports unscaled time, current-state reversal, interaction/raycast gating, and no third-party tween package.
+- `UiFocusPulse` provides a low-amplitude selection/hover pulse independent of command dispatch.
+- `CyberNoirButtonVisual` reads the existing `Button` interactable/selection/pointer states and renders Normal, Focused, Hovered, Pressed, and Disabled treatment through color, animated edge fill, restrained scale, text offset, focus glow, and click pulse. The `Button` remains authoritative for navigation and activation.
+- These components do not read or set `GameMode`; panel/controller code retains input and modal ownership.
+
+### FX and Memory Prototype
+
+`ScreenOverlayLayer` and `EnvironmentFxLayer` are small activation/intensity boundaries for scanline/noise overlays and particle/rain layers. They default to explicit authored state and contain no scene searches.
+
+`MemoryDistortionProfile` authors duration, overall intensity, chromatic offset, horizontal tearing, static, vignette shift, flash, and overlay opacity. `MemoryDistortionController` applies the profile with unscaled authored timing and resets every channel on completion, stop, disable, or missing profile. Its FX root is inactive by default. `MemoryController` exposes an optional `ConfigureVisualEffects` dependency; when no controller/profile is supplied, the existing memory sequence is unchanged. This permits the photograph memory to opt into the stack later without moving memory unlock/state logic into VFX.
+
+### Import Convention
+
+`ArtImportConvention` resolves rules only for owned production folders below `Assets/Art/Characters`, `Environments`, `UI`, `Effects`, and `Icons`. World categories import at 16 PPU; UI/icons at 100 PPU. Point filtering, no mipmaps, uncompressed texture data, NPOT scaling disabled, and straight-alpha preservation are deterministic. Multiple-sprite mode is selected only in explicit `SpriteSheets` or `Atlases` folders. `_Normal` is the only normal-map suffix. `Source` and `Reference` are deliberately excluded, and unrelated project textures are not modified.
+
+### Builder and Final-Art Ownership
+
+`OpeningContentBuilder` owns scene structure and may recreate production scenes. Approved manually imported sprites on generated objects must be assigned through `FinalArtSlot`, which stores:
+
+- a globally unique stable slot ID;
+- the corresponding `ART_ASSET_MANIFEST.md` asset ID;
+- the structural target renderer/image and placeholder;
+- the optional manually approved final sprite.
+
+Before rebuilding a scene, `ArtSlotPreservation` captures non-null final sprites by stable slot ID. After structural generation it restores them onto matching new slots and fails on duplicate assigned IDs. The builder never treats its placeholder sprite as manual art. Optional missing art leaves the placeholder intact. More complex hand-composed art must be introduced through a separately owned prefab/art-root contract; direct manual children under disposable generated structure are unsupported.
+
+### Sorting and Preview
+
+The existing stable sorting layers remain `Default`, `Background`, `Environment`, `PropsBack`, `Characters`, `PropsFront`, `Effects`, `Foreground`, and `WorldUI`; the order bands in `ART_BIBLE.md` provide finer scalable depth without invalidating current layer IDs.
+
+`SCN_VisualStylePreview` is a non-production scene under `Assets/Scenes/Test`. It demonstrates the locked palette, typography hierarchy using the current legal fallback, styled buttons/focus, panel transition language, subtle scanlines, and default-off memory distortion. It is a technical/style validation fixture, not final art and not included in Windows Build Settings. `VisualProductionBuilder` regenerates its authored theme/profile and scene idempotently.
 
 ## Security and Data Safety
 

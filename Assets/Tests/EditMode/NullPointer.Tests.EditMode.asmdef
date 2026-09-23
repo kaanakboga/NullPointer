@@ -21,6 +21,7 @@
         "NullPointer.Interrogation",
         "NullPointer.Menus",
         "NullPointer.Settings",
+        "NullPointer.Visual",
         "NullPointer.Editor",
         "Unity.InputSystem",
         "Unity.ugui"

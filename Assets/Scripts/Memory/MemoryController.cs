@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using NullPointer.Core;
 using NullPointer.Input;
+using NullPointer.Visual;
 using UnityEngine;
 
 namespace NullPointer.Memory
@@ -11,6 +12,8 @@ namespace NullPointer.Memory
     {
         [SerializeField] private MemoryPanel _panel;
         [SerializeField] private AudioSource _audioSource;
+        [SerializeField] private MemoryDistortionController _distortionController;
+        [SerializeField] private MemoryDistortionProfile _distortionProfile;
 
         private GameModeController _gameModes;
         private IGameplayInputSource _input;
@@ -24,6 +27,14 @@ namespace NullPointer.Memory
         {
             _panel = panel;
             _audioSource = audioSource;
+        }
+
+        public void ConfigureVisualEffects(
+            MemoryDistortionController distortionController,
+            MemoryDistortionProfile distortionProfile)
+        {
+            _distortionController = distortionController;
+            _distortionProfile = distortionProfile;
         }
 
         public void Initialize(
@@ -47,6 +58,20 @@ namespace NullPointer.Memory
             _memoryService.Unlock(memory);
             _gameModes.SetMode(GameMode.Memory);
             _panel.Show(memory);
+            if (_distortionController != null && _distortionProfile != null)
+            {
+                float duration = 0f;
+                foreach (MemoryBeat beat in memory.Beats)
+                {
+                    if (beat != null)
+                    {
+                        duration += Mathf.Max(0.05f, beat.Duration);
+                    }
+                }
+
+                _distortionController.Play(_distortionProfile, duration);
+            }
+
             Subscribe();
             _sequence = StartCoroutine(PlaySequence(memory));
             return true;
@@ -91,6 +116,8 @@ namespace NullPointer.Memory
             {
                 _audioSource.Stop();
             }
+
+            _distortionController?.StopImmediate();
 
             if (_panel != null)
             {

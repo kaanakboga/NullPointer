@@ -20,6 +20,7 @@ using NullPointer.Runtime;
 using NullPointer.SceneFlow;
 using NullPointer.Terminal;
 using NullPointer.UI;
+using NullPointer.Visual;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -51,6 +52,7 @@ namespace NullPointer.Editor
         [MenuItem("Null Pointer/Opening/Rebuild Authored Opening Content and Scenes")]
         public static void RebuildAll()
         {
+            VisualProductionBuilder.EnsureVisualAssets();
             InputActionAsset inputActions = AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath);
             if (inputActions == null)
             {
@@ -810,7 +812,14 @@ namespace NullPointer.Editor
                     Vector2.zero,
                     Vector2.zero,
                     BackgroundColor);
-                CreateImage(backdrop.transform, "Cyan Horizon", new Vector2(0f, 0.2f), new Vector2(1f, 0.21f), Vector2.zero, Vector2.zero, new Color(0.1f, 0.55f, 0.62f, 0.45f));
+                VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
+                backdrop.AddComponent<VisualRootAnchor>().Configure("visual.main_menu", VisualRootKind.MainMenu, theme);
+                AddFinalArtSlot(backdrop, "slot.main_menu.far_city", "NP-MENU-BG-FAR-001", uiImage: backdrop.GetComponent<Image>());
+                GameObject horizon = CreateImage(backdrop.transform, "Cyan Horizon", new Vector2(0f, 0.2f), new Vector2(1f, 0.21f), Vector2.zero, Vector2.zero, new Color(0.1f, 0.55f, 0.62f, 0.45f));
+                AddFinalArtSlot(horizon, "slot.main_menu.mid_city", "NP-MENU-BG-MID-001", uiImage: horizon.GetComponent<Image>());
+                CreateEmptyUiArtSlot(backdrop.transform, "Near Architecture Art", "slot.main_menu.near_architecture", "NP-MENU-BG-NEAR-001");
+                CreateEmptyUiArtSlot(backdrop.transform, "Fog Haze Art", "slot.main_menu.fog_haze", "NP-MENU-FX-FOG-001");
+                CreateEmptyUiArtSlot(backdrop.transform, "Rain Foreground Art", "slot.main_menu.rain_foreground", "NP-MENU-FX-RAIN-001");
                 CreateText(backdrop.transform, "Title", "NULL POINTER", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -190f), new Vector2(1100f, 110f), 72, TextAnchor.MiddleCenter, TextColor);
                 CreateText(backdrop.transform, "Subtitle", "ANILAR SİLİNMEDEN ÖNCE", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -275f), new Vector2(900f, 60f), 28, TextAnchor.MiddleCenter, Cyan);
 
@@ -841,6 +850,7 @@ namespace NullPointer.Editor
                     new Vector3(-3.25f, -1.35f, 0f),
                     new Vector2(0.65f, 0.65f),
                     Cyan);
+                AddFinalArtSlot(medication, "slot.eren_apartment.medication", "NP-PROP-EREN-MEDICATION-001", medication.GetComponent<SpriteRenderer>());
                 medication.AddComponent<InspectInteractable>().Configure(
                     setup.Ui.InspectController,
                     assets.MedicationInspection);
@@ -850,6 +860,7 @@ namespace NullPointer.Editor
                     new Vector3(-0.8f, -1.2f, 0f),
                     new Vector2(0.75f, 0.9f),
                     new Color(0.3f, 0.4f, 0.48f, 1f));
+                AddFinalArtSlot(photograph, "slot.eren_apartment.cut_photo", "NP-PROP-EREN-CUTPHOTO-001", photograph.GetComponent<SpriteRenderer>());
                 photograph.AddComponent<InspectInteractable>().Configure(
                     setup.Ui.InspectController,
                     assets.ForeshadowInspection);
@@ -859,6 +870,7 @@ namespace NullPointer.Editor
                     new Vector3(1.75f, -1.15f, 0f),
                     new Vector2(1.15f, 1.15f),
                     Amber);
+                AddFinalArtSlot(dispatch, "slot.eren_apartment.workstation", "NP-PROP-EREN-WORKSTATION-001", dispatch.GetComponent<SpriteRenderer>());
                 dispatch.AddComponent<TerminalInteractable>().Configure(
                     setup.Ui.TerminalController,
                     assets.DispatchTerminal);
@@ -868,6 +880,7 @@ namespace NullPointer.Editor
                     new Vector3(4.65f, -0.75f, 0f),
                     new Vector2(0.9f, 2f),
                     Red);
+                AddFinalArtSlot(exit, "slot.eren_apartment.doorway", "NP-PROP-EREN-DOOR-001", exit.GetComponent<SpriteRenderer>());
                 SceneTransitionInteractable transition = exit.AddComponent<SceneTransitionInteractable>();
                 transition.Configure(assets.MertLocation, "entry", DispatchReceivedFlag);
 
@@ -919,15 +932,19 @@ namespace NullPointer.Editor
             {
                 SceneSetup setup = CreateGameplayScene("MERT'İN DAİRESİ // OLAY YERİ", assets.MertLocation);
 
-                CreateWorldBlock("Rain Window", new Vector3(-4.9f, 1.4f, 0f), new Vector2(2.2f, 2.8f), new Color(0.04f, 0.2f, 0.27f, 1f), GetPlaceholderSprite(), false, -2);
-                CreateWorldBlock("Workstation Pool", new Vector3(-1.8f, -0.7f, 0f), new Vector2(2.6f, 1.8f), new Color(0.08f, 0.18f, 0.2f, 1f), GetPlaceholderSprite(), false, -2);
-                CreateWorldBlock("Locked Interior", new Vector3(4.6f, 0.1f, 0f), new Vector2(3.1f, 4.4f), new Color(0.08f, 0.06f, 0.12f, 1f), GetPlaceholderSprite(), false, -3);
+                GameObject rainWindow = CreateWorldBlock("Rain Window", new Vector3(-4.9f, 1.4f, 0f), new Vector2(2.2f, 2.8f), new Color(0.04f, 0.2f, 0.27f, 1f), GetPlaceholderSprite(), false, -2);
+                AddFinalArtSlot(rainWindow, "slot.mert_apartment.rain_window", "NP-ENV-MERT-WINDOW-001", rainWindow.GetComponent<SpriteRenderer>());
+                GameObject workstationPool = CreateWorldBlock("Workstation Pool", new Vector3(-1.8f, -0.7f, 0f), new Vector2(2.6f, 1.8f), new Color(0.08f, 0.18f, 0.2f, 1f), GetPlaceholderSprite(), false, -2);
+                AddFinalArtSlot(workstationPool, "slot.mert_apartment.workstation", "NP-PROP-MERT-WORKSTATION-001", workstationPool.GetComponent<SpriteRenderer>());
+                GameObject lockedInterior = CreateWorldBlock("Locked Interior", new Vector3(4.6f, 0.1f, 0f), new Vector2(3.1f, 4.4f), new Color(0.08f, 0.06f, 0.12f, 1f), GetPlaceholderSprite(), false, -3);
+                AddFinalArtSlot(lockedInterior, "slot.mert_apartment.architecture", "NP-ENV-MERT-ARCH-001", lockedInterior.GetComponent<SpriteRenderer>());
 
                 GameObject photograph = CreateInteractableBlock(
                     "Mert Photograph",
                     new Vector3(-4.95f, -1.2f, 0f),
                     new Vector2(0.75f, 0.95f),
                     Cyan);
+                AddFinalArtSlot(photograph, "slot.mert_apartment.photograph", "NP-PROP-MERT-PHOTO-001", photograph.GetComponent<SpriteRenderer>());
                 MemoryEvidenceTrigger memoryTrigger = photograph.AddComponent<MemoryEvidenceTrigger>();
                 memoryTrigger.Configure(setup.Ui.MemoryController, assets.PhotoMemory);
                 photograph.AddComponent<EvidenceInteractable>().Configure(
@@ -941,6 +958,7 @@ namespace NullPointer.Editor
                     new Vector3(-2.35f, -1.1f, 0f),
                     new Vector2(1.1f, 1.25f),
                     Amber);
+                AddFinalArtSlot(terminal, "slot.mert_apartment.terminal", "NP-PROP-MERT-TERMINAL-001", terminal.GetComponent<SpriteRenderer>());
                 terminal.AddComponent<TerminalInteractable>().Configure(
                     setup.Ui.TerminalController,
                     assets.MertTerminal);
@@ -950,6 +968,7 @@ namespace NullPointer.Editor
                     new Vector3(0.45f, -1.35f, 0f),
                     new Vector2(0.75f, 0.6f),
                     Red);
+                AddFinalArtSlot(deathTime, "slot.mert_apartment.death_record", "NP-PROP-MERT-DEATH-TIME-001", deathTime.GetComponent<SpriteRenderer>());
                 deathTime.AddComponent<EvidenceInteractable>().Configure(
                     setup.Ui.InspectController,
                     assets.DeathTimeInspection,
@@ -960,6 +979,7 @@ namespace NullPointer.Editor
                     new Vector3(5.15f, -0.95f, 0f),
                     new Vector2(1.4f, 1.55f),
                     new Color(0.18f, 0.52f, 0.58f, 1f));
+                AddFinalArtSlot(board, "slot.mert_apartment.evidence_board", "NP-PROP-MERT-EVIDENCE-BOARD-001", board.GetComponent<SpriteRenderer>());
                 board.AddComponent<EvidenceBoardInteractable>().Configure(setup.Ui.EvidenceBoardController);
 
                 GameObject recorder = CreateInteractableBlock(
@@ -967,6 +987,7 @@ namespace NullPointer.Editor
                     new Vector3(6.15f, -1.4f, 0f),
                     new Vector2(0.55f, 0.55f),
                     new Color(0.45f, 0.25f, 0.32f, 1f));
+                AddFinalArtSlot(recorder, "slot.mert_apartment.recorder", "NP-PROP-MERT-RECORDER-001", recorder.GetComponent<SpriteRenderer>());
                 recorder.AddComponent<DialogueInteractable>().Configure(
                     setup.Ui.DialogueController,
                     assets.MertRecorderDialogue);
@@ -1049,6 +1070,8 @@ namespace NullPointer.Editor
             SceneSetup setup)
         {
             GameObject item = CreateInteractableBlock(name, new Vector3(x, -1.3f, 0f), new Vector2(0.62f, 0.72f), Cyan);
+            (string slotId, string assetId) = ResolveMertPropSlot(name);
+            AddFinalArtSlot(item, slotId, assetId, item.GetComponent<SpriteRenderer>());
             item.AddComponent<EvidenceInteractable>().Configure(setup.Ui.InspectController, inspection, evidence);
         }
 
@@ -1060,6 +1083,8 @@ namespace NullPointer.Editor
             Color color)
         {
             GameObject item = CreateInteractableBlock(name, new Vector3(x, -1.35f, 0f), new Vector2(0.55f, 0.58f), color);
+            (string slotId, string assetId) = ResolveMertPropSlot(name);
+            AddFinalArtSlot(item, slotId, assetId, item.GetComponent<SpriteRenderer>());
             item.AddComponent<InspectInteractable>().Configure(setup.Ui.InspectController, inspection);
         }
 
@@ -1067,8 +1092,15 @@ namespace NullPointer.Editor
         {
             Sprite sprite = GetPlaceholderSprite();
             CreateCamera();
-            CreateWorldBlock("Backdrop", Vector3.zero, new Vector2(15f, 9f), BackgroundColor, sprite, false, -10);
-            CreateWorldBlock(
+            VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
+            var visualRoot = new GameObject("Visual Root");
+            visualRoot.AddComponent<VisualRootAnchor>().Configure(
+                $"visual.{location.StableId}",
+                VisualRootKind.GameplayLocation,
+                theme);
+            GameObject backdrop = CreateWorldBlock("Backdrop", Vector3.zero, new Vector2(15f, 9f), BackgroundColor, sprite, false, -10);
+            AddFinalArtSlot(backdrop, $"slot.{location.StableId}.room_architecture", ResolveEnvironmentManifestId(location, "ARCH"), backdrop.GetComponent<SpriteRenderer>());
+            GameObject floor = CreateWorldBlock(
                 "Floor",
                 new Vector3(0f, -2.55f, 0f),
                 new Vector2(15f, 1f),
@@ -1076,6 +1108,7 @@ namespace NullPointer.Editor
                 sprite,
                 true,
                 -1);
+            AddFinalArtSlot(floor, $"slot.{location.StableId}.floor_walls", ResolveEnvironmentManifestId(location, "ROOM"), floor.GetComponent<SpriteRenderer>());
             CreateBoundary("Left Boundary", new Vector3(-6.8f, 0f, 0f), new Vector2(0.5f, 7f));
             CreateBoundary("Right Boundary", new Vector3(6.8f, 0f, 0f), new Vector2(0.5f, 7f));
 
@@ -1087,7 +1120,7 @@ namespace NullPointer.Editor
             SpawnPoint spawn = spawnObject.AddComponent<SpawnPoint>();
             spawn.Configure("entry");
 
-            PlayerController player = CreatePlayer(sprite, out PlayerInteractionDetector detector);
+            PlayerController player = CreatePlayer(sprite, location.StableId, out PlayerInteractionDetector detector);
             SceneUi ui = CreateSceneUi();
             var installerObject = new GameObject("Scene Installer");
             OpeningSceneInstaller installer = installerObject.AddComponent<OpeningSceneInstaller>();
@@ -1102,7 +1135,10 @@ namespace NullPointer.Editor
             };
         }
 
-        private static PlayerController CreatePlayer(Sprite sprite, out PlayerInteractionDetector detector)
+        private static PlayerController CreatePlayer(
+            Sprite sprite,
+            string locationId,
+            out PlayerInteractionDetector detector)
         {
             var playerObject = new GameObject("Player");
             playerObject.transform.position = new Vector3(-5.2f, -1.15f, 0f);
@@ -1111,6 +1147,7 @@ namespace NullPointer.Editor
             renderer.sprite = sprite;
             renderer.color = new Color(0.3f, 0.78f, 0.88f, 1f);
             renderer.sortingOrder = 2;
+            AddFinalArtSlot(playerObject, $"slot.{locationId}.eren", "NP-CHR-EREN-IDLE-001", renderer);
             Rigidbody2D body = playerObject.AddComponent<Rigidbody2D>();
             body.bodyType = RigidbodyType2D.Dynamic;
             body.gravityScale = 0f;
@@ -1610,6 +1647,7 @@ namespace NullPointer.Editor
 
         private static void BuildScene(string path, Action build)
         {
+            IReadOnlyDictionary<string, Sprite> preservedArt = ArtSlotPreservation.CaptureScene(path);
             Scene previous = SceneManager.GetActiveScene();
             bool hasSavedPreviousScene = previous.IsValid() &&
                                          previous.isLoaded &&
@@ -1633,6 +1671,7 @@ namespace NullPointer.Editor
             try
             {
                 build();
+                ArtSlotPreservation.Restore(scene, preservedArt);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene, path))
                 {
@@ -1728,6 +1767,52 @@ namespace NullPointer.Editor
             }
 
             return sprite;
+        }
+
+        private static void AddFinalArtSlot(
+            GameObject target,
+            string stableId,
+            string manifestAssetId,
+            SpriteRenderer spriteRenderer = null,
+            Image uiImage = null)
+        {
+            target.AddComponent<FinalArtSlot>().ConfigureStructural(
+                stableId,
+                manifestAssetId,
+                spriteRenderer,
+                uiImage);
+        }
+
+        private static void CreateEmptyUiArtSlot(
+            Transform parent,
+            string name,
+            string stableId,
+            string manifestAssetId)
+        {
+            GameObject root = CreateImage(parent, name, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, Color.clear);
+            AddFinalArtSlot(root, stableId, manifestAssetId, uiImage: root.GetComponent<Image>());
+        }
+
+        private static string ResolveEnvironmentManifestId(LocationData location, string suffix)
+        {
+            string locationToken = location != null && location.StableId.Contains("mert", StringComparison.Ordinal)
+                ? "MERT"
+                : "EREN";
+            return $"NP-ENV-{locationToken}-{suffix}-001";
+        }
+
+        private static (string SlotId, string AssetId) ResolveMertPropSlot(string name)
+        {
+            return name switch
+            {
+                "Damaged Memory Implant" => ("slot.mert_apartment.damaged_implant", "NP-PROP-MERT-IMPLANT-001"),
+                "Internal Door Latch" => ("slot.mert_apartment.door_latch", "NP-PROP-MERT-DOOR-001"),
+                "Unfinished Coffee" => ("slot.mert_apartment.coffee", "NP-PROP-MERT-COFFEE-001"),
+                "Personal Notes" => ("slot.mert_apartment.notes", "NP-PROP-MERT-NOTES-001"),
+                "Medical Calibrator" => ("slot.mert_apartment.medical_calibrator", "NP-PROP-MERT-MEDICAL-001"),
+                "Eren Device History" => ("slot.mert_apartment.eren_device", "NP-PROP-MERT-EREN-DEVICE-001"),
+                _ => throw new InvalidOperationException($"No Phase 5A art slot mapping exists for '{name}'.")
+            };
         }
 
         private sealed class OpeningAssets

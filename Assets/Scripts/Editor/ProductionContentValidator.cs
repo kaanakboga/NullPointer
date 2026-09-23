@@ -14,6 +14,7 @@ using NullPointer.Progression;
 using NullPointer.Runtime;
 using NullPointer.SceneFlow;
 using NullPointer.Terminal;
+using NullPointer.Visual;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -544,6 +545,34 @@ namespace NullPointer.Editor
             if (FindAll<AudioListener>(roots).Length != 1)
             {
                 errors.Add($"Scene '{scenePath}' must contain exactly one AudioListener.");
+            }
+
+            VisualRootAnchor[] visualRoots = FindAll<VisualRootAnchor>(roots);
+            if (visualRoots.Length != 1 ||
+                string.IsNullOrWhiteSpace(visualRoots[0].StableId) ||
+                visualRoots[0].Theme == null)
+            {
+                errors.Add($"Scene '{scenePath}' must contain exactly one configured VisualRootAnchor.");
+            }
+
+            FinalArtSlot[] artSlots = FindAll<FinalArtSlot>(roots);
+            if (artSlots.Length == 0)
+            {
+                errors.Add($"Scene '{scenePath}' must contain at least one FinalArtSlot.");
+            }
+
+            foreach (IGrouping<string, FinalArtSlot> duplicate in artSlots
+                         .Where(slot => slot != null)
+                         .GroupBy(slot => slot.StableId, StringComparer.Ordinal)
+                         .Where(group => string.IsNullOrWhiteSpace(group.Key) || group.Count() > 1))
+            {
+                errors.Add($"Scene '{scenePath}' has an empty or duplicate final-art slot ID '{duplicate.Key}'.");
+            }
+
+            foreach (FinalArtSlot slot in artSlots.Where(slot =>
+                         slot != null && string.IsNullOrWhiteSpace(slot.ManifestAssetId)))
+            {
+                errors.Add($"Scene '{scenePath}' final-art slot '{slot.StableId}' has no manifest asset ID.");
             }
         }
 
