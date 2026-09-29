@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -23,8 +24,15 @@ namespace NullPointer.Visual
         private Vector3 _restingScale;
         private bool _hasRestingPose;
         private float _visibility = 1f;
+        private Action _completion;
+        private bool _reducedMotion;
 
         public bool IsAnimating => _routine != null;
+
+        public void SetReducedMotion(bool reducedMotion)
+        {
+            _reducedMotion = reducedMotion;
+        }
 
         public void Configure(
             RectTransform target,
@@ -69,6 +77,14 @@ namespace NullPointer.Visual
             StartTransition(false, true);
         }
 
+        public void PlayExit(Action completed)
+        {
+            CaptureRestingPose();
+            StopActiveRoutine();
+            _completion = completed;
+            _routine = StartCoroutine(Animate(false, true));
+        }
+
         public void SnapVisible()
         {
             StopActiveRoutine();
@@ -76,6 +92,18 @@ namespace NullPointer.Visual
             CaptureRestingPose();
             _visibility = 1f;
             ApplyPose(_visibility, true);
+        }
+
+        public void SnapHidden(bool deactivate = true)
+        {
+            StopActiveRoutine();
+            CaptureRestingPose();
+            _visibility = 0f;
+            ApplyPose(_visibility, true);
+            if (deactivate)
+            {
+                gameObject.SetActive(false);
+            }
         }
 
         private void Awake()
@@ -113,7 +141,8 @@ namespace NullPointer.Visual
         {
             float startVisibility = _visibility;
             float targetVisibility = entering ? 1f : 0f;
-            float transitionDuration = _duration * Mathf.Abs(targetVisibility - startVisibility);
+            float authoredDuration = _reducedMotion ? Mathf.Min(_duration, 0.08f) : _duration;
+            float transitionDuration = authoredDuration * Mathf.Abs(targetVisibility - startVisibility);
             if (transitionDuration <= 0.001f)
             {
                 _visibility = targetVisibility;
@@ -123,6 +152,8 @@ namespace NullPointer.Visual
                 {
                     gameObject.SetActive(false);
                 }
+
+                CompleteTransition();
 
                 yield break;
             }
@@ -146,20 +177,30 @@ namespace NullPointer.Visual
             {
                 gameObject.SetActive(false);
             }
+
+            CompleteTransition();
         }
 
         private void ApplyPose(float visibility, bool updateInteraction)
         {
             if (_target != null)
             {
-                if (_slide)
+                if (_slide && !_reducedMotion)
                 {
                     _target.anchoredPosition = _restingPosition + _entranceOffset * (1f - visibility);
                 }
+                else if (_slide)
+                {
+                    _target.anchoredPosition = _restingPosition;
+                }
 
-                if (_scale)
+                if (_scale && !_reducedMotion)
                 {
                     _target.localScale = Vector3.LerpUnclamped(_entranceScale, _restingScale, visibility);
+                }
+                else if (_scale)
+                {
+                    _target.localScale = _restingScale;
                 }
             }
 
@@ -188,6 +229,14 @@ namespace NullPointer.Visual
 
             StopCoroutine(_routine);
             _routine = null;
+            _completion = null;
+        }
+
+        private void CompleteTransition()
+        {
+            Action completed = _completion;
+            _completion = null;
+            completed?.Invoke();
         }
 
         private void OnDisable()

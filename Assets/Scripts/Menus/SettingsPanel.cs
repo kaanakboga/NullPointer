@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
+using System.Collections;
 using NullPointer.Settings;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using NullPointer.Visual;
 
 namespace NullPointer.Menus
 {
@@ -16,12 +18,17 @@ namespace NullPointer.Menus
         [SerializeField] private Slider _textSpeed;
         [SerializeField] private Toggle _fullscreen;
         [SerializeField] private Dropdown _resolution;
+        [SerializeField] private Toggle _reducedMotion;
+        [SerializeField] private Toggle _reducedFx;
         [SerializeField] private Button _applyButton;
         [SerializeField] private Button _backButton;
+        [SerializeField] private UiTransition _transition;
+        [SerializeField] private UiTransition _contentTransition;
 
         private SettingsManager _manager;
         private Action _closed;
         private Resolution[] _resolutions = Array.Empty<Resolution>();
+        private Coroutine _contentReveal;
 
         public void Configure(
             Slider master,
@@ -30,6 +37,8 @@ namespace NullPointer.Menus
             Slider textSpeed,
             Toggle fullscreen,
             Dropdown resolution,
+            Toggle reducedMotion,
+            Toggle reducedFx,
             Button apply,
             Button back)
         {
@@ -39,8 +48,16 @@ namespace NullPointer.Menus
             _textSpeed = textSpeed;
             _fullscreen = fullscreen;
             _resolution = resolution;
+            _reducedMotion = reducedMotion;
+            _reducedFx = reducedFx;
             _applyButton = apply;
             _backButton = back;
+        }
+
+        public void ConfigurePresentation(UiTransition transition, UiTransition contentTransition = null)
+        {
+            _transition = transition;
+            _contentTransition = contentTransition;
         }
 
         public void Bind(SettingsManager manager, Action closed)
@@ -56,17 +73,38 @@ namespace NullPointer.Menus
         public void Show(GameSettings settings)
         {
             gameObject.SetActive(true);
+            PrepareValues(settings);
+            _transition?.SetReducedMotion(settings.ReducedUiMotion);
+            _contentTransition?.SetReducedMotion(settings.ReducedUiMotion);
+            _transition?.PlayReveal();
+            if (_contentReveal != null)
+            {
+                StopCoroutine(_contentReveal);
+            }
+            _contentReveal = StartCoroutine(RevealContent(settings.ReducedUiMotion));
+            EventSystem.current?.SetSelectedGameObject(_masterVolume.gameObject);
+        }
+
+        public void PrepareValues(GameSettings settings)
+        {
             _masterVolume.SetValueWithoutNotify(settings.MasterVolume);
             _musicVolume.SetValueWithoutNotify(settings.MusicVolume);
             _sfxVolume.SetValueWithoutNotify(settings.SfxVolume);
             _textSpeed.SetValueWithoutNotify(settings.TextSpeed);
             _fullscreen.SetIsOnWithoutNotify(settings.Fullscreen);
+            _reducedMotion.SetIsOnWithoutNotify(settings.ReducedUiMotion);
+            _reducedFx.SetIsOnWithoutNotify(settings.ReducedVisualFx);
             PopulateResolutions(settings);
-            EventSystem.current?.SetSelectedGameObject(_masterVolume.gameObject);
+            RefreshPresenters();
         }
 
         public void Hide()
         {
+            if (_contentReveal != null)
+            {
+                StopCoroutine(_contentReveal);
+                _contentReveal = null;
+            }
             gameObject.SetActive(false);
         }
 
@@ -82,6 +120,8 @@ namespace NullPointer.Menus
                 SfxVolume = _sfxVolume.value,
                 TextSpeed = _textSpeed.value,
                 Fullscreen = _fullscreen.isOn,
+                ReducedUiMotion = _reducedMotion.isOn,
+                ReducedVisualFx = _reducedFx.isOn,
                 ResolutionWidth = resolution.width,
                 ResolutionHeight = resolution.height
             });
@@ -89,8 +129,15 @@ namespace NullPointer.Menus
 
         public void Close()
         {
-            Hide();
-            _closed?.Invoke();
+            if (_transition != null && gameObject.activeSelf)
+            {
+                _transition.PlayExit(() => _closed?.Invoke());
+            }
+            else
+            {
+                Hide();
+                _closed?.Invoke();
+            }
         }
 
         private void PopulateResolutions(GameSettings settings)
@@ -111,6 +158,43 @@ namespace NullPointer.Menus
             int selected = Array.FindIndex(_resolutions, value =>
                 value.width == settings.ResolutionWidth && value.height == settings.ResolutionHeight);
             _resolution.SetValueWithoutNotify(Mathf.Max(0, selected));
+            _resolution.RefreshShownValue();
+        }
+
+        private void RefreshPresenters()
+        {
+            RefreshSlider(_masterVolume);
+            RefreshSlider(_musicVolume);
+            RefreshSlider(_sfxVolume);
+            RefreshSlider(_textSpeed);
+            RefreshToggle(_fullscreen);
+            RefreshToggle(_reducedMotion);
+            RefreshToggle(_reducedFx);
+            _resolution.GetComponent<CyberNoirDropdownVisual>()?.RefreshImmediate();
+        }
+
+        private static void RefreshSlider(Slider slider)
+        {
+            slider.GetComponent<CyberNoirSliderVisual>()?.RefreshValue(slider.value);
+        }
+
+        private static void RefreshToggle(Toggle toggle)
+        {
+            toggle.GetComponent<CyberNoirToggleVisual>()?.RefreshStatus(toggle.isOn);
+        }
+
+        private IEnumerator RevealContent(bool reducedMotion)
+        {
+            _contentTransition?.SnapHidden(false);
+            float delay = reducedMotion ? 0f : 0.08f;
+            while (delay > 0f)
+            {
+                delay -= Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            _contentTransition?.PlayReveal();
+            _contentReveal = null;
         }
     }
 }

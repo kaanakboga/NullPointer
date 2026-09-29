@@ -18,6 +18,7 @@
         "NullPointer.Player",
         "NullPointer.Interaction",
         "NullPointer.Menus",
+        "NullPointer.Settings",
         "Unity.ugui"
     ],
     "includePlatforms": [],

@@ -6,6 +6,14 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 
 ### Added
 
+- Added the Phase 5B.1 visual-quality pass: layered procedural FarCity/MidCity/window composition, clustered three-band rain, restrained distant-light/haze/reflection motion, and a missing-reference title signature while retaining exact final-art replacement slots.
+- Added premium bracket/index/accent menu focus, staggered Main/Pause row reveals, sequenced Settings content motion, grouped Settings composition, compact geometric sliders, mechanical shape-plus-text toggles, and a live resolution selector.
+- Added production-scene regression validation that keeps interactable colliders/logic active while hiding unapproved colored marker renderers until a `FinalArtSlot` receives approved art.
+- Added the reusable Phase 5B visual-capture command and inspected all twelve Main Menu, Settings, Pause, and Pause Settings renders at 1920×1080, 2560×1440, and 2560×1600.
+- Added the Phase 5B production Main Menu presentation: asymmetric safe-area layout, layered final-art slots, deterministic procedural rain/haze, shallow parallax, live-title instability, accelerated reveal, and single-dispatch scene departures.
+- Added production Pause and Settings presentation with live-scene context, shared cyber-noir buttons, custom slider/toggle/dropdown visuals, modal focus restoration, unscaled interrupt-safe transitions, and nullable focus/confirm/back/invalid audio hooks.
+- Added persisted Reduced UI Motion and Reduced Visual FX settings with lossless schema-1 migration and automated regression coverage.
+
 - Added Phase 5A.1 preview-layout regression coverage for the 1920×1080 reference, 2560×1440, and representative 2560×1600 16:10 viewport.
 - Added the Phase 5A visual-production contract: a production-facing visual audit, objective visual QA rejection checklist, placeholder-to-asset inventory, and a 94-entry production asset manifest covering Eren, both apartments, Main Menu, shared UI, evidence, memory/VFX, and chapter transitions.
 - Added the authored `VT_CyberNoir` semantic theme, locked palette/typography/motion/lighting/VFX/pixel standards, and the excluded `SCN_VisualStylePreview` demonstration with cyber-noir controls, panel motion, scanlines, and default-off memory distortion.
@@ -51,7 +59,7 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 - Added production greybox scenes `SCN_ErenApartment` and `SCN_MertApartment`, connected through the authored dispatch flag while preserving the engineering scene.
 - Added opening content for the 03:17 dispatch, neurological medication, environmental foreshadowing, Mert photograph/inscription, 02:51 terminal access, 02:36 death time, postmortem-terminal deduction, optional damaged recording, and first photograph-triggered memory glitch.
 - Added the idempotent **Rebuild Authored Opening Content and Scenes** editor command; repeated batch runs rebuild 19 data assets and 3 production scenes successfully without duplicate content IDs.
-- Expanded automated coverage to 89 EditMode and 12 PlayMode tests (101 total), including save migration/recovery/relaunch, content/build/visual validation, checkpoints, objectives, journal unlocks, interrogation logic, Chapter 1 happy path/completion, Main Menu state, settings separation, input-device bindings, production-scene horizontal-plane stability, modal blocking/recovery, importer isolation, final-art preservation, and interrupt-safe unscaled UI motion.
+- Expanded automated coverage to 97 EditMode and 13 PlayMode tests (110 total), including save migration/recovery/relaunch, content/build/visual validation, checkpoints, objectives, journal unlocks, interrogation logic, Chapter 1 happy path/completion, Main Menu state, settings separation, input-device bindings, production-scene horizontal-plane stability, hidden production interaction anchors, modal blocking/recovery, importer isolation, final-art preservation, and interrupt-safe unscaled UI motion.
 - Added the schema-2 `GameState` fields required for active/completed objectives, dialogue/terminal progression, and completed chapter boundaries.
 - Added a versioned local JSON `SaveManager`, injected atomic Windows file storage with backup creation, explicit missing/corrupt/unsupported-schema outcomes, New Game/Save/Load/Continue/delete commands, and deterministic round-trip tests.
 - Added five authored Chapter 1 checkpoints with safe location/spawn restoration and checkpoint-boundary saves.
@@ -71,6 +79,9 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 - Added deterministic Chapter 1 happy-path, chapter boundary, save corruption/schema, checkpoint, objective, journal, interrogation, Main Menu availability, settings, and input-device coverage.
 
 ### Changed
+
+- Replaced generic Main Menu, Pause, and Settings uGUI styling with the Phase 5A semantic theme/control architecture while preserving existing commands, navigation, modal ownership, and Chapter 1 behavior.
+- Reclassified Main Menu rain as a Unity-procedural visual rather than an external full-screen raster slot; external replacement boundaries now match the art manifest exactly.
 
 - Corrected every animated sheet and reusable atlas specification to state per-cell dimensions, frame/cell count, columns, rows, total dimensions, playback timing, and Unity mirroring policy; Eren idle is now the intended 2× 32×64 layout in a 64×64 total sheet.
 - Classified the full manifest as final raster art, reusable texture/mask/atlas, or Unity-procedural visual, and removed giant full-screen rain, reflection, and chapter-sting animation sheets from the external-generation burden.

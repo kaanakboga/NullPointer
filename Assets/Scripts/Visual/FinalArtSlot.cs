@@ -16,6 +16,7 @@ namespace NullPointer.Visual
         [SerializeField] private Color _structuralSpriteColor = Color.white;
         [SerializeField] private Color _structuralUiColor = Color.white;
         [SerializeField] private bool _hasStructuralColors;
+        [SerializeField] private bool _showStructuralPlaceholder = true;
 
         public string StableId => _stableId;
         public string ManifestAssetId => _manifestAssetId;
@@ -26,12 +27,14 @@ namespace NullPointer.Visual
             string stableId,
             string manifestAssetId,
             SpriteRenderer spriteRenderer = null,
-            Image uiImage = null)
+            Image uiImage = null,
+            bool showStructuralPlaceholder = true)
         {
             _stableId = stableId?.Trim() ?? string.Empty;
             _manifestAssetId = manifestAssetId?.Trim() ?? string.Empty;
             _spriteRenderer = spriteRenderer;
             _uiImage = uiImage;
+            _showStructuralPlaceholder = showStructuralPlaceholder;
             if (_structuralPlaceholder == null)
             {
                 _structuralPlaceholder = _spriteRenderer != null
@@ -64,12 +67,14 @@ namespace NullPointer.Visual
             {
                 _spriteRenderer.sprite = resolved;
                 _spriteRenderer.color = _finalArt != null ? Color.white : _structuralSpriteColor;
+                _spriteRenderer.enabled = _finalArt != null || _showStructuralPlaceholder;
             }
 
             if (_uiImage != null)
             {
                 _uiImage.sprite = resolved;
                 _uiImage.color = _finalArt != null ? Color.white : _structuralUiColor;
+                _uiImage.enabled = _finalArt != null || _showStructuralPlaceholder;
             }
         }
 

@@ -47,9 +47,15 @@ namespace NullPointer.Settings
             try
             {
                 GameSettings settings = JsonUtility.FromJson<GameSettings>(_storage.Read());
-                return settings == null || settings.SchemaVersion != GameSettings.CurrentSchemaVersion
-                    ? new GameSettings()
-                    : Sanitize(settings);
+                if (settings == null || settings.SchemaVersion < 1 ||
+                    settings.SchemaVersion > GameSettings.CurrentSchemaVersion)
+                {
+                    return new GameSettings();
+                }
+
+                // Schema 2 only adds opt-in accessibility booleans. JsonUtility supplies
+                // false for absent fields, so schema 1 settings can be migrated losslessly.
+                return Sanitize(settings);
             }
             catch
             {

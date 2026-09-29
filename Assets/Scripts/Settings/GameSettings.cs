@@ -5,7 +5,7 @@ namespace NullPointer.Settings
     [Serializable]
     public sealed class GameSettings
     {
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
 
         public int SchemaVersion = CurrentSchemaVersion;
         public float MasterVolume = 1f;
@@ -15,5 +15,7 @@ namespace NullPointer.Settings
         public int ResolutionWidth = 1920;
         public int ResolutionHeight = 1080;
         public float TextSpeed = 0.025f;
+        public bool ReducedUiMotion;
+        public bool ReducedVisualFx;
     }
 }

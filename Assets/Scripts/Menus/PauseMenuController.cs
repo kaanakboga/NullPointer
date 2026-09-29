@@ -40,7 +40,14 @@ namespace NullPointer.Menus
 
             _gameModes = gameModes ?? throw new ArgumentNullException(nameof(gameModes));
             _commands = commands ?? throw new ArgumentNullException(nameof(commands));
+            if (_settingsManager != null)
+            {
+                _settingsManager.Changed -= OnSettingsChanged;
+            }
+
             _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
+            _settingsManager.Changed += OnSettingsChanged;
+            OnSettingsChanged(_settingsManager.Current);
             if (_pauseInput != null)
             {
                 _pauseInput.UnregisterCancelInterceptor(TryCloseChildPanel);
@@ -117,6 +124,16 @@ namespace NullPointer.Menus
             {
                 _pauseInput.UnregisterCancelInterceptor(TryCloseChildPanel);
             }
+
+            if (_settingsManager != null)
+            {
+                _settingsManager.Changed -= OnSettingsChanged;
+            }
+        }
+
+        private void OnSettingsChanged(GameSettings settings)
+        {
+            _panel?.SetAccessibility(settings.ReducedUiMotion, settings.ReducedVisualFx);
         }
 
         private bool TryCloseChildPanel()

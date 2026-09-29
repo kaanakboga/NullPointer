@@ -41,39 +41,49 @@ Classification meanings:
 
 | Scene | GameObject / UI object | Current role | Manifest replacement ID | May hide now | Must remain until art exists |
 | --- | --- | --- | --- | --- | --- |
-| Main Menu | `Noir Backdrop` | Full-screen structural background and controller owner | `NP-MENU-BG-FAR-001` | No | Yes |
-| Main Menu | `Cyan Horizon` | Minimal horizon/depth cue | `NP-MENU-BG-MID-001` | Yes | No |
-| Main Menu | `Near Architecture Art` | Explicit manual art slot | `NP-MENU-BG-NEAR-001` | Already transparent | No |
-| Main Menu | `Fog Haze Art` | Explicit manual art slot | `NP-MENU-FX-FOG-001` | Already transparent | No |
-| Main Menu | `Rain Foreground Art` | Explicit manual art slot | `NP-MENU-FX-RAIN-001` | Already transparent | No |
+| Main Menu | `Far City Final Art` | Transparent replacement layer above the procedural FarCity preview | `NP-MENU-BG-FAR-001` | Already transparent | No |
+| Main Menu | `Mid City Final Art` | Transparent replacement layer above the procedural MidCity preview | `NP-MENU-BG-MID-001` | Already transparent | No |
+| Main Menu | `Near Architecture Final Art` | Transparent replacement layer above window/interior framing | `NP-MENU-BG-NEAR-001` | Already transparent | No |
+| Main Menu | `Fog Haze Final Art` | Transparent replacement layer above reusable procedural haze | `NP-MENU-FX-FOG-001` | Already transparent | No |
+| Main Menu | `Procedural Rain` | Pooled FAR/MID/NEAR Unity visual; no external raster dependency | None | No | Yes |
 | Main Menu | `Main Menu` buttons | Menu commands/focus/navigation | `NP-UI-BUTTON-PARTS-001`, `NP-UI-FOCUS-001` | No | Yes |
 | Eren Apartment | `Backdrop` | Room color field | `NP-ENV-EREN-ARCH-001` | No | Yes |
 | Eren Apartment | `Floor` | Visual floor plus collider | `NP-ENV-EREN-ROOM-001` | No | Yes |
 | Eren Apartment | `Player` | Movement/collision/interactor plus rectangle renderer | `NP-CHR-EREN-IDLE-001` | No | Yes |
-| Eren Apartment | `Neurological Medication` | Inspect target | `NP-PROP-EREN-MEDICATION-001` | No | Yes |
-| Eren Apartment | `Cut Photograph` | Inspect/foreshadow target | `NP-PROP-EREN-CUTPHOTO-001` | No | Yes |
-| Eren Apartment | `Dispatch Terminal` | Terminal target | `NP-PROP-EREN-WORKSTATION-001` | No | Yes |
-| Eren Apartment | `Exit to Mert Apartment` | Scene transition/collider | `NP-PROP-EREN-DOOR-001` | No | Yes |
+| Eren Apartment | `Neurological Medication` | Invisible inspect anchor until approved art is assigned | `NP-PROP-EREN-MEDICATION-001` | Hidden | Collider/logic only |
+| Eren Apartment | `Cut Photograph` | Invisible inspect/foreshadow anchor until approved art is assigned | `NP-PROP-EREN-CUTPHOTO-001` | Hidden | Collider/logic only |
+| Eren Apartment | `Dispatch Terminal` | Invisible terminal anchor until approved art is assigned | `NP-PROP-EREN-WORKSTATION-001` | Hidden | Collider/logic only |
+| Eren Apartment | `Exit to Mert Apartment` | Invisible transition anchor until approved art is assigned | `NP-PROP-EREN-DOOR-001` | Hidden | Collider/logic only |
 | Mert Apartment | `Backdrop` | Room color field | `NP-ENV-MERT-ARCH-001` | No | Yes |
 | Mert Apartment | `Floor` | Visual floor plus collider | `NP-ENV-MERT-ROOM-001` | No | Yes |
 | Mert Apartment | `Player` | Movement/collision/interactor plus rectangle renderer | `NP-CHR-EREN-IDLE-001` | No | Yes |
 | Mert Apartment | `Rain Window` | Window/rain block | `NP-ENV-MERT-WINDOW-001` | No | Yes |
 | Mert Apartment | `Workstation Pool` | Workstation mass | `NP-PROP-MERT-WORKSTATION-001` | No | Yes |
 | Mert Apartment | `Locked Interior` | Interior architecture mass | `NP-ENV-MERT-ARCH-001` | No | Yes |
-| Mert Apartment | `Mert Photograph` | Evidence/memory target | `NP-PROP-MERT-PHOTO-001` | No | Yes |
-| Mert Apartment | `Mert Terminal` | Terminal target | `NP-PROP-MERT-TERMINAL-001` | No | Yes |
-| Mert Apartment | `Biometric Death Time` | Evidence target | `NP-PROP-MERT-DEATH-TIME-001` | No | Yes |
-| Mert Apartment | `Damaged Memory Implant` | Evidence target | `NP-PROP-MERT-IMPLANT-001` | No | Yes |
-| Mert Apartment | `Internal Door Latch` | Evidence target | `NP-PROP-MERT-DOOR-001` | No | Yes |
-| Mert Apartment | `Unfinished Coffee` | Atmospheric inspect target | `NP-PROP-MERT-COFFEE-001` | No | Yes |
-| Mert Apartment | `Personal Notes` | Lore inspect target | `NP-PROP-MERT-NOTES-001` | No | Yes |
-| Mert Apartment | `Medical Calibrator` | Lore inspect target | `NP-PROP-MERT-MEDICAL-001` | No | Yes |
-| Mert Apartment | `Eren Device History` | Evidence target | `NP-PROP-MERT-EREN-DEVICE-001` | No | Yes |
-| Mert Apartment | `Evidence Board` | Deduction entry target | `NP-PROP-MERT-EVIDENCE-BOARD-001` | No | Yes |
-| Mert Apartment | `Damaged Recorder` | Dialogue target | `NP-PROP-MERT-RECORDER-001` | No | Yes |
+| Mert Apartment | `Mert Photograph` | Invisible evidence/memory anchor until approved art is assigned | `NP-PROP-MERT-PHOTO-001` | Hidden | Collider/logic only |
+| Mert Apartment | `Mert Terminal` | Invisible terminal anchor until approved art is assigned | `NP-PROP-MERT-TERMINAL-001` | Hidden | Collider/logic only |
+| Mert Apartment | `Biometric Death Time` | Invisible evidence anchor until approved art is assigned | `NP-PROP-MERT-DEATH-TIME-001` | Hidden | Collider/logic only |
+| Mert Apartment | `Damaged Memory Implant` | Invisible evidence anchor until approved art is assigned | `NP-PROP-MERT-IMPLANT-001` | Hidden | Collider/logic only |
+| Mert Apartment | `Internal Door Latch` | Invisible evidence anchor until approved art is assigned | `NP-PROP-MERT-DOOR-001` | Hidden | Collider/logic only |
+| Mert Apartment | `Unfinished Coffee` | Invisible atmospheric anchor until approved art is assigned | `NP-PROP-MERT-COFFEE-001` | Hidden | Collider/logic only |
+| Mert Apartment | `Personal Notes` | Invisible lore anchor until approved art is assigned | `NP-PROP-MERT-NOTES-001` | Hidden | Collider/logic only |
+| Mert Apartment | `Medical Calibrator` | Invisible lore anchor until approved art is assigned | `NP-PROP-MERT-MEDICAL-001` | Hidden | Collider/logic only |
+| Mert Apartment | `Eren Device History` | Invisible evidence anchor until approved art is assigned | `NP-PROP-MERT-EREN-DEVICE-001` | Hidden | Collider/logic only |
+| Mert Apartment | `Evidence Board` | Invisible deduction anchor until approved art is assigned | `NP-PROP-MERT-EVIDENCE-BOARD-001` | Hidden | Collider/logic only |
+| Mert Apartment | `Damaged Recorder` | Invisible dialogue anchor until approved art is assigned | `NP-PROP-MERT-RECORDER-001` | Hidden | Collider/logic only |
 | Both apartments | `Location Title` | Developer-like world scene label | `NP-CHAPTER-0317-001` only where narratively appropriate | Yes after replacement | No |
 | Both apartments | All modal frames/buttons/sliders | Functional uGUI presentation | `NP-UI-*` family | No | Yes |
 
 ## Phase 5A Decision
 
 Gameplay/domain presentation remains untouched. The safe next propagation boundary is Phase 5B: validate the pixel camera with the first approved Eren sheet, then replace only the Main Menu and Eren Apartment visual slots while rolling the shared theme/button/motion components into one production screen at a time.
+
+## Phase 5B Implementation Addendum
+
+The Main Menu, Pause Menu, and Settings presentation classified above have received their production structural pass. Main Menu now has safe-area-aware asymmetric composition, authored reveal/departure sequencing, deterministic multi-depth procedural rain, haze, shallow parallax, screen treatment, restrained title instability, and exact `FinalArtSlot` boundaries. `NP-MENU-FX-RAIN-001` is no longer represented as an external raster slot.
+
+Pause now retains live scene context under a layered interruption treatment, and Settings uses the same modal/control language from either origin. Buttons, sliders, toggles, and dropdowns no longer depend on Unity's default transition visuals. Reduced UI Motion and Reduced Visual FX are persisted settings. This closes the `RESTYLE`/`REBUILD` implementation work for these three surfaces, but `REPLACE_WITH_ART` items remain open until approved external layers and final typography/audio assets are imported and visually approved.
+
+### Phase 5B.1 Acceptance Addendum
+
+The aggressive polish pass replaces the flat fallback with layered city silhouettes, window framing, haze/reflections, restrained light movement, and clustered three-depth rain. The NULL POINTER wordmark now uses live missing-reference decoration and low-frequency corruption. Main/Pause actions share bracket/index/accent focus language; Settings uses grouped content, compact diamond handles, mechanical toggles, a live resolution caption, and layered panel depth. The Eren and Mert production scenes retain interaction anchors but no longer expose cyan/gray/amber/red engineering markers. All twelve required 16:9/16:10 captures were visually inspected before the 97/97 EditMode, 13/13 PlayMode, and Windows Development build gates passed.

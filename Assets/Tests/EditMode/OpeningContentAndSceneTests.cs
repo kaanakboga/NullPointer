@@ -3,12 +3,14 @@ using NullPointer.Content;
 using NullPointer.Deduction;
 using NullPointer.Dialogue;
 using NullPointer.Inspect;
+using NullPointer.Interaction;
 using NullPointer.Memory;
 using NullPointer.Menus;
 using NullPointer.Player;
 using NullPointer.Runtime;
 using NullPointer.SceneFlow;
 using NullPointer.Terminal;
+using NullPointer.Visual;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -83,6 +85,78 @@ namespace NullPointer.Tests.EditMode
                 Assert.That(FindInRoots<MainMenuController>(roots), Is.Not.Null);
                 Assert.That(FindInRoots<MainMenuSceneInstaller>(roots), Is.Not.Null);
                 Assert.That(FindInRoots<SettingsPanel>(roots), Is.Not.Null);
+            });
+        }
+
+        [Test]
+        public void Phase5BMenus_ContainProductionPresentationAndReplacementSlots()
+        {
+            WithScene(MainMenuPath, roots =>
+            {
+                Assert.That(FindInRoots<MainMenuPresentation>(roots), Is.Not.Null);
+                Assert.That(FindInRoots<MenuAtmosphereController>(roots), Is.Not.Null);
+                Assert.That(FindAllInRoots<CyberNoirButtonVisual>(roots).Length, Is.GreaterThanOrEqualTo(6));
+                Assert.That(FindAllInRoots<CyberNoirSliderVisual>(roots).Length, Is.EqualTo(4));
+                Assert.That(FindAllInRoots<CyberNoirToggleVisual>(roots).Length, Is.EqualTo(3));
+                Assert.That(FindAllInRoots<CyberNoirDropdownVisual>(roots).Length, Is.EqualTo(1));
+                string[] slots = FindAllInRoots<FinalArtSlot>(roots)
+                    .Select(slot => slot.ManifestAssetId)
+                    .ToArray();
+                Assert.That(slots, Does.Contain("NP-MENU-BG-FAR-001"));
+                Assert.That(slots, Does.Contain("NP-MENU-BG-MID-001"));
+                Assert.That(slots, Does.Contain("NP-MENU-BG-NEAR-001"));
+                Assert.That(slots, Does.Contain("NP-MENU-MOTIF-001"));
+                Assert.That(slots, Does.Contain("NP-MENU-FX-FOG-001"));
+                Assert.That(slots, Does.Contain("NP-MENU-FX-NOISE-001"));
+                Assert.That(slots, Does.Not.Contain("NP-MENU-FX-RAIN-001"),
+                    "Main-menu rain is a Unity-procedural visual, not an external raster slot.");
+                RectTransform subtitle = FindAllInRoots<RectTransform>(roots)
+                    .Single(rect => rect.name == "Subtitle");
+                RectTransform settingsHeading = FindInRoots<SettingsPanel>(roots).transform
+                    .Find("Settings Frame/Heading") as RectTransform;
+                Assert.That(subtitle.pivot.x, Is.EqualTo(0f), "Left-safe subtitle must not extend outside its anchor.");
+                Assert.That(settingsHeading, Is.Not.Null);
+                Assert.That(settingsHeading.pivot.x, Is.EqualTo(0f), "Settings heading must remain inside the modal.");
+                SettingsPanel settingsPanel = FindInRoots<SettingsPanel>(roots);
+                RectTransform apply = settingsPanel.transform.Find("Settings Frame/Settings Content/Apply") as RectTransform;
+                RectTransform back = settingsPanel.transform.Find("Settings Frame/Settings Content/Back") as RectTransform;
+                Assert.That(apply, Is.Not.Null);
+                Assert.That(back, Is.Not.Null);
+                Assert.That(apply.anchoredPosition.y, Is.GreaterThanOrEqualTo(0f));
+                Assert.That(back.anchoredPosition.y, Is.GreaterThanOrEqualTo(0f));
+            });
+
+            WithScene(ErenPath, roots =>
+            {
+                PauseMenuPanel pause = FindInRoots<PauseMenuPanel>(roots);
+                Assert.That(pause, Is.Not.Null);
+                Assert.That(pause.GetComponent<UiTransition>(), Is.Not.Null);
+                Assert.That(pause.GetComponentsInChildren<CyberNoirButtonVisual>(true).Length, Is.EqualTo(4));
+                RectTransform heading = pause.transform.Find("Pause Frame/Heading") as RectTransform;
+                Assert.That(heading, Is.Not.Null);
+                Assert.That(heading.pivot.x, Is.EqualTo(0f), "Pause heading must remain inside the viewport.");
+            });
+        }
+
+        [TestCase(ErenPath)]
+        [TestCase(MertPath)]
+        public void ProductionInteractables_DoNotExposeDebugMarkerRenderers(string scenePath)
+        {
+            WithScene(scenePath, roots =>
+            {
+                SpriteRenderer[] markerRenderers = FindAllInRoots<MonoBehaviour>(roots)
+                    .Where(component => component is IInteractable)
+                    .Select(component => component.GetComponent<SpriteRenderer>())
+                    .Where(renderer => renderer != null)
+                    .Distinct()
+                    .ToArray();
+
+                Assert.That(markerRenderers, Is.Not.Empty);
+                Assert.That(markerRenderers.All(renderer =>
+                {
+                    FinalArtSlot slot = renderer.GetComponent<FinalArtSlot>();
+                    return slot == null || slot.HasFinalArt || !renderer.enabled;
+                }), Is.True, "Production interactable anchors without approved art must render invisibly.");
             });
         }
 

@@ -66,6 +66,19 @@ At each resolution:
 - [ ] Pause-time UI motion uses unscaled time and remains responsive at `timeScale = 0`.
 - [ ] No UI animation changes `GameMode`, progression, save state, or command execution timing.
 
+### Phase 5B Main/Pause/Settings Gate
+
+- [x] At 1920×1080, 2560×1440, and 2560×1600, the title, subtitle, command stack, settings controls, and pause actions remain inside explicit safe margins with no overlap or clipping.
+- [x] Main Menu reveal may be accelerated and always leaves title/options fully visible and interactive.
+- [x] New Game and Continue accept only one dispatch while their presentation transition is active; scene-load correctness does not depend on the visual animation surviving scene teardown.
+- [x] Opening Settings transfers focus to Master Volume; closing via Back or Cancel restores the prior valid Main/Pause selection.
+- [x] Pause enters/exits in unscaled time, preserves the live scene beneath the treatment, and never exposes a one-frame default control appearance.
+- [x] Sliders show their numeric value, toggles show both shape and `AÇIK`/`KAPALI`, and the dropdown has a visible disclosure/focus state.
+- [x] Reduced UI Motion removes parallax/slide/scale movement and shortens nonessential transitions; Reduced Visual FX lowers rain/haze/screen/title effects. Both survive relaunch in the settings file.
+- [x] With all UI audio clips unassigned, focus/confirm/back/invalid hooks remain silent and exception-free.
+
+Phase 5B.1 evidence: `Phase5BVisualCapture.CaptureAll` generated and the team inspected Main Menu, Main Menu Settings, Pause, and Pause Settings at all three required resolutions under ignored `Logs/VisualReview/`. The accepted pass removes colored interaction markers, eliminates blank/debug-formatted settings values, and preserves deliberate 16:10 composition.
+
 ## Effects and Accessibility
 
 - [ ] Normal gameplay uses no chromatic split or tearing.

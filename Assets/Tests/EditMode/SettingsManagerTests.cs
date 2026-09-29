@@ -21,7 +21,9 @@ namespace NullPointer.Tests.EditMode
                 TextSpeed = 0.5f,
                 ResolutionWidth = 320,
                 ResolutionHeight = 200,
-                Fullscreen = false
+                Fullscreen = false,
+                ReducedUiMotion = true,
+                ReducedVisualFx = true
             }, false);
             var restored = new SettingsManager(storage);
 
@@ -32,6 +34,25 @@ namespace NullPointer.Tests.EditMode
             Assert.That(restored.Current.ResolutionWidth, Is.EqualTo(640));
             Assert.That(restored.Current.ResolutionHeight, Is.EqualTo(360));
             Assert.That(restored.Current.Fullscreen, Is.False);
+            Assert.That(restored.Current.ReducedUiMotion, Is.True);
+            Assert.That(restored.Current.ReducedVisualFx, Is.True);
+        }
+
+        [Test]
+        public void SchemaOneSettings_MigrateWithoutLosingUserValues()
+        {
+            var storage = new TestSettingsStorage();
+            storage.Write("{\"SchemaVersion\":1,\"MasterVolume\":0.42,\"MusicVolume\":0.31," +
+                          "\"SfxVolume\":0.73,\"Fullscreen\":false,\"ResolutionWidth\":1600," +
+                          "\"ResolutionHeight\":900,\"TextSpeed\":0.04}");
+
+            var manager = new SettingsManager(storage);
+
+            Assert.That(manager.Current.SchemaVersion, Is.EqualTo(GameSettings.CurrentSchemaVersion));
+            Assert.That(manager.Current.MasterVolume, Is.EqualTo(0.42f).Within(0.001f));
+            Assert.That(manager.Current.ResolutionWidth, Is.EqualTo(1600));
+            Assert.That(manager.Current.ReducedUiMotion, Is.False);
+            Assert.That(manager.Current.ReducedVisualFx, Is.False);
         }
 
         [Test]

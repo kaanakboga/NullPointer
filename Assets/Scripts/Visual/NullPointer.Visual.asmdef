@@ -2,7 +2,8 @@
     "name": "NullPointer.Visual",
     "rootNamespace": "NullPointer.Visual",
     "references": [
-        "Unity.ugui"
+        "Unity.ugui",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

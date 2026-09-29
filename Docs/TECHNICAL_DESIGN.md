@@ -370,7 +370,7 @@ Dependencies point toward Core, and Player/Interaction share input only through 
 
 Tests must assert meaningful behavior. Scene or visual tests are added only when they protect a real regression risk.
 
-Current automated coverage includes mode transitions/events, schema-2 state and JSON saves, schema-1 fixture migration, payload integrity, real-filesystem atomic replacement, backup recovery/preservation, fresh-process-equivalent relaunch restoration, corruption/future-schema handling, authored checkpoints, objectives, journal unlocks, interrogation contradictions, the complete Chapter 1 happy path and boundary, Main Menu availability, save/settings separation, keyboard/gamepad bindings, deterministic interaction selection, evidence/deduction/dialogue/memory rules, production content/build-scene validation, modal movement blocking and cancel interception, defensive modal disable recovery, production-scene horizontal-plane stability, interaction dispatch, Bootstrap-to-Main-Menu startup, visual theme/import validation, final-art slot preservation, default-off memory FX, and unscaled interrupt-safe UI motion. Latest independently verified result: 89 EditMode and 12 PlayMode tests passed (101 total).
+Current automated coverage includes mode transitions/events, schema-2 state and JSON saves, schema-1 fixture migration, payload integrity, real-filesystem atomic replacement, backup recovery/preservation, fresh-process-equivalent relaunch restoration, corruption/future-schema handling, authored checkpoints, objectives, journal unlocks, interrogation contradictions, the complete Chapter 1 happy path and boundary, Main Menu availability, save/settings separation, keyboard/gamepad bindings, deterministic interaction selection, evidence/deduction/dialogue/memory rules, production content/build-scene validation, modal movement blocking and cancel interception, defensive modal disable recovery, production-scene horizontal-plane stability, hidden production interaction anchors, interaction dispatch, Bootstrap-to-Main-Menu startup, visual theme/import validation, final-art slot preservation, default-off memory FX, and unscaled interrupt-safe UI motion. Latest independently verified result: 97 EditMode and 13 PlayMode tests passed (110 total).
 
 ## Validation and Observability
 
@@ -431,6 +431,37 @@ Before rebuilding a scene, `ArtSlotPreservation` captures non-null final sprites
 The existing stable sorting layers remain `Default`, `Background`, `Environment`, `PropsBack`, `Characters`, `PropsFront`, `Effects`, `Foreground`, and `WorldUI`; the order bands in `ART_BIBLE.md` provide finer scalable depth without invalidating current layer IDs.
 
 `SCN_VisualStylePreview` is a non-production scene under `Assets/Scenes/Test`. It demonstrates the locked palette, typography hierarchy using the current legal fallback, styled buttons/focus, panel transition language, subtle scanlines, and default-off memory distortion. It is a technical/style validation fixture, not final art and not included in Windows Build Settings. `VisualProductionBuilder` regenerates its authored theme/profile and scene idempotently.
+
+## Phase 5B Menu Presentation Architecture
+
+`OpeningContentBuilder` remains the idempotent owner of Main Menu, Pause, and Settings hierarchy. It generates a 1920×1080 `CanvasScaler` with 0.5 width/height matching and layouts that preserve at least the authored 96×72 safe region at 16:9 and representative 16:10. Runtime code does not search for these objects.
+
+`MainMenuPresentation` sequences the 1.5-second authored reveal using unscaled time, can snap the reveal to its complete state, rejects duplicate departure requests, and invokes New Game/Continue only once after the short presentation departure. If the presentation is absent, `MainMenuController` retains an immediate command fallback. The controller continues to own session commands and Settings modal state; presentation owns no save, progression, scene, or `GameMode` data.
+
+`MenuAtmosphereController` receives serialized layer/rain references from the builder. It applies shallow pointer/drift parallax, deterministic preallocated rain-streak motion, haze modulation, and low-frequency title echo without allocations or hierarchy searches in `Update`. The exact replaceable raster boundaries are:
+
+- `NP-MENU-BG-FAR-001` — Far City;
+- `NP-MENU-BG-MID-001` — Mid City;
+- `NP-MENU-MOTIF-001` — Narrative Motif;
+- `NP-MENU-BG-NEAR-001` — Near Architecture;
+- `NP-MENU-FX-FOG-001` — reusable Fog/Haze art;
+- `NP-MENU-FX-NOISE-001` — reusable Screen Texture.
+
+Main-menu rain is procedural and deliberately has no `FinalArtSlot`. `EnvironmentFxLayer` and `ScreenOverlayLayer` remain the activation/intensity boundaries.
+
+`CyberNoirSliderVisual`, `CyberNoirToggleVisual`, and `CyberNoirDropdownVisual` preserve the authoritative uGUI `Selectable` behavior while rendering custom focus/state feedback. `UiSoundHooks` provides nullable focus, confirm, back, and invalid clip endpoints; missing clips are valid and silent.
+
+Settings schema 2 adds `ReducedUiMotion` and `ReducedVisualFx`. Schema-1 settings migrate losslessly because both new preferences are opt-in booleans. `UiTransition`, Main Menu atmosphere/departure, and Pause screen treatment consume these preferences; settings remain separate from story saves.
+
+### Phase 5B.1 Visual-Quality Layer
+
+The Main Menu procedural fallback is an authored preview composition, not final raster art: FarCity and MidCity silhouettes, window/interior framing, haze, reflection traces, restrained light pools, and pooled rain remain ordered beneath their corresponding transparent `FinalArtSlot` layers. Rain uses 30 FAR, 18 MID, and 6 NEAR preallocated streaks with deterministic clustered positions, varied length/opacity/angle, depth-specific speed, bounded burst phases, and no per-frame allocation. Reduced Visual FX keeps a sparse far/mid sample and disables near rain.
+
+The live title remains typography and decoration: omission block, broken rules, displaced fault segment, unresolved-pointer metadata, and a low-frequency corruption pulse remain readable for normal presentation. Menu selection is carried by a partial value field, mechanical focus bracket, index state, moving accent, and restrained text/row interpolation. Main and Pause rows reveal in a short unscaled stagger.
+
+Settings uses separate AUDIO, DISPLAY, and ACCESSIBILITY/INTERFACE groups. Slider values are unpadded percentages or a human-readable text-speed band plus milliseconds; handles are compact geometric controls. Toggle state is represented by both shifted geometry and `AÇIK`/`KAPALI`; the resolution dropdown always refreshes its live caption and disclosure affordance. Panel and content transitions are sequenced and honor Reduced UI Motion.
+
+Unapproved interactable art is now an invisible renderer placeholder while the GameObject, collider, and interaction component remain active. `FinalArtSlot` re-enables the renderer automatically when approved art is assigned. EditMode scene validation prevents Eren/Mert production interactables from regressing to colored engineering markers.
 
 ## Security and Data Safety
 

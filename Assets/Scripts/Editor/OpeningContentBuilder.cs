@@ -804,6 +804,7 @@ namespace NullPointer.Editor
                 scaler.matchWidthOrHeight = 0.5f;
                 canvasObject.AddComponent<GraphicRaycaster>();
 
+                VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
                 GameObject backdrop = CreateImage(
                     canvasObject.transform,
                     "Noir Backdrop",
@@ -812,27 +813,146 @@ namespace NullPointer.Editor
                     Vector2.zero,
                     Vector2.zero,
                     BackgroundColor);
-                VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
                 backdrop.AddComponent<VisualRootAnchor>().Configure("visual.main_menu", VisualRootKind.MainMenu, theme);
-                AddFinalArtSlot(backdrop, "slot.main_menu.far_city", "NP-MENU-BG-FAR-001", uiImage: backdrop.GetComponent<Image>());
-                GameObject horizon = CreateImage(backdrop.transform, "Cyan Horizon", new Vector2(0f, 0.2f), new Vector2(1f, 0.21f), Vector2.zero, Vector2.zero, new Color(0.1f, 0.55f, 0.62f, 0.45f));
-                AddFinalArtSlot(horizon, "slot.main_menu.mid_city", "NP-MENU-BG-MID-001", uiImage: horizon.GetComponent<Image>());
-                CreateEmptyUiArtSlot(backdrop.transform, "Near Architecture Art", "slot.main_menu.near_architecture", "NP-MENU-BG-NEAR-001");
-                CreateEmptyUiArtSlot(backdrop.transform, "Fog Haze Art", "slot.main_menu.fog_haze", "NP-MENU-FX-FOG-001");
-                CreateEmptyUiArtSlot(backdrop.transform, "Rain Foreground Art", "slot.main_menu.rain_foreground", "NP-MENU-FX-RAIN-001");
-                CreateText(backdrop.transform, "Title", "NULL POINTER", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -190f), new Vector2(1100f, 110f), 72, TextAnchor.MiddleCenter, TextColor);
-                CreateText(backdrop.transform, "Subtitle", "ANILAR SİLİNMEDEN ÖNCE", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -275f), new Vector2(900f, 60f), 28, TextAnchor.MiddleCenter, Cyan);
+                var distantLights = new List<CanvasGroup>();
+                GameObject farGlow = CreateImage(backdrop.transform, "Far City Value Field", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0.025f, 0.065f, 0.105f, 0.48f));
+                CreateImage(farGlow.transform, "Horizon Value Band", new Vector2(0f, 0.08f), new Vector2(1f, 0.5f), Vector2.zero, Vector2.zero, new Color(0.06f, 0.13f, 0.17f, 0.22f));
+                CreateProceduralCityLayer(farGlow.transform, "FarCity Procedural Preview", 14, 690f, 122f, 420f, new Color(0.022f, 0.055f, 0.078f, 0.96f), distantLights, true);
+                CreateEmptyUiArtSlot(backdrop.transform, "Far City Final Art", "slot.main_menu.far_city", "NP-MENU-BG-FAR-001");
 
-                GameObject menuRoot = CreateRect(backdrop.transform, "Main Menu", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -80f), new Vector2(520f, 460f));
-                Button newGame = CreateButton(menuRoot.transform, "New Game", "YENİ OYUN", new Vector2(420f, 70f), new Vector2(0f, 150f), Cyan, out _);
-                Button continueGame = CreateButton(menuRoot.transform, "Continue", "DEVAM ET", new Vector2(420f, 70f), new Vector2(0f, 55f), new Color(0.1f, 0.32f, 0.36f, 1f), out _);
-                Button settings = CreateButton(menuRoot.transform, "Settings", "AYARLAR", new Vector2(420f, 70f), new Vector2(0f, -40f), new Color(0.16f, 0.22f, 0.28f, 1f), out _);
-                Button quit = CreateButton(menuRoot.transform, "Quit", "ÇIKIŞ", new Vector2(420f, 70f), new Vector2(0f, -135f), Red, out _);
+                GameObject horizon = CreateRect(backdrop.transform, "Mid City Architecture Preview", new Vector2(0f, 0.08f), new Vector2(1f, 0.58f), Vector2.zero, Vector2.zero);
+                CreateProceduralCityLayer(horizon.transform, "MidCity Procedural Preview", 9, 820f, 176f, 610f, new Color(0.018f, 0.043f, 0.06f, 0.98f), distantLights, false);
+                GameObject midArt = CreateEmptyUiArtSlot(backdrop.transform, "Mid City Final Art", "slot.main_menu.mid_city", "NP-MENU-BG-MID-001");
+                RectTransform midArtRect = midArt.GetComponent<RectTransform>();
+                midArtRect.anchorMin = new Vector2(0f, 0.08f);
+                midArtRect.anchorMax = new Vector2(1f, 0.62f);
+                midArtRect.sizeDelta = Vector2.zero;
+                GameObject motif = CreateEmptyUiArtSlot(backdrop.transform, "Narrative Motif", "slot.main_menu.narrative_motif", "NP-MENU-MOTIF-001");
+                RectTransform motifRect = motif.GetComponent<RectTransform>();
+                motifRect.anchorMin = new Vector2(0.54f, 0.1f);
+                motifRect.anchorMax = new Vector2(0.96f, 0.88f);
+                motifRect.sizeDelta = Vector2.zero;
+
+                GameObject near = CreateRect(backdrop.transform, "Near Window Procedural Preview", new Vector2(0.58f, 0f), Vector2.one, Vector2.zero, Vector2.zero);
+                RectTransform nearRect = near.GetComponent<RectTransform>();
+                CreateImage(near.transform, "Near Glass Shade", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0.006f, 0.015f, 0.028f, 0.42f));
+                CreateImage(near.transform, "Window Mullion A", new Vector2(0.28f, 0f), new Vector2(0.28f, 1f), Vector2.zero, new Vector2(24f, 0f), new Color(0.008f, 0.018f, 0.032f, 0.96f));
+                CreateImage(near.transform, "Window Mullion B", new Vector2(0.77f, 0f), new Vector2(0.77f, 1f), Vector2.zero, new Vector2(14f, 0f), new Color(0.008f, 0.018f, 0.032f, 0.88f));
+                CreateImage(near.transform, "Window Header", new Vector2(0f, 0.84f), new Vector2(1f, 0.84f), Vector2.zero, new Vector2(0f, 30f), new Color(0.008f, 0.018f, 0.032f, 0.94f));
+                CreateImage(near.transform, "Interior Edge", new Vector2(0.93f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero, new Color(0.003f, 0.008f, 0.016f, 0.94f));
+                for (int reflection = 0; reflection < 5; reflection++)
+                {
+                    float x = 0.08f + reflection * 0.17f;
+                    CreateImage(near.transform, $"Glass Reflection {reflection + 1:00}", new Vector2(x, 0.06f), new Vector2(x + 0.025f, 0.82f), Vector2.zero, Vector2.zero, new Color(0.12f, 0.32f, 0.37f, 0.025f + reflection * 0.008f));
+                }
+                GameObject nearArt = CreateEmptyUiArtSlot(backdrop.transform, "Near Architecture Final Art", "slot.main_menu.near_architecture", "NP-MENU-BG-NEAR-001");
+                RectTransform nearArtRect = nearArt.GetComponent<RectTransform>();
+                nearArtRect.anchorMin = new Vector2(0.58f, 0f);
+                nearArtRect.anchorMax = Vector2.one;
+                nearArtRect.sizeDelta = Vector2.zero;
+
+                GameObject haze = CreateRect(backdrop.transform, "Procedural Atmospheric Haze", new Vector2(-0.05f, 0.18f), new Vector2(1.05f, 0.76f), Vector2.zero, Vector2.zero);
+                RectTransform hazeRect = haze.GetComponent<RectTransform>();
+                CanvasGroup hazeGroup = haze.AddComponent<CanvasGroup>();
+                CreateImage(haze.transform, "Haze Low", new Vector2(0f, 0.05f), new Vector2(0.72f, 0.42f), Vector2.zero, Vector2.zero, new Color(0.18f, 0.3f, 0.34f, 0.1f));
+                CreateImage(haze.transform, "Haze Mid", new Vector2(0.24f, 0.28f), new Vector2(1f, 0.7f), Vector2.zero, Vector2.zero, new Color(0.12f, 0.22f, 0.29f, 0.08f));
+                CreateImage(haze.transform, "Haze Warm Trace", new Vector2(0.55f, 0.48f), new Vector2(0.96f, 0.86f), Vector2.zero, Vector2.zero, new Color(0.25f, 0.13f, 0.18f, 0.04f));
+                GameObject fogArt = CreateEmptyUiArtSlot(backdrop.transform, "Fog Haze Final Art", "slot.main_menu.fog_haze", "NP-MENU-FX-FOG-001");
+                RectTransform fogArtRect = fogArt.GetComponent<RectTransform>();
+                fogArtRect.anchorMin = new Vector2(-0.05f, 0.18f);
+                fogArtRect.anchorMax = new Vector2(1.05f, 0.76f);
+                fogArtRect.sizeDelta = Vector2.zero;
+
+                GameObject rain = CreateRect(backdrop.transform, "Procedural Rain", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+                RectTransform[] streaks = CreateProceduralRain(rain.transform, out int farRainCount, out int midRainCount);
+                GameObject fxRoot = new("Environment FX");
+                fxRoot.transform.SetParent(backdrop.transform, false);
+                EnvironmentFxLayer environmentFx = fxRoot.AddComponent<EnvironmentFxLayer>();
+                environmentFx.Configure(Array.Empty<ParticleSystem>(), new[] { haze, rain }, true);
+
+                GameObject titleRoot = CreateRect(backdrop.transform, "Title Block", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(148f, -140f), new Vector2(760f, 300f));
+                titleRoot.GetComponent<RectTransform>().pivot = new Vector2(0f, 1f);
+                CanvasGroup titleGroup = titleRoot.AddComponent<CanvasGroup>();
+                Text echo = CreateText(titleRoot.transform, "Chromatic Echo", "NULL\nPOINTER", Vector2.zero, Vector2.one, new Vector2(6f, -2f), Vector2.zero, 96, TextAnchor.MiddleLeft, new Color(0.75f, 0.18f, 0.3f, 0.9f));
+                CanvasGroup echoGroup = echo.gameObject.AddComponent<CanvasGroup>();
+                echoGroup.alpha = 0f;
+                Text title = CreateText(titleRoot.transform, "Title", "NULL\nPOINTER", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 96, TextAnchor.MiddleLeft, TextColor);
+                title.lineSpacing = 0.78f;
+                CreateText(titleRoot.transform, "Missing Reference", "[  REF: ∅  ]", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(520f, -32f), new Vector2(210f, 30f), 14, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.5f));
+                CreateImage(titleRoot.transform, "Omission Block", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(438f, -172f), new Vector2(76f, 13f), new Color(Red.r, Red.g, Red.b, 0.72f));
+                RectTransform titleFault = CreateImage(titleRoot.transform, "Displaced Title Segment", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(468f, -156f), new Vector2(136f, 3f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.76f)).GetComponent<RectTransform>();
+                Text subtitle = CreateText(titleRoot.transform, "Subtitle", "ANILAR SİLİNMEDEN ÖNCE // NLP-0417", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 14f), new Vector2(700f, 42f), 20, TextAnchor.MiddleLeft, Cyan);
+                subtitle.rectTransform.pivot = new Vector2(0f, 0.5f);
+                GameObject titleRule = CreateImage(titleRoot.transform, "Title Rule A", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 54f), new Vector2(218f, 3f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.72f));
+                titleRule.GetComponent<RectTransform>().pivot = new Vector2(0f, 0.5f);
+                GameObject titleRuleB = CreateImage(titleRoot.transform, "Title Rule B", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(244f, 54f), new Vector2(96f, 3f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.38f));
+                titleRuleB.GetComponent<RectTransform>().pivot = new Vector2(0f, 0.5f);
+                CreateText(titleRoot.transform, "Title Metadata", "PTR//0000:DEAD\nTARGET UNRESOLVED", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(510f, 20f), new Vector2(220f, 44f), 12, TextAnchor.MiddleLeft, new Color(TextColor.r, TextColor.g, TextColor.b, 0.34f));
+
+                GameObject menuRoot = CreateRect(backdrop.transform, "Main Menu", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(150f, 112f), new Vector2(590f, 470f));
+                menuRoot.GetComponent<RectTransform>().pivot = Vector2.zero;
+                CanvasGroup menuGroup = menuRoot.AddComponent<CanvasGroup>();
+                UiSoundHooks soundHooks = CreateUiSoundHooks(backdrop.transform);
+                Text menuIndex = CreateText(menuRoot.transform, "Menu Index", "// ANA DİZİN", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, -5f), new Vector2(560f, 32f), 17, TextAnchor.MiddleLeft, new Color(TextColor.r, TextColor.g, TextColor.b, 0.55f));
+                menuIndex.rectTransform.pivot = new Vector2(0f, 1f);
+                Button newGame = CreateCyberButton(menuRoot.transform, "New Game", "YENİ OYUN", "01", new Vector2(520f, 72f), new Vector2(0f, 335f), theme, soundHooks);
+                Button continueGame = CreateCyberButton(menuRoot.transform, "Continue", "DEVAM ET", "02", new Vector2(480f, 66f), new Vector2(0f, 244f), theme, soundHooks);
+                Button settings = CreateCyberButton(menuRoot.transform, "Settings", "AYARLAR", "03", new Vector2(440f, 62f), new Vector2(0f, 158f), theme, soundHooks);
+                Button quit = CreateCyberButton(menuRoot.transform, "Quit", "ÇIKIŞ", "04", new Vector2(400f, 58f), new Vector2(0f, 76f), theme, soundHooks, true);
+                Button[] mainMenuButtons = { newGame, continueGame, settings, quit };
+                var optionRows = new UiTransition[mainMenuButtons.Length];
+                for (int index = 0; index < mainMenuButtons.Length; index++)
+                {
+                    CanvasGroup rowGroup = mainMenuButtons[index].gameObject.AddComponent<CanvasGroup>();
+                    UiTransition rowTransition = mainMenuButtons[index].gameObject.AddComponent<UiTransition>();
+                    rowTransition.Configure(mainMenuButtons[index].GetComponent<RectTransform>(), rowGroup, true, true, false, new Vector2(-20f, 0f), Vector3.one, 0.16f);
+                    optionRows[index] = rowTransition;
+                }
                 MainMenuPanel panel = menuRoot.AddComponent<MainMenuPanel>();
                 panel.Configure(newGame, continueGame, settings, quit);
+
+                GameObject overlay = CreateImage(backdrop.transform, "Screen Texture Overlay", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0.08f, 0.17f, 0.2f, 0.12f));
+                Image overlayImage = overlay.GetComponent<Image>();
+                overlayImage.raycastTarget = false;
+                AddFinalArtSlot(overlay, "slot.main_menu.screen_texture", "NP-MENU-FX-NOISE-001", uiImage: overlayImage);
+                CanvasGroup overlayGroup = overlay.AddComponent<CanvasGroup>();
+                ScreenOverlayLayer screenOverlay = overlay.AddComponent<ScreenOverlayLayer>();
+                screenOverlay.Configure(overlayGroup, 0.12f, true);
+                for (int index = 0; index < 18; index++)
+                {
+                    CreateImage(overlay.transform, $"Scanline {index + 1:00}", new Vector2(0f, index / 18f), new Vector2(1f, index / 18f), Vector2.zero, new Vector2(0f, 1f), new Color(0.35f, 0.55f, 0.58f, 0.06f));
+                }
+
+                UiTransition titleTransition = titleRoot.AddComponent<UiTransition>();
+                titleTransition.Configure(titleRoot.GetComponent<RectTransform>(), titleGroup, true, true, false, new Vector2(-42f, 0f), Vector3.one, 0.46f);
+                UiTransition optionsTransition = menuRoot.AddComponent<UiTransition>();
+                optionsTransition.Configure(menuRoot.GetComponent<RectTransform>(), menuGroup, true, true, false, new Vector2(0f, -28f), Vector3.one, 0.38f);
+
+                MenuAtmosphereController atmosphere = backdrop.AddComponent<MenuAtmosphereController>();
+                atmosphere.Configure(
+                    new[] { farGlow.GetComponent<RectTransform>(), horizon.GetComponent<RectTransform>(), motifRect, nearRect },
+                    new[] { 4f, 8f, 14f, 22f },
+                    streaks,
+                    hazeGroup,
+                    hazeRect,
+                    titleRoot.GetComponent<RectTransform>(),
+                    echoGroup,
+                    screenOverlay,
+                    environmentFx,
+                    farRainCount,
+                    midRainCount,
+                    titleFault,
+                    distantLights.ToArray());
+
+                GameObject curtain = CreateImage(backdrop.transform, "Departure Curtain", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, BackgroundColor);
+                CanvasGroup curtainGroup = curtain.AddComponent<CanvasGroup>();
+                curtainGroup.alpha = 0f;
+                curtainGroup.blocksRaycasts = false;
+                MainMenuPresentation presentation = backdrop.AddComponent<MainMenuPresentation>();
+                presentation.Configure(titleTransition, optionsTransition, curtainGroup, atmosphere, optionRows);
                 SettingsPanel settingsPanel = CreateSettingsPanel(backdrop.transform, "Main Menu Settings");
                 MainMenuController controller = backdrop.AddComponent<MainMenuController>();
-                controller.Configure(panel, settingsPanel);
+                controller.Configure(panel, settingsPanel, presentation);
                 MainMenuSceneInstaller installer = backdrop.AddComponent<MainMenuSceneInstaller>();
                 installer.Configure(controller);
                 settingsPanel.Hide();
@@ -850,7 +970,7 @@ namespace NullPointer.Editor
                     new Vector3(-3.25f, -1.35f, 0f),
                     new Vector2(0.65f, 0.65f),
                     Cyan);
-                AddFinalArtSlot(medication, "slot.eren_apartment.medication", "NP-PROP-EREN-MEDICATION-001", medication.GetComponent<SpriteRenderer>());
+                AddFinalArtSlot(medication, "slot.eren_apartment.medication", "NP-PROP-EREN-MEDICATION-001", medication.GetComponent<SpriteRenderer>(), showStructuralPlaceholder: false);
                 medication.AddComponent<InspectInteractable>().Configure(
                     setup.Ui.InspectController,
                     assets.MedicationInspection);
@@ -860,7 +980,7 @@ namespace NullPointer.Editor
                     new Vector3(-0.8f, -1.2f, 0f),
                     new Vector2(0.75f, 0.9f),
                     new Color(0.3f, 0.4f, 0.48f, 1f));
-                AddFinalArtSlot(photograph, "slot.eren_apartment.cut_photo", "NP-PROP-EREN-CUTPHOTO-001", photograph.GetComponent<SpriteRenderer>());
+                AddFinalArtSlot(photograph, "slot.eren_apartment.cut_photo", "NP-PROP-EREN-CUTPHOTO-001", photograph.GetComponent<SpriteRenderer>(), showStructuralPlaceholder: false);
                 photograph.AddComponent<InspectInteractable>().Configure(
                     setup.Ui.InspectController,
                     assets.ForeshadowInspection);
@@ -870,7 +990,7 @@ namespace NullPointer.Editor
                     new Vector3(1.75f, -1.15f, 0f),
                     new Vector2(1.15f, 1.15f),
                     Amber);
-                AddFinalArtSlot(dispatch, "slot.eren_apartment.workstation", "NP-PROP-EREN-WORKSTATION-001", dispatch.GetComponent<SpriteRenderer>());
+                AddFinalArtSlot(dispatch, "slot.eren_apartment.workstation", "NP-PROP-EREN-WORKSTATION-001", dispatch.GetComponent<SpriteRenderer>(), showStructuralPlaceholder: false);
                 dispatch.AddComponent<TerminalInteractable>().Configure(
                     setup.Ui.TerminalController,
                     assets.DispatchTerminal);
@@ -880,7 +1000,7 @@ namespace NullPointer.Editor
                     new Vector3(4.65f, -0.75f, 0f),
                     new Vector2(0.9f, 2f),
                     Red);
-                AddFinalArtSlot(exit, "slot.eren_apartment.doorway", "NP-PROP-EREN-DOOR-001", exit.GetComponent<SpriteRenderer>());
+                AddFinalArtSlot(exit, "slot.eren_apartment.doorway", "NP-PROP-EREN-DOOR-001", exit.GetComponent<SpriteRenderer>(), showStructuralPlaceholder: false);
                 SceneTransitionInteractable transition = exit.AddComponent<SceneTransitionInteractable>();
                 transition.Configure(assets.MertLocation, "entry", DispatchReceivedFlag);
 
@@ -944,7 +1064,7 @@ namespace NullPointer.Editor
                     new Vector3(-4.95f, -1.2f, 0f),
                     new Vector2(0.75f, 0.95f),
                     Cyan);
-                AddFinalArtSlot(photograph, "slot.mert_apartment.photograph", "NP-PROP-MERT-PHOTO-001", photograph.GetComponent<SpriteRenderer>());
+                AddFinalArtSlot(photograph, "slot.mert_apartment.photograph", "NP-PROP-MERT-PHOTO-001", photograph.GetComponent<SpriteRenderer>(), showStructuralPlaceholder: false);
                 MemoryEvidenceTrigger memoryTrigger = photograph.AddComponent<MemoryEvidenceTrigger>();
                 memoryTrigger.Configure(setup.Ui.MemoryController, assets.PhotoMemory);
                 photograph.AddComponent<EvidenceInteractable>().Configure(
@@ -958,7 +1078,7 @@ namespace NullPointer.Editor
                     new Vector3(-2.35f, -1.1f, 0f),
                     new Vector2(1.1f, 1.25f),
                     Amber);
-                AddFinalArtSlot(terminal, "slot.mert_apartment.terminal", "NP-PROP-MERT-TERMINAL-001", terminal.GetComponent<SpriteRenderer>());
+                AddFinalArtSlot(terminal, "slot.mert_apartment.terminal", "NP-PROP-MERT-TERMINAL-001", terminal.GetComponent<SpriteRenderer>(), showStructuralPlaceholder: false);
                 terminal.AddComponent<TerminalInteractable>().Configure(
                     setup.Ui.TerminalController,
                     assets.MertTerminal);
@@ -968,7 +1088,7 @@ namespace NullPointer.Editor
                     new Vector3(0.45f, -1.35f, 0f),
                     new Vector2(0.75f, 0.6f),
                     Red);
-                AddFinalArtSlot(deathTime, "slot.mert_apartment.death_record", "NP-PROP-MERT-DEATH-TIME-001", deathTime.GetComponent<SpriteRenderer>());
+                AddFinalArtSlot(deathTime, "slot.mert_apartment.death_record", "NP-PROP-MERT-DEATH-TIME-001", deathTime.GetComponent<SpriteRenderer>(), showStructuralPlaceholder: false);
                 deathTime.AddComponent<EvidenceInteractable>().Configure(
                     setup.Ui.InspectController,
                     assets.DeathTimeInspection,
@@ -979,7 +1099,7 @@ namespace NullPointer.Editor
                     new Vector3(5.15f, -0.95f, 0f),
                     new Vector2(1.4f, 1.55f),
                     new Color(0.18f, 0.52f, 0.58f, 1f));
-                AddFinalArtSlot(board, "slot.mert_apartment.evidence_board", "NP-PROP-MERT-EVIDENCE-BOARD-001", board.GetComponent<SpriteRenderer>());
+                AddFinalArtSlot(board, "slot.mert_apartment.evidence_board", "NP-PROP-MERT-EVIDENCE-BOARD-001", board.GetComponent<SpriteRenderer>(), showStructuralPlaceholder: false);
                 board.AddComponent<EvidenceBoardInteractable>().Configure(setup.Ui.EvidenceBoardController);
 
                 GameObject recorder = CreateInteractableBlock(
@@ -987,7 +1107,7 @@ namespace NullPointer.Editor
                     new Vector3(6.15f, -1.4f, 0f),
                     new Vector2(0.55f, 0.55f),
                     new Color(0.45f, 0.25f, 0.32f, 1f));
-                AddFinalArtSlot(recorder, "slot.mert_apartment.recorder", "NP-PROP-MERT-RECORDER-001", recorder.GetComponent<SpriteRenderer>());
+                AddFinalArtSlot(recorder, "slot.mert_apartment.recorder", "NP-PROP-MERT-RECORDER-001", recorder.GetComponent<SpriteRenderer>(), showStructuralPlaceholder: false);
                 recorder.AddComponent<DialogueInteractable>().Configure(
                     setup.Ui.DialogueController,
                     assets.MertRecorderDialogue);
@@ -1071,7 +1191,7 @@ namespace NullPointer.Editor
         {
             GameObject item = CreateInteractableBlock(name, new Vector3(x, -1.3f, 0f), new Vector2(0.62f, 0.72f), Cyan);
             (string slotId, string assetId) = ResolveMertPropSlot(name);
-            AddFinalArtSlot(item, slotId, assetId, item.GetComponent<SpriteRenderer>());
+            AddFinalArtSlot(item, slotId, assetId, item.GetComponent<SpriteRenderer>(), showStructuralPlaceholder: false);
             item.AddComponent<EvidenceInteractable>().Configure(setup.Ui.InspectController, inspection, evidence);
         }
 
@@ -1084,7 +1204,7 @@ namespace NullPointer.Editor
         {
             GameObject item = CreateInteractableBlock(name, new Vector3(x, -1.35f, 0f), new Vector2(0.55f, 0.58f), color);
             (string slotId, string assetId) = ResolveMertPropSlot(name);
-            AddFinalArtSlot(item, slotId, assetId, item.GetComponent<SpriteRenderer>());
+            AddFinalArtSlot(item, slotId, assetId, item.GetComponent<SpriteRenderer>(), showStructuralPlaceholder: false);
             item.AddComponent<InspectInteractable>().Configure(setup.Ui.InspectController, inspection);
         }
 
@@ -1145,7 +1265,7 @@ namespace NullPointer.Editor
             playerObject.transform.localScale = new Vector3(0.72f, 1.35f, 1f);
             SpriteRenderer renderer = playerObject.AddComponent<SpriteRenderer>();
             renderer.sprite = sprite;
-            renderer.color = new Color(0.3f, 0.78f, 0.88f, 1f);
+            renderer.color = new Color(0.12f, 0.18f, 0.22f, 1f);
             renderer.sortingOrder = 2;
             AddFinalArtSlot(playerObject, $"slot.{locationId}.eren", "NP-CHR-EREN-IDLE-001", renderer);
             Rigidbody2D body = playerObject.AddComponent<Rigidbody2D>();
@@ -1265,15 +1385,63 @@ namespace NullPointer.Editor
 
         private static void ConfigurePauseInterface(Transform canvas, SceneUi ui)
         {
-            GameObject pauseRoot = CreateModalRoot(canvas, "Pause Menu", new Color(0.005f, 0.012f, 0.025f, 0.94f));
-            GameObject frame = CreateImage(pauseRoot.transform, "Pause Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(620f, 650f), PanelColor);
-            CreateText(frame.transform, "Heading", "DURAKLATILDI", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -85f), new Vector2(500f, 70f), 42, TextAnchor.MiddleCenter, Cyan);
-            Button resume = CreateButton(frame.transform, "Resume", "DEVAM", new Vector2(430f, 68f), new Vector2(0f, 120f), Cyan, out _);
-            Button journal = CreateButton(frame.transform, "Journal", "SORUŞTURMA DEFTERİ", new Vector2(430f, 68f), new Vector2(0f, 30f), new Color(0.08f, 0.24f, 0.28f, 1f), out _);
-            Button settingsButton = CreateButton(frame.transform, "Settings", "AYARLAR", new Vector2(430f, 68f), new Vector2(0f, -60f), new Color(0.15f, 0.2f, 0.28f, 1f), out _);
-            Button mainMenu = CreateButton(frame.transform, "Main Menu", "ANA MENÜ", new Vector2(430f, 68f), new Vector2(0f, -150f), Red, out _);
+            VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
+            GameObject pauseRoot = CreateModalRoot(canvas, "Pause Menu", new Color(0.008f, 0.016f, 0.028f, 0.64f));
+            CanvasGroup pauseGroup = pauseRoot.AddComponent<CanvasGroup>();
+            CreateImage(pauseRoot.transform, "Scene Desaturation Veil", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0.055f, 0.075f, 0.09f, 0.34f));
+            CreateImage(pauseRoot.transform, "Left Depth Field", new Vector2(0f, 0f), new Vector2(0.48f, 1f), Vector2.zero, Vector2.zero, new Color(0.012f, 0.027f, 0.045f, 0.82f));
+            CreateImage(pauseRoot.transform, "Scene Light Pool", new Vector2(0.58f, 0.12f), new Vector2(0.88f, 0.86f), Vector2.zero, Vector2.zero, new Color(0.08f, 0.18f, 0.21f, 0.11f));
+            CreateImage(pauseRoot.transform, "Frozen Scene Band", new Vector2(0.48f, 0.69f), new Vector2(1f, 0.73f), Vector2.zero, Vector2.zero, new Color(Cyan.r, Cyan.g, Cyan.b, 0.035f));
+            CreateImage(pauseRoot.transform, "Vignette Left", new Vector2(0f, 0f), new Vector2(0.035f, 1f), Vector2.zero, Vector2.zero, new Color(0f, 0f, 0f, 0.48f));
+            CreateImage(pauseRoot.transform, "Vignette Right", new Vector2(0.965f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero, new Color(0f, 0f, 0f, 0.48f));
+            GameObject scanlines = CreateRect(pauseRoot.transform, "Pause Screen Texture", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            CanvasGroup scanlineGroup = scanlines.AddComponent<CanvasGroup>();
+            for (int index = 0; index < 16; index++)
+            {
+                CreateImage(scanlines.transform, $"Line {index + 1:00}", new Vector2(0f, index / 16f), new Vector2(1f, index / 16f), Vector2.zero, new Vector2(0f, 1f), new Color(0.3f, 0.48f, 0.52f, 0.06f));
+            }
+            ScreenOverlayLayer pauseOverlay = scanlines.AddComponent<ScreenOverlayLayer>();
+            pauseOverlay.Configure(scanlineGroup, 0.1f, true);
+
+            CreateImage(pauseRoot.transform, "Pause Shadow", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(408f, -14f), new Vector2(678f, 838f), new Color(0f, 0f, 0f, 0.52f));
+            GameObject frame = CreateImage(pauseRoot.transform, "Pause Frame", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(390f, 0f), new Vector2(650f, 810f), new Color(0.016f, 0.037f, 0.052f, 0.96f));
+            CreateImage(frame.transform, "Inner Value Field", new Vector2(0f, 0f), new Vector2(1f, 0.78f), new Vector2(18f, 10f), new Vector2(-42f, -24f), new Color(0.035f, 0.063f, 0.075f, 0.44f));
+            CreateImage(frame.transform, "Accent Rail", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(6f, 0f), new Vector2(4f, -34f), Cyan);
+            GameObject edgeSignal = CreateImage(frame.transform, "Edge Signal", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(98f, -7f), new Vector2(176f, 3f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.72f));
+            CanvasGroup edgeSignalGroup = edgeSignal.AddComponent<CanvasGroup>();
+            edgeSignalGroup.alpha = 0.42f;
+            Text pauseHeading = CreateText(frame.transform, "Heading", "DURAKLATILDI", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(66f, -76f), new Vector2(500f, 64f), 38, TextAnchor.MiddleLeft, TextColor);
+            pauseHeading.rectTransform.pivot = new Vector2(0f, 0.5f);
+            Text pauseMode = CreateText(frame.transform, "Mode", "// SAHNE AKIŞI BEKLEMEDE", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(67f, -126f), new Vector2(480f, 34f), 16, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.65f));
+            pauseMode.rectTransform.pivot = new Vector2(0f, 0.5f);
+            CreateImage(frame.transform, "Header Rule A", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(67f, -164f), new Vector2(280f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.28f));
+            CreateImage(frame.transform, "Header Rule B", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(390f, -164f), new Vector2(112f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.1f));
+            UiSoundHooks soundHooks = CreateUiSoundHooks(pauseRoot.transform);
+            Button resume = CreateCyberButton(frame.transform, "Resume", "DEVAM", "01", new Vector2(500f, 68f), new Vector2(66f, 502f), theme, soundHooks);
+            Button journal = CreateCyberButton(frame.transform, "Journal", "SORUŞTURMA DEFTERİ", "02", new Vector2(470f, 64f), new Vector2(66f, 414f), theme, soundHooks);
+            Button settingsButton = CreateCyberButton(frame.transform, "Settings", "AYARLAR", "03", new Vector2(440f, 60f), new Vector2(66f, 330f), theme, soundHooks);
+            Button mainMenu = CreateCyberButton(frame.transform, "Main Menu", "ANA MENÜ", "04", new Vector2(410f, 58f), new Vector2(66f, 250f), theme, soundHooks, true);
+            Text pauseHint = CreateText(frame.transform, "Hint", "ESC  GERİ DÖN  •  ENTER  ONAYLA", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(67f, 76f), new Vector2(500f, 36f), 15, TextAnchor.MiddleLeft, new Color(TextColor.r, TextColor.g, TextColor.b, 0.5f));
+            pauseHint.rectTransform.pivot = new Vector2(0f, 0.5f);
+            CreateText(pauseRoot.transform, "Scene Telemetry", "SECTOR 07 / FRAME HELD\nLOCAL MEMORY LINK: STABLE\nCASE NLP-0417 // ACTIVE", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-390f, 130f), new Vector2(620f, 120f), 18, TextAnchor.LowerRight, new Color(Cyan.r, Cyan.g, Cyan.b, 0.34f));
+            CreateText(pauseRoot.transform, "Freeze Metadata", "SIMULATION CLOCK\n00:00:00 // SUSPENDED", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-312f, -110f), new Vector2(470f, 70f), 14, TextAnchor.UpperRight, new Color(TextColor.r, TextColor.g, TextColor.b, 0.26f));
+            RectTransform scanLine = CreateImage(pauseRoot.transform, "Pause Scan Line", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(58f, 0f), new Vector2(2f, 760f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.04f)).GetComponent<RectTransform>();
+            PausePresentationFx presentationFx = pauseRoot.AddComponent<PausePresentationFx>();
+            presentationFx.Configure(scanLine, edgeSignalGroup, 58f, 704f);
             PauseMenuPanel pausePanel = pauseRoot.AddComponent<PauseMenuPanel>();
             pausePanel.Configure(resume, journal, settingsButton, mainMenu);
+            UiTransition pauseTransition = pauseRoot.AddComponent<UiTransition>();
+            pauseTransition.Configure(frame.GetComponent<RectTransform>(), pauseGroup, true, true, false, new Vector2(-38f, 0f), Vector3.one, 0.22f);
+            Button[] pauseButtons = { resume, journal, settingsButton, mainMenu };
+            var rowTransitions = new UiTransition[pauseButtons.Length];
+            for (int index = 0; index < pauseButtons.Length; index++)
+            {
+                CanvasGroup rowGroup = pauseButtons[index].gameObject.AddComponent<CanvasGroup>();
+                UiTransition rowTransition = pauseButtons[index].gameObject.AddComponent<UiTransition>();
+                rowTransition.Configure(pauseButtons[index].GetComponent<RectTransform>(), rowGroup, true, true, false, new Vector2(-22f, 0f), Vector3.one, 0.16f);
+                rowTransitions[index] = rowTransition;
+            }
+            pausePanel.ConfigurePresentation(pauseTransition, pauseOverlay, presentationFx, rowTransitions);
 
             GameObject journalRoot = CreateModalRoot(canvas, "Investigation Journal", new Color(0.005f, 0.012f, 0.025f, 0.98f));
             GameObject journalFrame = CreateImage(journalRoot.transform, "Journal Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1660f, 900f), PanelColor);
@@ -1400,21 +1568,53 @@ namespace NullPointer.Editor
 
         private static SettingsPanel CreateSettingsPanel(Transform canvas, string name)
         {
-            GameObject root = CreateModalRoot(canvas, name, new Color(0.005f, 0.012f, 0.025f, 0.98f));
-            GameObject frame = CreateImage(root.transform, "Settings Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1180f, 860f), PanelColor);
-            CreateText(frame.transform, "Heading", "AYARLAR", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -70f), new Vector2(1000f, 70f), 42, TextAnchor.MiddleLeft, Cyan);
+            VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
+            GameObject root = CreateModalRoot(canvas, name, new Color(0.004f, 0.009f, 0.018f, 0.82f));
+            CanvasGroup rootGroup = root.AddComponent<CanvasGroup>();
+            CreateImage(root.transform, "Settings Shadow", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(18f, -18f), new Vector2(1284f, 944f), new Color(0f, 0f, 0f, 0.54f));
+            GameObject frame = CreateImage(root.transform, "Settings Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1240f, 920f), new Color(0.018f, 0.04f, 0.058f, 0.99f));
+            CreateImage(frame.transform, "Inner Content", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -38f), new Vector2(1120f, 690f), new Color(0.035f, 0.065f, 0.082f, 0.55f));
+            CreateImage(frame.transform, "Inner Shadow", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(14f, -52f), new Vector2(1094f, 664f), new Color(0.002f, 0.008f, 0.014f, 0.24f));
+            CreateImage(frame.transform, "Left Rail", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(7f, 0f), new Vector2(4f, -42f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.75f));
+            CreateImage(frame.transform, "Top Signal", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(66f, -7f), new Vector2(126f, 3f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.7f));
+            CreateImage(frame.transform, "Bottom Signal", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-78f, 7f), new Vector2(96f, 3f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.42f));
+            Text settingsHeading = CreateText(frame.transform, "Heading", "AYARLAR", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(88f, -72f), new Vector2(720f, 70f), 42, TextAnchor.MiddleLeft, TextColor);
+            settingsHeading.rectTransform.pivot = new Vector2(0f, 0.5f);
+            CreateText(frame.transform, "System Label", "// SİSTEM YAPILANDIRMASI\nCFG: LOCAL / PROFILE 01", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-260f, -70f), new Vector2(380f, 58f), 15, TextAnchor.MiddleRight, new Color(Cyan.r, Cyan.g, Cyan.b, 0.58f));
+            CreateImage(frame.transform, "Heading Rule", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -130f), new Vector2(-120f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.2f));
+            GameObject contentRoot = CreateRect(frame.transform, "Settings Content", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            CanvasGroup contentGroup = contentRoot.AddComponent<CanvasGroup>();
 
-            Slider master = CreateLabeledSlider(frame.transform, "Master", "ANA SES", 245f, 0f, 1f);
-            Slider music = CreateLabeledSlider(frame.transform, "Music", "MÜZİK", 150f, 0f, 1f);
-            Slider sfx = CreateLabeledSlider(frame.transform, "SFX", "EFEKTLER", 55f, 0f, 1f);
-            Slider textSpeed = CreateLabeledSlider(frame.transform, "Text Speed", "METİN HIZI", -40f, 0f, 0.08f);
-            Toggle fullscreen = CreateLabeledToggle(frame.transform, "Fullscreen", "TAM EKRAN", -150f);
-            Dropdown resolution = CreateLabeledDropdown(frame.transform, "Resolution", "ÇÖZÜNÜRLÜK", -245f);
-            Button apply = CreateButton(frame.transform, "Apply", "UYGULA", new Vector2(210f, 62f), new Vector2(300f, -350f), Cyan, out _);
-            Button back = CreateButton(frame.transform, "Back", "GERİ", new Vector2(180f, 62f), new Vector2(520f, -350f), Red, out _);
+            CreateSettingsSection(contentRoot.transform, "Audio Section", "AUDIO / SES", 285f);
+            Slider master = CreateLabeledSlider(contentRoot.transform, "Master", "ANA SES", 230f, 0f, 1f, theme, false);
+            Slider music = CreateLabeledSlider(contentRoot.transform, "Music", "MÜZİK", 170f, 0f, 1f, theme, false);
+            Slider sfx = CreateLabeledSlider(contentRoot.transform, "SFX", "EFEKTLER", 110f, 0f, 1f, theme, false);
+            CreateSettingsSection(contentRoot.transform, "Display Section", "DISPLAY / GÖRÜNTÜ", 50f);
+            Toggle fullscreen = CreateLabeledToggle(contentRoot.transform, "Fullscreen", "TAM EKRAN", -5f, theme);
+            Dropdown resolution = CreateLabeledDropdown(contentRoot.transform, "Resolution", "ÇÖZÜNÜRLÜK", -62f, theme);
+            CreateSettingsSection(contentRoot.transform, "Access Section", "ACCESSIBILITY / INTERFACE", -130f);
+            Slider textSpeed = CreateLabeledSlider(contentRoot.transform, "Text Speed", "METİN HIZI", -184f, 0f, 0.08f, theme, true);
+            Toggle reducedMotion = CreateLabeledToggle(contentRoot.transform, "Reduced Motion", "ARAYÜZ HAREKETİ AZALT", -246f, theme);
+            Toggle reducedFx = CreateLabeledToggle(contentRoot.transform, "Reduced FX", "GÖRSEL EFEKTLERİ AZALT", -304f, theme);
+            UiSoundHooks soundHooks = CreateUiSoundHooks(root.transform);
+            Button apply = CreateCyberButton(contentRoot.transform, "Apply", "UYGULA", "[E]", new Vector2(240f, 54f), new Vector2(724f, 28f), theme, soundHooks);
+            Button back = CreateCyberButton(contentRoot.transform, "Back", "GERİ", "[ESC]", new Vector2(226f, 54f), new Vector2(980f, 28f), theme, soundHooks, true);
             SettingsPanel panel = root.AddComponent<SettingsPanel>();
-            panel.Configure(master, music, sfx, textSpeed, fullscreen, resolution, apply, back);
+            panel.Configure(master, music, sfx, textSpeed, fullscreen, resolution, reducedMotion, reducedFx, apply, back);
+            UiTransition transition = root.AddComponent<UiTransition>();
+            transition.Configure(frame.GetComponent<RectTransform>(), rootGroup, true, true, true, new Vector2(0f, -24f), new Vector3(0.985f, 0.985f, 1f), 0.24f);
+            UiTransition contentTransition = contentRoot.AddComponent<UiTransition>();
+            contentTransition.Configure(contentRoot.GetComponent<RectTransform>(), contentGroup, true, true, false, new Vector2(18f, 0f), Vector3.one, 0.2f);
+            panel.ConfigurePresentation(transition, contentTransition);
             return panel;
+        }
+
+        private static void CreateSettingsSection(Transform parent, string name, string label, float y)
+        {
+            Text heading = CreateText(parent, name, label, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-410f, y), new Vector2(390f, 28f), 15, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.72f));
+            heading.rectTransform.pivot = new Vector2(0f, 0.5f);
+            CreateImage(parent, name + " Rule", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(155f, y), new Vector2(520f, 1f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.16f));
+            CreateImage(parent, name + " Tick", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-434f, y), new Vector2(8f, 8f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.62f));
         }
 
         private static Slider CreateLabeledSlider(
@@ -1423,37 +1623,77 @@ namespace NullPointer.Editor
             string labelText,
             float y,
             float minimum,
-            float maximum)
+            float maximum,
+            VisualTheme theme,
+            bool milliseconds)
         {
-            CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-350f, y), new Vector2(260f, 45f), 23, TextAnchor.MiddleLeft, TextColor);
-            GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(150f, y), new Vector2(640f, 36f), new Color(0.06f, 0.1f, 0.14f, 1f));
-            GameObject fill = CreateImage(root.transform, "Fill", new Vector2(0f, 0f), new Vector2(0.8f, 1f), Vector2.zero, Vector2.zero, Cyan);
-            GameObject handle = CreateImage(root.transform, "Handle", new Vector2(0.8f, 0.5f), new Vector2(0.8f, 0.5f), Vector2.zero, new Vector2(28f, 48f), TextColor);
+            CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-392f, y), new Vector2(300f, 38f), 18, TextAnchor.MiddleLeft, TextColor);
+            GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(112f, y), new Vector2(548f, 16f), new Color(0.035f, 0.065f, 0.09f, 0.96f));
+            Image surface = root.GetComponent<Image>();
+            GameObject glow = CreateImage(root.transform, "Focus Glow", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(16f, 14f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.22f));
+            glow.GetComponent<Image>().raycastTarget = false;
+            CanvasGroup glowGroup = glow.AddComponent<CanvasGroup>();
+            glowGroup.alpha = 0f;
+            GameObject fill = CreateImage(root.transform, "Fill", new Vector2(0f, 0f), new Vector2(0.8f, 1f), Vector2.zero, Vector2.zero, new Color(Cyan.r, Cyan.g, Cyan.b, 0.64f));
+            GameObject handle = CreateImage(root.transform, "Handle", new Vector2(0.8f, 0.5f), new Vector2(0.8f, 0.5f), Vector2.zero, new Vector2(17f, 17f), new Color(0.15f, 0.28f, 0.32f, 1f));
+            handle.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            CreateImage(handle.transform, "Handle Core", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(7f, 7f), Cyan).GetComponent<Image>().raycastTarget = false;
+            Image edge = CreateImage(root.transform, "Edge", new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 2f), Cyan).GetComponent<Image>();
+            edge.type = Image.Type.Filled;
+            edge.fillMethod = Image.FillMethod.Horizontal;
+            edge.fillAmount = 0.16f;
+            Text value = CreateText(parent, name + " Value", milliseconds ? "ORTA · 25 ms" : "100%", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(488f, y), new Vector2(156f, 38f), 16, TextAnchor.MiddleRight, Cyan);
             Slider slider = root.AddComponent<Slider>();
+            slider.transition = Selectable.Transition.None;
             slider.fillRect = fill.GetComponent<RectTransform>();
             slider.handleRect = handle.GetComponent<RectTransform>();
             slider.targetGraphic = handle.GetComponent<Image>();
             slider.minValue = minimum;
             slider.maxValue = maximum;
+            root.AddComponent<CyberNoirSliderVisual>().Configure(theme, slider, surface, fill.GetComponent<Image>(), handle.GetComponent<Image>(), edge, glowGroup, value, milliseconds);
             return slider;
         }
 
-        private static Toggle CreateLabeledToggle(Transform parent, string name, string labelText, float y)
+        private static Toggle CreateLabeledToggle(Transform parent, string name, string labelText, float y, VisualTheme theme)
         {
-            CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-350f, y), new Vector2(260f, 45f), 23, TextAnchor.MiddleLeft, TextColor);
-            GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-140f, y), new Vector2(46f, 46f), new Color(0.08f, 0.14f, 0.18f, 1f));
-            Image checkmark = CreateImage(root.transform, "Checkmark", new Vector2(0.18f, 0.18f), new Vector2(0.82f, 0.82f), Vector2.zero, Vector2.zero, Cyan).GetComponent<Image>();
+            CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-392f, y), new Vector2(350f, 38f), 18, TextAnchor.MiddleLeft, TextColor);
+            GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(8f, y), new Vector2(92f, 32f), new Color(0.035f, 0.065f, 0.09f, 0.74f));
+            Image surface = root.GetComponent<Image>();
+            GameObject glow = CreateImage(root.transform, "Focus Glow", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(14f, 12f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.2f));
+            glow.GetComponent<Image>().raycastTarget = false;
+            CanvasGroup glowGroup = glow.AddComponent<CanvasGroup>();
+            glowGroup.alpha = 0f;
+            CreateImage(root.transform, "Track Inner", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(78f, 22f), new Color(0.01f, 0.024f, 0.035f, 0.9f)).GetComponent<Image>().raycastTarget = false;
+            Image checkmark = CreateImage(root.transform, "Indicator", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-25f, 0f), new Vector2(20f, 20f), new Color(0.24f, 0.34f, 0.38f, 1f)).GetComponent<Image>();
+            Image edge = CreateImage(root.transform, "Edge", new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 2f), Cyan).GetComponent<Image>();
+            edge.type = Image.Type.Filled;
+            edge.fillMethod = Image.FillMethod.Horizontal;
+            edge.fillAmount = 0.16f;
+            Text status = CreateText(parent, name + " Status", "KAPALI", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(93f, y), new Vector2(100f, 38f), 15, TextAnchor.MiddleLeft, Cyan);
             Toggle toggle = root.AddComponent<Toggle>();
+            toggle.transition = Selectable.Transition.None;
             toggle.targetGraphic = root.GetComponent<Image>();
-            toggle.graphic = checkmark;
+            toggle.graphic = null;
+            root.AddComponent<CyberNoirToggleVisual>().Configure(theme, toggle, surface, checkmark.rectTransform, edge, glowGroup, status);
             return toggle;
         }
 
-        private static Dropdown CreateLabeledDropdown(Transform parent, string name, string labelText, float y)
+        private static Dropdown CreateLabeledDropdown(Transform parent, string name, string labelText, float y, VisualTheme theme)
         {
-            CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-350f, y), new Vector2(260f, 45f), 23, TextAnchor.MiddleLeft, TextColor);
-            GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(150f, y), new Vector2(640f, 52f), new Color(0.06f, 0.12f, 0.16f, 1f));
-            Text caption = CreateText(root.transform, "Label", "1920 × 1080", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-34f, -8f), 22, TextAnchor.MiddleLeft, TextColor);
+            CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-392f, y), new Vector2(300f, 38f), 18, TextAnchor.MiddleLeft, TextColor);
+            GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(112f, y), new Vector2(548f, 42f), new Color(0.035f, 0.065f, 0.09f, 0.86f));
+            Image surface = root.GetComponent<Image>();
+            GameObject glow = CreateImage(root.transform, "Focus Glow", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(14f, 12f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.2f));
+            glow.GetComponent<Image>().raycastTarget = false;
+            CanvasGroup glowGroup = glow.AddComponent<CanvasGroup>();
+            glowGroup.alpha = 0f;
+            CreateText(root.transform, "Previous", "‹", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(22f, 0f), new Vector2(32f, 0f), 22, TextAnchor.MiddleCenter, new Color(Cyan.r, Cyan.g, Cyan.b, 0.6f));
+            Text caption = CreateText(root.transform, "Label", "1920 × 1080", Vector2.zero, Vector2.one, new Vector2(28f, 0f), new Vector2(-96f, -6f), 20, TextAnchor.MiddleCenter, TextColor);
+            CreateText(root.transform, "Disclosure", "›  ◇", new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(-42f, 0f), new Vector2(68f, 0f), 20, TextAnchor.MiddleCenter, Cyan);
+            Image edge = CreateImage(root.transform, "Edge", new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 2f), Cyan).GetComponent<Image>();
+            edge.type = Image.Type.Filled;
+            edge.fillMethod = Image.FillMethod.Horizontal;
+            edge.fillAmount = 0.16f;
             GameObject template = CreateImage(root.transform, "Template", new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, -122f), new Vector2(0f, 190f), new Color(0.03f, 0.07f, 0.09f, 1f));
             var scrollRect = template.AddComponent<ScrollRect>();
             GameObject viewport = CreateImage(template.transform, "Viewport", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, Color.white);
@@ -1467,11 +1707,13 @@ namespace NullPointer.Editor
             scrollRect.content = content.GetComponent<RectTransform>();
             scrollRect.horizontal = false;
             Dropdown dropdown = root.AddComponent<Dropdown>();
+            dropdown.transition = Selectable.Transition.None;
             dropdown.targetGraphic = root.GetComponent<Image>();
             dropdown.template = template.GetComponent<RectTransform>();
             dropdown.captionText = caption;
             dropdown.itemText = itemLabel;
             template.SetActive(false);
+            root.AddComponent<CyberNoirDropdownVisual>().Configure(theme, surface, edge, glowGroup);
             return dropdown;
         }
 
@@ -1588,6 +1830,176 @@ namespace NullPointer.Editor
             label.verticalOverflow = VerticalWrapMode.Truncate;
             label.raycastTarget = false;
             return label;
+        }
+
+        private static UiSoundHooks CreateUiSoundHooks(Transform parent)
+        {
+            var root = new GameObject("UI Sound Hooks");
+            root.transform.SetParent(parent, false);
+            AudioSource source = root.AddComponent<AudioSource>();
+            source.playOnAwake = false;
+            source.ignoreListenerPause = true;
+            UiSoundHooks hooks = root.AddComponent<UiSoundHooks>();
+            // Deliberately nullable until approved UI clips are supplied.
+            hooks.Configure(source, null, null, null, null);
+            return hooks;
+        }
+
+        private static void CreateProceduralCityLayer(
+            Transform parent,
+            string name,
+            int buildingCount,
+            float startX,
+            float minimumHeight,
+            float heightRange,
+            Color buildingColor,
+            List<CanvasGroup> lightGroups,
+            bool far)
+        {
+            GameObject city = CreateRect(parent, name, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            float x = startX;
+            for (int index = 0; index < buildingCount; index++)
+            {
+                float width = (far ? 62f : 96f) + Mathf.Repeat(index * 47f, far ? 76f : 118f);
+                float height = minimumHeight + Mathf.Repeat(index * 131f, heightRange);
+                GameObject building = CreateImage(city.transform, $"Tower {index + 1:00}", Vector2.zero, Vector2.zero, new Vector2(x, 56f), new Vector2(width, height), Color.Lerp(buildingColor, Color.black, (index % 4) * 0.055f));
+                RectTransform buildingRect = building.GetComponent<RectTransform>();
+                buildingRect.pivot = Vector2.zero;
+                CreateImage(building.transform, "Roof Line", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -2f), new Vector2(0f, 2f), new Color(0.18f, 0.38f, 0.42f, far ? 0.12f : 0.19f));
+                if (index % 3 == 1)
+                {
+                    CreateImage(building.transform, "Antenna", new Vector2(0.62f, 1f), new Vector2(0.62f, 1f), new Vector2(0f, 22f), new Vector2(2f, 44f), new Color(0.13f, 0.26f, 0.29f, 0.42f));
+                }
+
+                int rows = far ? 3 : 5;
+                for (int row = 0; row < rows; row++)
+                {
+                    for (int column = 0; column < 2; column++)
+                    {
+                        if ((index * 5 + row * 3 + column) % 4 == 0)
+                        {
+                            continue;
+                        }
+
+                        float windowX = 0.3f + column * 0.38f;
+                        float windowY = 0.18f + row * (far ? 0.18f : 0.135f);
+                        Color lightColor = (index + row) % 5 == 0
+                            ? new Color(0.78f, 0.36f, 0.2f, far ? 0.16f : 0.28f)
+                            : new Color(0.25f, 0.72f, 0.74f, far ? 0.1f : 0.2f);
+                        GameObject window = CreateImage(building.transform, $"Window {row:00}-{column:00}", new Vector2(windowX, windowY), new Vector2(windowX, windowY), Vector2.zero, new Vector2(far ? 5f : 8f, far ? 2f : 3f), lightColor);
+                        if (column == 0 && row == 1 && index % 3 == 0)
+                        {
+                            CanvasGroup light = window.AddComponent<CanvasGroup>();
+                            light.alpha = 0.3f;
+                            lightGroups.Add(light);
+                        }
+                    }
+                }
+
+                x += width * 0.74f;
+            }
+        }
+
+        private static RectTransform[] CreateProceduralRain(
+            Transform parent,
+            out int farCount,
+            out int midCount)
+        {
+            farCount = 30;
+            midCount = 18;
+            const int nearCount = 6;
+            var streaks = new RectTransform[farCount + midCount + nearCount];
+            int cursor = 0;
+            CreateRainBand(parent, "Far", farCount, 0, ref cursor, streaks, 0.65f, 14f, 29f, 0.018f, 0.044f, -4f);
+            CreateRainBand(parent, "Mid", midCount, 101, ref cursor, streaks, 1.15f, 42f, 88f, 0.045f, 0.09f, -7f);
+            CreateRainBand(parent, "Near", nearCount, 211, ref cursor, streaks, 2.4f, 118f, 218f, 0.065f, 0.13f, -10f);
+            return streaks;
+        }
+
+        private static void CreateRainBand(
+            Transform parent,
+            string band,
+            int count,
+            int seed,
+            ref int cursor,
+            RectTransform[] output,
+            float width,
+            float minimumLength,
+            float maximumLength,
+            float minimumAlpha,
+            float maximumAlpha,
+            float baseAngle)
+        {
+            for (int index = 0; index < count; index++)
+            {
+                int sequence = seed + index;
+                float cluster = sequence % 4 == 0 ? 0.18f : sequence % 4 == 1 ? 0.36f : sequence % 4 == 2 ? 0.7f : 0.86f;
+                float jitter = Mathf.Repeat(sequence * 0.173f, 0.14f) - 0.07f;
+                float x = Mathf.Lerp(-900f, 900f, Mathf.Clamp01(cluster + jitter));
+                float y = -540f + Mathf.Repeat(sequence * 257f, 1180f);
+                float length = Mathf.Lerp(minimumLength, maximumLength, Mathf.Repeat(sequence * 0.377f, 1f));
+                float alpha = Mathf.Lerp(minimumAlpha, maximumAlpha, Mathf.Repeat(sequence * 0.619f, 1f));
+                GameObject streak = CreateImage(
+                    parent,
+                    $"Rain {band} {index + 1:00}",
+                    new Vector2(0.5f, 0.5f),
+                    new Vector2(0.5f, 0.5f),
+                    new Vector2(x, y),
+                    new Vector2(width + Mathf.Repeat(sequence * 0.43f, width * 0.65f), length),
+                    new Color(0.38f, 0.68f, 0.72f, alpha));
+                Image image = streak.GetComponent<Image>();
+                image.raycastTarget = false;
+                streak.transform.localRotation = Quaternion.Euler(0f, 0f, baseAngle + Mathf.Repeat(sequence * 1.91f, 5f) - 2.5f);
+                output[cursor++] = streak.GetComponent<RectTransform>();
+            }
+
+        }
+
+        private static Button CreateCyberButton(
+            Transform parent,
+            string name,
+            string labelText,
+            string indexText,
+            Vector2 size,
+            Vector2 position,
+            VisualTheme theme,
+            UiSoundHooks soundHooks,
+            bool backAction = false)
+        {
+            GameObject item = CreateImage(
+                parent,
+                name,
+                new Vector2(0f, 0f),
+                new Vector2(0f, 0f),
+                position,
+                size,
+                new Color(0.025f, 0.055f, 0.075f, 0.34f));
+            item.GetComponent<RectTransform>().pivot = Vector2.zero;
+            Image surface = item.GetComponent<Image>();
+            Button button = item.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+
+            GameObject glow = CreateImage(item.transform, "Focus Glow", Vector2.zero, new Vector2(0.68f, 1f), Vector2.zero, new Vector2(10f, 8f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.12f));
+            Image glowImage = glow.GetComponent<Image>();
+            glowImage.raycastTarget = false;
+            CanvasGroup focusGlow = glow.AddComponent<CanvasGroup>();
+            focusGlow.alpha = 0f;
+            Image edge = CreateImage(item.transform, "Edge Line", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(34f, 4f), new Vector2(42f, 2f), Cyan).GetComponent<Image>();
+            edge.rectTransform.pivot = new Vector2(0f, 0.5f);
+            edge.raycastTarget = false;
+            Text index = CreateText(item.transform, "Index", indexText, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(34f, 0f), new Vector2(42f, 0f), 16, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.65f));
+            Text label = CreateText(item.transform, "Label", labelText, Vector2.zero, Vector2.one, new Vector2(16f, 0f), new Vector2(-104f, -6f), 22, TextAnchor.MiddleLeft, TextColor);
+            GameObject bracket = CreateRect(item.transform, "Focus Bracket", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            CanvasGroup bracketGroup = bracket.AddComponent<CanvasGroup>();
+            bracketGroup.alpha = 0f;
+            CreateImage(bracket.transform, "Bracket Left", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(5f, 0f), new Vector2(2f, -12f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.86f));
+            CreateImage(bracket.transform, "Bracket Top", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(17f, -5f), new Vector2(26f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.86f));
+            CreateImage(bracket.transform, "Bracket Bottom", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(17f, 5f), new Vector2(26f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.86f));
+            RectTransform accent = CreateImage(item.transform, "Moving Accent", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(104f, -4f), new Vector2(56f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.76f)).GetComponent<RectTransform>();
+            CyberNoirButtonVisual visual = item.AddComponent<CyberNoirButtonVisual>();
+            visual.Configure(theme, button, surface, label, edge, focusGlow, item.GetComponent<RectTransform>(), bracketGroup, accent, index);
+            visual.ConfigureSound(soundHooks, backAction);
+            return button;
         }
 
         private static Button CreateButton(
@@ -1774,16 +2186,18 @@ namespace NullPointer.Editor
             string stableId,
             string manifestAssetId,
             SpriteRenderer spriteRenderer = null,
-            Image uiImage = null)
+            Image uiImage = null,
+            bool showStructuralPlaceholder = true)
         {
             target.AddComponent<FinalArtSlot>().ConfigureStructural(
                 stableId,
                 manifestAssetId,
                 spriteRenderer,
-                uiImage);
+                uiImage,
+                showStructuralPlaceholder);
         }
 
-        private static void CreateEmptyUiArtSlot(
+        private static GameObject CreateEmptyUiArtSlot(
             Transform parent,
             string name,
             string stableId,
@@ -1791,6 +2205,7 @@ namespace NullPointer.Editor
         {
             GameObject root = CreateImage(parent, name, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, Color.clear);
             AddFinalArtSlot(root, stableId, manifestAssetId, uiImage: root.GetComponent<Image>());
+            return root;
         }
 
         private static string ResolveEnvironmentManifestId(LocationData location, string suffix)

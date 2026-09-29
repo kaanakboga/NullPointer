@@ -267,6 +267,16 @@ AI-assisted visual output is staged outside final production folders until a hum
 
 Glitches, memory locks, evidence acquisition, and deduction completion each require a paired motion/sound language. Do not use the same sting for discovery, danger, and confirmation. Silence is a compositional tool and should precede major identity revelations where appropriate.
 
+## Phase 5B Menu Composition
+
+- The Main Menu uses an asymmetric lower-left command column against a multi-plane city/window composition. The title is live text (`NULL` / `POINTER`), never baked into background art.
+- Final replacement layers are Far City, Mid City, Narrative Motif, Near Architecture, Fog/Haze, and Screen Texture. Rain remains a deterministic Unity-procedural layer and must not be delivered as a giant full-screen frame atlas.
+- Pointer parallax is shallow and depth-ordered. Reduced UI Motion removes pointer/drift displacement; Reduced Visual FX lowers rain density, haze, scanline/noise, and title instability without removing commands or semantic state.
+- Title instability is an occasional low-amplitude echo/tear. It never affects the subtitle, options, focus state, or settings text.
+- Pause preserves the live scene as context beneath a restrained dim/vignette/scanline treatment. Settings is a modal over the originating Main Menu or paused scene rather than a visually unrelated destination.
+- Main, Pause, and Settings controls use the same semantic surface, edge, glow, index, typography, and focus language. Disabled state remains readable without color alone.
+- UI sound hooks exist for focus, confirm, back, and invalid actions. Null clips are intentional and silent until approved audio is assigned; no temporary clip may be represented as final.
+
 ## Art Review Checklist
 
 - Does the focal point read at gameplay zoom and 1080p?

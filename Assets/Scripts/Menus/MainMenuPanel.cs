@@ -11,6 +11,7 @@ namespace NullPointer.Menus
         [SerializeField] private Button _continueButton;
         [SerializeField] private Button _settingsButton;
         [SerializeField] private Button _quitButton;
+        private GameObject _lastSelection;
 
         public void Configure(Button newGame, Button continueGame, Button settings, Button quit)
         {
@@ -36,13 +37,23 @@ namespace NullPointer.Menus
         {
             gameObject.SetActive(true);
             _continueButton.interactable = canContinue;
-            EventSystem.current?.SetSelectedGameObject(canContinue
-                ? _continueButton.gameObject
-                : _newGameButton.gameObject);
+            GameObject fallback = canContinue ? _continueButton.gameObject : _newGameButton.gameObject;
+            GameObject selection = _lastSelection != null &&
+                                   _lastSelection.activeInHierarchy &&
+                                   _lastSelection.GetComponent<Selectable>()?.IsInteractable() == true
+                ? _lastSelection
+                : fallback;
+            EventSystem.current?.SetSelectedGameObject(selection);
         }
 
         public void Hide()
         {
+            GameObject selected = EventSystem.current?.currentSelectedGameObject;
+            if (selected != null && selected.transform.IsChildOf(transform))
+            {
+                _lastSelection = selected;
+            }
+
             gameObject.SetActive(false);
         }
     }
