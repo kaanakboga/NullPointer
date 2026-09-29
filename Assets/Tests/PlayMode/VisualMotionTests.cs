@@ -1,4 +1,5 @@
 using System.Collections;
+using NullPointer.Deduction;
 using NullPointer.Visual;
 using NUnit.Framework;
 using UnityEngine;
@@ -11,6 +12,87 @@ namespace NullPointer.Tests.PlayMode
 {
     public sealed class VisualMotionTests
     {
+        [UnityTest]
+        public IEnumerator CyberNoirPanelPresentation_RevealsStagedContentAndCleansUpWhenDisabled()
+        {
+            var root = new GameObject("Panel Presentation", typeof(RectTransform), typeof(CanvasGroup));
+            var panel = new GameObject("Panel", typeof(RectTransform));
+            var stageA = new GameObject("Stage A", typeof(RectTransform), typeof(CanvasGroup));
+            var stageB = new GameObject("Stage B", typeof(RectTransform), typeof(CanvasGroup));
+            panel.transform.SetParent(root.transform, false);
+            stageA.transform.SetParent(panel.transform, false);
+            stageB.transform.SetParent(panel.transform, false);
+            try
+            {
+                UiTransition transition = root.AddComponent<UiTransition>();
+                transition.Configure(panel.GetComponent<RectTransform>(), root.GetComponent<CanvasGroup>(),
+                    true, true, false, new Vector2(0f, -18f), Vector3.one, 0.08f);
+                CyberNoirPanelPresentation presentation = root.AddComponent<CyberNoirPanelPresentation>();
+                presentation.Configure(transition,
+                    new[] { stageA.GetComponent<CanvasGroup>(), stageB.GetComponent<CanvasGroup>() },
+                    null, null, 0.01f, 1f);
+                presentation.SetAccessibility(true, true);
+
+                presentation.Reveal();
+                yield return null;
+                yield return null;
+
+                Assert.That(stageA.GetComponent<CanvasGroup>().alpha, Is.EqualTo(1f));
+                Assert.That(stageB.GetComponent<CanvasGroup>().alpha, Is.EqualTo(1f));
+                Assert.That(presentation.ReducedMotion, Is.True);
+                Assert.That(presentation.ReducedEffects, Is.True);
+
+                presentation.HideAnimated();
+                float timeout = Time.realtimeSinceStartup + 1f;
+                while (root.activeSelf && Time.realtimeSinceStartup < timeout)
+                {
+                    yield return null;
+                }
+
+                Assert.That(root.activeSelf, Is.False);
+                Assert.That(presentation.IsPresenting, Is.False);
+            }
+            finally
+            {
+                Object.Destroy(root);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator EvidenceConnectionView_ReusesPoolAndClearsWithoutResidualLinks()
+        {
+            var root = new GameObject("Connections", typeof(RectTransform));
+            var cardA = new GameObject("Card A", typeof(RectTransform));
+            var cardB = new GameObject("Card B", typeof(RectTransform));
+            var line = new GameObject("Line", typeof(RectTransform), typeof(Image));
+            cardA.transform.SetParent(root.transform, false);
+            cardB.transform.SetParent(root.transform, false);
+            line.transform.SetParent(root.transform, false);
+            cardA.GetComponent<RectTransform>().anchoredPosition = new Vector2(-100f, 0f);
+            cardB.GetComponent<RectTransform>().anchoredPosition = new Vector2(100f, 60f);
+            try
+            {
+                EvidenceConnectionView connections = root.AddComponent<EvidenceConnectionView>();
+                connections.Configure(root.GetComponent<RectTransform>(), new[] { line.GetComponent<Image>() });
+                connections.Render(new[] { cardA.GetComponent<RectTransform>(), cardB.GetComponent<RectTransform>() });
+
+                Assert.That(connections.ActiveLineCount, Is.EqualTo(1));
+                Assert.That(line.activeSelf, Is.True);
+                Assert.That(line.GetComponent<RectTransform>().rect.width, Is.GreaterThan(100f));
+
+                connections.Pulse(false);
+                yield return null;
+                connections.Clear();
+
+                Assert.That(connections.ActiveLineCount, Is.Zero);
+                Assert.That(line.activeSelf, Is.False);
+            }
+            finally
+            {
+                Object.Destroy(root);
+            }
+        }
+
         [UnityTest]
         public IEnumerator UiTransition_UsesUnscaledTimeAndRecoversFromDirectionChange()
         {

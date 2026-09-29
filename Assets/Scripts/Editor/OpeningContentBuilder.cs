@@ -1013,6 +1013,7 @@ namespace NullPointer.Editor
                     setup.Ui.TerminalController,
                     setup.Ui.MemoryController,
                     setup.Ui.EvidenceBoardController,
+                    setup.Ui.InterrogationController,
                     setup.Ui.InteractionPrompt,
                     setup.Ui.EvidenceNotification,
                     new[] { transition },
@@ -1128,6 +1129,7 @@ namespace NullPointer.Editor
                     setup.Ui.TerminalController,
                     setup.Ui.MemoryController,
                     setup.Ui.EvidenceBoardController,
+                    setup.Ui.InterrogationController,
                     setup.Ui.InteractionPrompt,
                     setup.Ui.EvidenceNotification,
                     Array.Empty<SceneTransitionInteractable>(),
@@ -1241,7 +1243,7 @@ namespace NullPointer.Editor
             spawn.Configure("entry");
 
             PlayerController player = CreatePlayer(sprite, location.StableId, out PlayerInteractionDetector detector);
-            SceneUi ui = CreateSceneUi();
+            SceneUi ui = CreateSceneUi(location.StableId);
             var installerObject = new GameObject("Scene Installer");
             OpeningSceneInstaller installer = installerObject.AddComponent<OpeningSceneInstaller>();
 
@@ -1281,7 +1283,7 @@ namespace NullPointer.Editor
             return player;
         }
 
-        private static SceneUi CreateSceneUi()
+        private static SceneUi CreateSceneUi(string locationId)
         {
             var eventSystemObject = new GameObject("EventSystem");
             eventSystemObject.AddComponent<EventSystem>();
@@ -1305,6 +1307,7 @@ namespace NullPointer.Editor
                 TerminalController = systems.AddComponent<TerminalController>(),
                 MemoryController = systems.AddComponent<MemoryController>(),
                 EvidenceBoardController = systems.AddComponent<EvidenceBoardController>(),
+                InterrogationController = systems.AddComponent<InterrogationController>(),
                 InteractionPrompt = systems.AddComponent<InteractionPromptController>(),
                 EvidenceNotification = systems.AddComponent<EvidenceNotificationController>(),
                 PauseMenuController = systems.AddComponent<PauseMenuController>(),
@@ -1315,10 +1318,11 @@ namespace NullPointer.Editor
             ConfigureObjectiveHud(canvasObject.transform, ui);
             ConfigurePauseInterface(canvasObject.transform, ui);
             ConfigureInspectPanel(canvasObject.transform, ui);
-            ConfigureDialoguePanel(canvasObject.transform, ui);
+            ConfigureDialoguePanel(canvasObject.transform, ui, locationId);
             ConfigureTerminalPanel(canvasObject.transform, ui);
             ConfigureMemoryPanel(canvasObject.transform, ui);
             ConfigureEvidenceBoardPanel(canvasObject.transform, ui);
+            ConfigureInterrogationPanel(canvasObject.transform, ui, locationId);
             return ui;
         }
 
@@ -1351,21 +1355,34 @@ namespace NullPointer.Editor
                 "Evidence Notification",
                 new Vector2(1f, 1f),
                 new Vector2(1f, 1f),
-                new Vector2(-270f, -100f),
-                new Vector2(470f, 110f),
-                new Color(0.02f, 0.08f, 0.1f, 0.96f));
+                new Vector2(-390f, -150f),
+                new Vector2(680f, 220f),
+                new Color(0.012f, 0.032f, 0.048f, 0.98f));
+            CreateImage(notificationRoot.transform, "Card Shadow", Vector2.zero, Vector2.one, new Vector2(14f, -14f), new Vector2(-4f, -4f), new Color(0f, 0f, 0f, 0.42f));
+            CreateImage(notificationRoot.transform, "Signal Rail", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(5f, 0f), new Vector2(4f, -24f), Cyan);
+            Text category = CreateText(notificationRoot.transform, "Category", string.Empty, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(51f, -34f), new Vector2(-222f, 30f), 15, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.78f));
+            GameObject thumbnailFrame = CreateImage(notificationRoot.transform, "Thumbnail Frame", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(76f, -8f), new Vector2(112f, 132f), new Color(0.06f, 0.1f, 0.12f, 0.9f));
+            Image thumbnail = CreateImage(thumbnailFrame.transform, "Thumbnail", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-12f, -12f), Color.white).GetComponent<Image>();
+            thumbnail.enabled = false;
+            GameObject thumbnailFallback = CreateProceduralEvidenceFallback(thumbnailFrame.transform, "Procedural Evidence Fallback", Cyan);
             Text notification = CreateText(
                 notificationRoot.transform,
                 "Notification Label",
                 string.Empty,
-                Vector2.zero,
-                Vector2.one,
-                Vector2.zero,
-                new Vector2(-30f, -20f),
+                new Vector2(0f, 0.5f),
+                new Vector2(1f, 0.5f),
+                new Vector2(51f, 14f),
+                new Vector2(-222f, 68f),
                 25,
                 TextAnchor.MiddleLeft,
-                Cyan);
+                TextColor);
+            Text metadata = CreateText(notificationRoot.transform, "Metadata", string.Empty, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(51f, 32f), new Vector2(-222f, 38f), 12, TextAnchor.MiddleLeft, new Color(Amber.r, Amber.g, Amber.b, 0.75f));
+            RectTransform scan = CreateImage(notificationRoot.transform, "Acquire Scan", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(138f, 0f), new Vector2(2f, 162f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.18f)).GetComponent<RectTransform>();
+            GameObject pulseObject = CreateImage(notificationRoot.transform, "Acquire Pulse", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-10f, -10f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.16f));
+            CanvasGroup pulse = pulseObject.AddComponent<CanvasGroup>();
+            CyberNoirPanelPresentation presentation = CreatePhase5CPresentation(notificationRoot, notificationRoot, new[] { category.gameObject, notification.gameObject, metadata.gameObject }, scan, pulse, new Vector2(28f, 0f), 0.2f);
             ui.EvidenceNotification.Configure(notificationRoot, notification);
+            ui.EvidenceNotification.ConfigurePresentation(presentation, category, metadata, thumbnail, thumbnailFallback);
             notificationRoot.SetActive(false);
         }
 
@@ -1376,11 +1393,16 @@ namespace NullPointer.Editor
                 "Objective HUD",
                 new Vector2(0f, 1f),
                 new Vector2(0f, 1f),
-                new Vector2(330f, -72f),
-                new Vector2(610f, 72f),
-                new Color(0.02f, 0.05f, 0.07f, 0.9f));
-            Text label = CreateText(root.transform, "Objective", string.Empty, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-30f, -16f), 24, TextAnchor.MiddleLeft, TextColor);
+                new Vector2(340f, -94f),
+                new Vector2(620f, 116f),
+                new Color(0.01f, 0.03f, 0.047f, 0.9f));
+            CreateImage(root.transform, "Objective Rail", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(5f, 0f), new Vector2(4f, -18f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.82f));
+            Text state = CreateText(root.transform, "Objective State", string.Empty, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(28f, -22f), new Vector2(-46f, 26f), 13, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.72f));
+            Text label = CreateText(root.transform, "Objective", string.Empty, Vector2.zero, Vector2.one, new Vector2(28f, -12f), new Vector2(-46f, -50f), 23, TextAnchor.MiddleLeft, TextColor);
+            CreateImage(root.transform, "Objective Rule", new Vector2(0f, 0f), new Vector2(0.7f, 0f), new Vector2(30f, 7f), new Vector2(-28f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.24f));
+            CyberNoirPanelPresentation presentation = CreatePhase5CPresentation(root, root, new[] { state.gameObject, label.gameObject }, null, null, new Vector2(-20f, 0f), 0.2f);
             ui.ObjectivePresenter.Configure(root, label);
+            ui.ObjectivePresenter.ConfigurePresentation(presentation, state);
         }
 
         private static void ConfigurePauseInterface(Transform canvas, SceneUi ui)
@@ -1443,18 +1465,38 @@ namespace NullPointer.Editor
             }
             pausePanel.ConfigurePresentation(pauseTransition, pauseOverlay, presentationFx, rowTransitions);
 
-            GameObject journalRoot = CreateModalRoot(canvas, "Investigation Journal", new Color(0.005f, 0.012f, 0.025f, 0.98f));
-            GameObject journalFrame = CreateImage(journalRoot.transform, "Journal Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1660f, 900f), PanelColor);
-            Text heading = CreateText(journalFrame.transform, "Heading", "DOSYALAR", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(260f, -65f), new Vector2(480f, 60f), 38, TextAnchor.MiddleLeft, Cyan);
-            Text content = CreateText(journalFrame.transform, "Content", string.Empty, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(550f, -10f), new Vector2(960f, 660f), 25, TextAnchor.UpperLeft, TextColor);
-            Button cases = CreateButton(journalFrame.transform, "Cases", "DOSYALAR", new Vector2(310f, 58f), new Vector2(-625f, 260f), Cyan, out _);
-            Button people = CreateButton(journalFrame.transform, "People", "KİŞİLER", new Vector2(310f, 58f), new Vector2(-625f, 188f), new Color(0.08f, 0.24f, 0.28f, 1f), out _);
-            Button evidence = CreateButton(journalFrame.transform, "Evidence", "KANITLAR", new Vector2(310f, 58f), new Vector2(-625f, 116f), new Color(0.08f, 0.24f, 0.28f, 1f), out _);
-            Button questions = CreateButton(journalFrame.transform, "Questions", "SORULAR", new Vector2(310f, 58f), new Vector2(-625f, 44f), new Color(0.08f, 0.24f, 0.28f, 1f), out _);
-            Button timeline = CreateButton(journalFrame.transform, "Timeline", "ZAMAN ÇİZELGESİ", new Vector2(310f, 58f), new Vector2(-625f, -28f), Amber, out _);
-            Button journalBack = CreateButton(journalFrame.transform, "Back", "GERİ", new Vector2(180f, 58f), new Vector2(690f, -370f), Red, out _);
+            GameObject journalRoot = CreateModalRoot(canvas, "Investigation Journal", Color.clear);
+            CreatePhase5CBackdrop(journalRoot, Cyan);
+            GameObject journalFrame = CreateImage(journalRoot.transform, "Journal Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1660f, 900f), new Color(0.014f, 0.032f, 0.048f, 0.985f));
+            CreateImage(journalFrame.transform, "Paper Memory", new Vector2(0.22f, 0f), Vector2.one, Vector2.zero, new Vector2(-44f, -44f), new Color(0.12f, 0.13f, 0.13f, 0.18f));
+            CreateImage(journalFrame.transform, "Binding Rail", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(26f, 0f), new Vector2(5f, -44f), new Color(Amber.r, Amber.g, Amber.b, 0.62f));
+            CreateText(journalFrame.transform, "Identity", "EREN VARDAR / SORUŞTURMA DEFTERİ", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(80f, -42f), new Vector2(620f, 30f), 15, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.72f));
+            Text heading = CreateText(journalFrame.transform, "Heading", "DOSYALAR", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(430f, -86f), new Vector2(680f, 62f), 39, TextAnchor.MiddleLeft, TextColor);
+            Text sectionMetadata = CreateText(journalFrame.transform, "Section Metadata", string.Empty, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-250f, -68f), new Vector2(400f, 52f), 14, TextAnchor.MiddleRight, new Color(Cyan.r, Cyan.g, Cyan.b, 0.55f));
+            CreateImage(journalFrame.transform, "Header Rule", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(90f, -132f), new Vector2(-180f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.2f));
+            GameObject contentPane = CreateImage(journalFrame.transform, "Case Content Pane", new Vector2(0f, 0f), Vector2.one, new Vector2(240f, -44f), new Vector2(-520f, -198f), new Color(0.025f, 0.05f, 0.062f, 0.56f));
+            CreateImage(contentPane.transform, "Section Spine", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(26f, 0f), new Vector2(2f, -48f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.24f));
+            for (int index = 0; index < 4; index++)
+            {
+                float anchorY = 0.82f - index * 0.2f;
+                CreateImage(contentPane.transform, $"Section Node {index + 1}", new Vector2(0f, anchorY), new Vector2(0f, anchorY), new Vector2(26f, 0f), new Vector2(8f, 8f), new Color(Amber.r, Amber.g, Amber.b, index == 0 ? 0.7f : 0.22f));
+                CreateImage(contentPane.transform, $"Section Guide {index + 1}", new Vector2(0f, anchorY), new Vector2(0.72f, anchorY), new Vector2(52f, 0f), new Vector2(-86f, 1f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.08f));
+            }
+            Text content = CreateText(contentPane.transform, "Content", string.Empty, Vector2.zero, Vector2.one, new Vector2(58f, -16f), new Vector2(-98f, -74f), 23, TextAnchor.UpperLeft, TextColor);
+            VisualTheme journalTheme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
+            UiSoundHooks journalSounds = CreateUiSoundHooks(journalRoot.transform);
+            Button cases = CreatePhase5CButton(journalFrame.transform, "Cases", "DOSYALAR", "01", new Vector2(300f, 62f), new Vector2(-630f, 245f), journalTheme, journalSounds);
+            Button people = CreatePhase5CButton(journalFrame.transform, "People", "KİŞİLER", "02", new Vector2(300f, 62f), new Vector2(-630f, 170f), journalTheme, journalSounds);
+            Button evidence = CreatePhase5CButton(journalFrame.transform, "Evidence", "KANITLAR", "03", new Vector2(300f, 62f), new Vector2(-630f, 95f), journalTheme, journalSounds);
+            Button questions = CreatePhase5CButton(journalFrame.transform, "Questions", "SORULAR", "04", new Vector2(300f, 62f), new Vector2(-630f, 20f), journalTheme, journalSounds);
+            Button timeline = CreatePhase5CButton(journalFrame.transform, "Timeline", "ZAMAN ÇİZELGESİ", "05", new Vector2(300f, 62f), new Vector2(-630f, -55f), journalTheme, journalSounds);
+            CreateText(journalFrame.transform, "Question Signal", "SORULAR, ÇÖZÜLMEMİŞ BAĞLANTILARI\nVE ÇELİŞKİLERİ ÖNCELİKLENDİRİR.", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(190f, 80f), new Vector2(300f, 64f), 13, TextAnchor.LowerLeft, new Color(Amber.r, Amber.g, Amber.b, 0.58f));
+            Button journalBack = CreatePhase5CButton(journalFrame.transform, "Back", "GERİ", "ESC", new Vector2(220f, 56f), new Vector2(680f, -378f), journalTheme, journalSounds, true);
+            RectTransform journalScan = CreateImage(journalFrame.transform, "Journal Scan", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(390f, 0f), new Vector2(2f, 680f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.08f)).GetComponent<RectTransform>();
+            CyberNoirPanelPresentation journalPresentation = CreatePhase5CPresentation(journalRoot, journalFrame, new[] { heading.gameObject, contentPane, cases.gameObject, people.gameObject, evidence.gameObject, questions.gameObject, timeline.gameObject }, journalScan, null, new Vector2(-24f, 0f));
             JournalPanel journalPanel = journalRoot.AddComponent<JournalPanel>();
             journalPanel.Configure(heading, content, cases, people, evidence, questions, timeline, journalBack);
+            journalPanel.ConfigurePresentation(journalPresentation, sectionMetadata, contentPane.GetComponent<RectTransform>());
 
             SettingsPanel settingsPanel = CreateSettingsPanel(canvas, "Pause Settings");
             ui.PauseMenuController.Configure(pausePanel, journalPanel, settingsPanel);
@@ -1465,104 +1507,293 @@ namespace NullPointer.Editor
 
         private static void ConfigureInspectPanel(Transform canvas, SceneUi ui)
         {
-            GameObject root = CreateModalRoot(canvas, "Inspect Panel", new Color(0.01f, 0.025f, 0.035f, 0.94f));
+            VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
+            GameObject root = CreateModalRoot(canvas, "Inspect Panel", Color.clear);
+            CreatePhase5CBackdrop(root, Cyan);
             GameObject frame = CreateImage(
                 root.transform,
                 "Inspect Frame",
                 new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f),
                 Vector2.zero,
-                new Vector2(980f, 610f),
-                PanelColor);
-            Text title = CreateText(frame.transform, "Title", string.Empty, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -72f), new Vector2(840f, 70f), 42, TextAnchor.MiddleLeft, Cyan);
-            Text description = CreateText(frame.transform, "Description", string.Empty, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 50f), new Vector2(840f, 300f), 30, TextAnchor.UpperLeft, TextColor);
-            Text status = CreateText(frame.transform, "Status", string.Empty, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-190f, 105f), new Vector2(440f, 48f), 24, TextAnchor.MiddleLeft, Amber);
-            Button collect = CreateButton(frame.transform, "Collect", "KANITI KAYDET", new Vector2(170f, 65f), new Vector2(-145f, 45f), Cyan, out _);
-            Button close = CreateButton(frame.transform, "Close", "KAPAT", new Vector2(170f, 65f), new Vector2(145f, 45f), new Color(0.2f, 0.28f, 0.32f, 1f), out _);
+                new Vector2(1360f, 760f),
+                new Color(0.014f, 0.034f, 0.05f, 0.985f));
+            CreateImage(frame.transform, "Frame Shadow", Vector2.zero, Vector2.one, new Vector2(16f, -16f), new Vector2(8f, 8f), new Color(0f, 0f, 0f, 0.42f));
+            CreateImage(frame.transform, "Analysis Rail", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(7f, 0f), new Vector2(4f, -32f), Cyan);
+            Text classification = CreateText(frame.transform, "Classification", string.Empty, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(82f, -45f), new Vector2(560f, 28f), 15, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.72f));
+            Text title = CreateText(frame.transform, "Title", string.Empty, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(82f, -94f), new Vector2(760f, 64f), 40, TextAnchor.MiddleLeft, TextColor);
+            CreateImage(frame.transform, "Header Rule", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(80f, -140f), new Vector2(-160f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.2f));
+            GameObject focusBay = CreateImage(frame.transform, "Object Focus Bay", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(302f, 308f), new Vector2(440f, 460f), new Color(0.025f, 0.048f, 0.057f, 0.84f));
+            CreateImage(focusBay.transform, "Bracket Left", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(8f, 0f), new Vector2(3f, -28f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.65f));
+            CreateImage(focusBay.transform, "Bracket Top", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -8f), new Vector2(-28f, 3f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.32f));
+            Image art = CreateImage(focusBay.transform, "Object Art Slot", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(330f, 330f), Color.white).GetComponent<Image>();
+            art.enabled = false;
+            GameObject artFallback = CreateProceduralEvidenceFallback(focusBay.transform, "Forensic Object Fallback", Cyan);
+            Text metadata = CreateText(frame.transform, "Metadata", string.Empty, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(302f, 62f), new Vector2(440f, 104f), 15, TextAnchor.UpperLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.62f));
+            GameObject copyPane = CreateImage(frame.transform, "Analysis Copy", new Vector2(0f, 0f), Vector2.one, new Vector2(250f, -16f), new Vector2(-600f, -210f), new Color(0.02f, 0.045f, 0.06f, 0.58f));
+            Text description = CreateText(copyPane.transform, "Description", string.Empty, Vector2.zero, Vector2.one, new Vector2(52f, -32f), new Vector2(-90f, -120f), 26, TextAnchor.UpperLeft, TextColor);
+            Text status = CreateText(frame.transform, "Status", string.Empty, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(818f, 92f), new Vector2(510f, 42f), 19, TextAnchor.MiddleLeft, Amber);
+            UiSoundHooks sounds = CreateUiSoundHooks(root.transform);
+            Button collect = CreatePhase5CButton(frame.transform, "Collect", "KANITI KAYDET", "01", new Vector2(260f, 58f), new Vector2(760f, -315f), theme, sounds);
+            Button close = CreatePhase5CButton(frame.transform, "Close", "KAPAT", "ESC", new Vector2(220f, 58f), new Vector2(500f, -315f), theme, sounds, true);
+            RectTransform scan = CreateImage(focusBay.transform, "Forensic Scan", new Vector2(0f, 0.5f), new Vector2(1f, 0.5f), Vector2.zero, new Vector2(-24f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.24f)).GetComponent<RectTransform>();
+            GameObject pulseObject = CreateImage(frame.transform, "Evidence Resolve Pulse", new Vector2(0.44f, 0f), Vector2.one, Vector2.zero, new Vector2(-24f, -24f), new Color(Amber.r, Amber.g, Amber.b, 0.1f));
+            CanvasGroup pulse = pulseObject.AddComponent<CanvasGroup>();
+            CyberNoirPanelPresentation presentation = CreatePhase5CPresentation(root, frame, new[] { classification.gameObject, title.gameObject, focusBay, copyPane, status.gameObject }, scan, pulse, new Vector2(0f, -24f));
             InspectPanel panel = root.AddComponent<InspectPanel>();
             panel.Configure(root, title, description, status, collect, close);
+            panel.ConfigurePresentation(
+                presentation,
+                art,
+                classification,
+                metadata,
+                artFallback,
+                focusBay.GetComponent<RectTransform>(),
+                copyPane.GetComponent<RectTransform>());
             ui.InspectController.Configure(panel);
             root.SetActive(false);
         }
 
-        private static void ConfigureDialoguePanel(Transform canvas, SceneUi ui)
+        private static void ConfigureDialoguePanel(Transform canvas, SceneUi ui, string locationId)
         {
-            GameObject root = CreateModalRoot(canvas, "Dialogue Panel", new Color(0f, 0f, 0f, 0.56f));
-            GameObject frame = CreateImage(root.transform, "Dialogue Frame", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 245f), new Vector2(1460f, 390f), PanelColor);
-            Text speaker = CreateText(frame.transform, "Speaker", string.Empty, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(235f, -55f), new Vector2(420f, 55f), 30, TextAnchor.MiddleLeft, Amber);
-            Text body = CreateText(frame.transform, "Body", string.Empty, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-160f, 50f), new Vector2(1000f, 180f), 30, TextAnchor.UpperLeft, TextColor);
-            Text history = CreateText(frame.transform, "History", string.Empty, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(170f, 35f), new Vector2(300f, 190f), 17, TextAnchor.LowerLeft, new Color(0.55f, 0.65f, 0.68f, 1f));
-            Button continueButton = CreateButton(frame.transform, "Continue", "DEVAM", new Vector2(175f, 58f), new Vector2(500f, -130f), Cyan, out _);
-            Button closeButton = CreateButton(frame.transform, "Close", "KAPAT", new Vector2(150f, 54f), new Vector2(500f, 145f), new Color(0.2f, 0.28f, 0.32f, 1f), out _);
+            VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
+            GameObject root = CreateModalRoot(canvas, "Dialogue Panel", Color.clear);
+            CreateImage(root.transform, "Dialogue Dim", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0.004f, 0.008f, 0.015f, 0.48f));
+            GameObject frame = CreateImage(root.transform, "Dialogue Frame", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 238f), new Vector2(1660f, 430f), new Color(0.012f, 0.028f, 0.044f, 0.97f));
+            CreateImage(frame.transform, "Lower Shadow", Vector2.zero, Vector2.one, new Vector2(16f, -14f), new Vector2(10f, 6f), new Color(0f, 0f, 0f, 0.48f));
+            CreateImage(frame.transform, "Speaker Rail", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(6f, 0f), new Vector2(4f, -28f), Amber);
+            GameObject portraitBay = CreateImage(frame.transform, "Portrait Bay", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(155f, 0f), new Vector2(250f, -38f), new Color(0.025f, 0.047f, 0.06f, 0.88f));
+            CreateImage(portraitBay.transform, "Portrait Bracket", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(7f, 0f), new Vector2(3f, -20f), new Color(Amber.r, Amber.g, Amber.b, 0.72f));
+            Image portrait = CreateImage(portraitBay.transform, "Eren Portrait Neutral", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-20f, -20f), Color.white).GetComponent<Image>();
+            AddFinalArtSlot(portrait.gameObject, $"slot.{locationId}.dialogue.eren.neutral", "NP-CHR-EREN-PORTRAIT-N-001", uiImage: portrait, showStructuralPlaceholder: false);
+            string[] portraitNames = { "Concerned", "Suspicious", "Stressed", "Corrupted" };
+            string[] portraitIds = { "NP-CHR-EREN-PORTRAIT-C-001", "NP-CHR-EREN-PORTRAIT-S-001", "NP-CHR-EREN-PORTRAIT-A-001", "NP-CHR-EREN-PORTRAIT-X-001" };
+            for (int index = 0; index < portraitNames.Length; index++)
+            {
+                Image variant = CreateImage(portraitBay.transform, "Eren Portrait " + portraitNames[index], Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-20f, -20f), Color.white).GetComponent<Image>();
+                AddFinalArtSlot(variant.gameObject, $"slot.{locationId}.dialogue.eren.{portraitNames[index].ToLowerInvariant()}", portraitIds[index], uiImage: variant, showStructuralPlaceholder: false);
+                variant.gameObject.SetActive(false);
+            }
+            GameObject portraitFallback = CreateProceduralPortraitFallback(portraitBay.transform, "Portrait Unassigned", Cyan);
+            Text speaker = CreateText(frame.transform, "Speaker", string.Empty, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(330f, -58f), new Vector2(560f, 52f), 29, TextAnchor.MiddleLeft, Amber);
+            Text mode = CreateText(frame.transform, "Dialogue Mode", "NORMAL / KAYITLI İLETİŞİM", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-350f, -54f), new Vector2(390f, 28f), 14, TextAnchor.MiddleRight, new Color(Cyan.r, Cyan.g, Cyan.b, 0.55f));
+            CreateImage(frame.transform, "Speaker Rule", new Vector2(0f, 1f), new Vector2(0.82f, 1f), new Vector2(320f, -96f), new Vector2(-350f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.2f));
+            Text body = CreateText(frame.transform, "Body", string.Empty, new Vector2(0f, 0f), Vector2.one, new Vector2(330f, -18f), new Vector2(-420f, -150f), 28, TextAnchor.UpperLeft, TextColor);
+            Text history = CreateText(portraitBay.transform, "History", string.Empty, Vector2.zero, Vector2.one, new Vector2(20f, 16f), new Vector2(-38f, -276f), 14, TextAnchor.LowerLeft, new Color(0.53f, 0.59f, 0.63f, 0.72f));
+            UiSoundHooks sounds = CreateUiSoundHooks(root.transform);
+            Button continueButton = CreatePhase5CButton(frame.transform, "Continue", "DEVAM", "ENTER", new Vector2(250f, 56f), new Vector2(610f, -165f), theme, sounds);
+            Button closeButton = CreatePhase5CButton(frame.transform, "Close", "KAPAT", "ESC", new Vector2(210f, 52f), new Vector2(660f, 165f), theme, sounds, true);
             var choiceButtons = new Button[3];
             var choiceLabels = new Text[3];
             for (int index = 0; index < choiceButtons.Length; index++)
             {
-                choiceButtons[index] = CreateButton(frame.transform, $"Choice {index + 1}", string.Empty, new Vector2(680f, 52f), new Vector2(140f, -65f - index * 60f), new Color(0.08f, 0.2f, 0.24f, 1f), out choiceLabels[index]);
+                choiceButtons[index] = CreatePhase5CButton(frame.transform, $"Choice {index + 1}", string.Empty, $"0{index + 1}", new Vector2(650f, 50f), new Vector2(210f, -66f - index * 58f), theme, sounds);
+                choiceLabels[index] = choiceButtons[index].transform.Find("Label").GetComponent<Text>();
+                CanvasGroup choiceGroup = choiceButtons[index].gameObject.AddComponent<CanvasGroup>();
+                UiTransition choiceTransition = choiceButtons[index].gameObject.AddComponent<UiTransition>();
+                choiceTransition.Configure(choiceButtons[index].GetComponent<RectTransform>(), choiceGroup, true, true,
+                    false, new Vector2(18f, 0f), Vector3.one, 0.14f + index * 0.02f);
             }
-
+            RectTransform scan = CreateImage(frame.transform, "Dialogue Scan", new Vector2(0f, 0.5f), new Vector2(1f, 0.5f), Vector2.zero, new Vector2(-380f, 1f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.07f)).GetComponent<RectTransform>();
+            CyberNoirPanelPresentation presentation = CreatePhase5CPresentation(root, frame, new[] { portraitBay, speaker.gameObject, mode.gameObject, body.gameObject }, scan, null, new Vector2(0f, -28f), 0.22f);
             DialoguePanel panel = root.AddComponent<DialoguePanel>();
             panel.Configure(root, speaker, body, history, continueButton, closeButton, choiceButtons, choiceLabels);
+            panel.ConfigurePresentation(presentation, portrait, portraitFallback, mode);
             ui.DialogueController.Configure(panel);
             root.SetActive(false);
         }
 
         private static void ConfigureTerminalPanel(Transform canvas, SceneUi ui)
         {
-            GameObject root = CreateModalRoot(canvas, "Terminal Panel", new Color(0.005f, 0.02f, 0.025f, 0.98f));
-            GameObject frame = CreateImage(root.transform, "Terminal Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1580f, 820f), new Color(0.015f, 0.055f, 0.055f, 1f));
-            Text title = CreateText(frame.transform, "Title", string.Empty, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -60f), new Vector2(1400f, 65f), 38, TextAnchor.MiddleLeft, Cyan);
-            Text body = CreateText(frame.transform, "Body", string.Empty, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(270f, 0f), new Vector2(820f, 540f), 27, TextAnchor.UpperLeft, TextColor);
-            Text status = CreateText(frame.transform, "Status", string.Empty, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(270f, 80f), new Vector2(820f, 50f), 23, TextAnchor.MiddleLeft, Amber);
-            Button close = CreateButton(frame.transform, "Close", "ÇIKIŞ", new Vector2(170f, 58f), new Vector2(610f, 330f), Red, out _);
+            VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
+            GameObject root = CreateModalRoot(canvas, "Terminal Panel", Color.clear);
+            CreatePhase5CBackdrop(root, Cyan);
+            GameObject frame = CreateImage(root.transform, "Terminal Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1660f, 900f), new Color(0.008f, 0.031f, 0.034f, 0.99f));
+            CreateImage(frame.transform, "Phosphor Field", new Vector2(0f, 0f), Vector2.one, new Vector2(190f, -34f), new Vector2(-430f, -180f), new Color(0.02f, 0.08f, 0.078f, 0.46f));
+            CreateImage(frame.transform, "Terminal Rail", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(7f, 0f), new Vector2(4f, -34f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.82f));
+            Text system = CreateText(frame.transform, "System", "MNEMOSYNE RESEARCH SYSTEM / LOCAL NODE", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(74f, -40f), new Vector2(660f, 26f), 14, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.68f));
+            Text title = CreateText(frame.transform, "Title", string.Empty, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(74f, -88f), new Vector2(920f, 58f), 36, TextAnchor.MiddleLeft, TextColor);
+            Text timestamp = CreateText(frame.transform, "Timestamp", "LOCAL 03:17:42\nSESSION / FORENSIC-READ", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-430f, -60f), new Vector2(430f, 54f), 14, TextAnchor.MiddleRight, new Color(Cyan.r, Cyan.g, Cyan.b, 0.48f));
+            CreateImage(frame.transform, "Header Rule", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(74f, -128f), new Vector2(-150f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.22f));
+            GameObject directory = CreateImage(frame.transform, "Directory Pane", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(300f, -62f), new Vector2(520f, -190f), new Color(0.018f, 0.055f, 0.06f, 0.88f));
+            CreateText(directory.transform, "Directory Heading", "/ARCHIVE/LOCAL/INDEX", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(28f, -24f), new Vector2(-54f, 28f), 14, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.58f));
+            GameObject contentPane = CreateImage(frame.transform, "Record Pane", new Vector2(0f, 0f), Vector2.one, new Vector2(280f, -62f), new Vector2(-640f, -190f), new Color(0.012f, 0.045f, 0.048f, 0.72f));
+            Text body = CreateText(contentPane.transform, "Body", string.Empty, Vector2.zero, Vector2.one, new Vector2(46f, -40f), new Vector2(-86f, -120f), 23, TextAnchor.UpperLeft, new Color(0.72f, 0.88f, 0.84f, 1f));
+            Text cursor = CreateText(contentPane.transform, "Cursor", "█", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(54f, 42f), new Vector2(36f, 36f), 22, TextAnchor.MiddleLeft, Cyan);
+            Text status = CreateText(frame.transform, "Status", string.Empty, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(584f, 52f), new Vector2(-760f, 38f), 15, TextAnchor.MiddleLeft, Amber);
+            UiSoundHooks sounds = CreateUiSoundHooks(root.transform);
+            Button close = CreatePhase5CButton(frame.transform, "Close", "OTURUMU KAPAT", "ESC", new Vector2(260f, 56f), new Vector2(680f, 374f), theme, sounds, true);
             var entryButtons = new Button[6];
             var entryLabels = new Text[6];
             for (int index = 0; index < entryButtons.Length; index++)
             {
-                entryButtons[index] = CreateButton(frame.transform, $"Entry {index + 1}", string.Empty, new Vector2(470f, 68f), new Vector2(-500f, 230f - index * 82f), new Color(0.035f, 0.15f, 0.17f, 1f), out entryLabels[index]);
+                entryButtons[index] = CreatePhase5CButton(directory.transform, $"Entry {index + 1}", string.Empty, $"{index + 1:00}", new Vector2(450f, 72f), new Vector2(0f, 220f - index * 82f), theme, sounds);
+                entryLabels[index] = entryButtons[index].transform.Find("Label").GetComponent<Text>();
             }
-
+            RectTransform scan = CreateImage(contentPane.transform, "Terminal Scan", new Vector2(0f, 0.5f), new Vector2(1f, 0.5f), Vector2.zero, new Vector2(-36f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.14f)).GetComponent<RectTransform>();
+            CyberNoirPanelPresentation presentation = CreatePhase5CPresentation(root, frame, new[] { system.gameObject, title.gameObject, timestamp.gameObject, directory, contentPane, status.gameObject }, scan, null, new Vector2(18f, 0f));
             TerminalPanel panel = root.AddComponent<TerminalPanel>();
             panel.Configure(root, title, body, status, close, entryButtons, entryLabels);
+            panel.ConfigurePresentation(presentation, cursor);
             ui.TerminalController.Configure(panel);
             root.SetActive(false);
         }
 
         private static void ConfigureMemoryPanel(Transform canvas, SceneUi ui)
         {
-            GameObject root = CreateModalRoot(canvas, "Memory Panel", Color.black);
+            GameObject root = CreateModalRoot(canvas, "Memory Panel", new Color(0.015f, 0.012f, 0.025f, 0.92f));
             Image overlay = root.GetComponent<Image>();
             CanvasGroup group = root.AddComponent<CanvasGroup>();
-            Text title = CreateText(root.transform, "Title", string.Empty, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -110f), new Vector2(1500f, 80f), 32, TextAnchor.MiddleCenter, Red);
-            Text beat = CreateText(root.transform, "Beat", string.Empty, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1500f, 260f), 52, TextAnchor.MiddleCenter, TextColor);
+            CreateImage(root.transform, "Memory Desaturation", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0.03f, 0.035f, 0.05f, 0.3f));
+            CreateImage(root.transform, "Violet Field", new Vector2(0.24f, 0.2f), new Vector2(0.76f, 0.8f), Vector2.zero, Vector2.zero, new Color(0.22f, 0.12f, 0.3f, 0.08f));
+            CreateImage(root.transform, "Omission Left", new Vector2(0.04f, 0.18f), new Vector2(0.31f, 0.205f), Vector2.zero, Vector2.zero, new Color(0f, 0f, 0f, 0.82f));
+            CreateImage(root.transform, "Omission Right", new Vector2(0.69f, 0.72f), new Vector2(0.96f, 0.752f), Vector2.zero, Vector2.zero, new Color(0f, 0f, 0f, 0.72f));
+            CreateImage(root.transform, "Omission Upper", new Vector2(0.12f, 0.81f), new Vector2(0.43f, 0.83f), new Vector2(22f, 0f), Vector2.zero, new Color(0f, 0f, 0f, 0.54f));
+            CreateImage(root.transform, "Omission Lower", new Vector2(0.52f, 0.12f), new Vector2(0.77f, 0.143f), new Vector2(-18f, 0f), Vector2.zero, new Color(0f, 0f, 0f, 0.48f));
+            CreateImage(root.transform, "Temporal Echo Cyan", new Vector2(0.09f, 0.29f), new Vector2(0.34f, 0.43f), new Vector2(-8f, 5f), Vector2.zero, new Color(Cyan.r, Cyan.g, Cyan.b, 0.055f));
+            CreateImage(root.transform, "Temporal Echo Red", new Vector2(0.67f, 0.56f), new Vector2(0.91f, 0.67f), new Vector2(10f, -4f), Vector2.zero, new Color(Red.r, Red.g, Red.b, 0.045f));
+            Text fragment = CreateText(root.transform, "Fragment Metadata", string.Empty, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(110f, -88f), new Vector2(620f, 54f), 15, TextAnchor.UpperLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.54f));
+            Text title = CreateText(root.transform, "Title", string.Empty, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -132f), new Vector2(1500f, 72f), 30, TextAnchor.MiddleCenter, Red);
+            CreateImage(root.transform, "Protected Text Field", new Vector2(0.18f, 0.31f), new Vector2(0.82f, 0.69f), Vector2.zero, Vector2.zero, new Color(0.012f, 0.018f, 0.03f, 0.5f));
+            CreateImage(root.transform, "Memory Rule", new Vector2(0.3f, 0.5f), new Vector2(0.7f, 0.5f), new Vector2(0f, 110f), new Vector2(0f, 2f), new Color(Red.r, Red.g, Red.b, 0.3f));
+            Text beat = CreateText(root.transform, "Beat", string.Empty, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1120f, 220f), 46, TextAnchor.MiddleCenter, TextColor);
+            Text echo = CreateText(root.transform, "Frame Echo", "KARE 03 // KAYIP\nKAYNAK UYUŞMAZLIĞI", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-170f, 88f), new Vector2(420f, 70f), 14, TextAnchor.LowerRight, new Color(0.36f, 0.3f, 0.51f, 0.58f));
+            RectTransform scan = CreateImage(root.transform, "Memory Scan", new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), Vector2.zero, new Vector2(0f, 2f), new Color(Red.r, Red.g, Red.b, 0.12f)).GetComponent<RectTransform>();
+            CyberNoirPanelPresentation presentation = CreatePhase5CPresentation(root, root, new[] { fragment.gameObject, title.gameObject, beat.gameObject, echo.gameObject }, scan, null, Vector2.zero, 0.18f);
             MemoryPanel panel = root.AddComponent<MemoryPanel>();
             panel.Configure(root, overlay, title, beat, group);
+            panel.ConfigurePresentation(presentation, fragment);
             AudioSource audio = root.AddComponent<AudioSource>();
             audio.playOnAwake = false;
             ui.MemoryController.Configure(panel, audio);
+
+            var distortionObject = new GameObject("Memory Distortion Controller");
+            distortionObject.transform.SetParent(root.transform, false);
+            MemoryDistortionController distortion = distortionObject.AddComponent<MemoryDistortionController>();
+            GameObject fxRoot = CreateRect(root.transform, "Memory Distortion FX", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            CanvasGroup fxGroup = fxRoot.AddComponent<CanvasGroup>();
+            Image distortionOverlay = CreateImage(fxRoot.transform, "Chromatic Wash", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0.12f, 0.02f, 0.18f, 0f)).GetComponent<Image>();
+            Image staticLayer = CreateImage(fxRoot.transform, "Static Blocks", new Vector2(0.12f, 0.22f), new Vector2(0.38f, 0.5f), new Vector2(-12f, 8f), Vector2.zero, new Color(Cyan.r, Cyan.g, Cyan.b, 0f)).GetComponent<Image>();
+            Image vignette = CreateImage(fxRoot.transform, "Vignette Shift", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0.12f, 0f, 0.18f, 0f)).GetComponent<Image>();
+            Image flash = CreateImage(fxRoot.transform, "Short Flash", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(TextColor.r, TextColor.g, TextColor.b, 0f)).GetComponent<Image>();
+            RectTransform tear = CreateImage(fxRoot.transform, "Horizontal Tear", new Vector2(0.12f, 0.54f), new Vector2(0.88f, 0.54f), new Vector2(24f, 0f), new Vector2(-48f, 28f), new Color(Red.r, Red.g, Red.b, 0.16f)).GetComponent<RectTransform>();
+            RectTransform chromaticLeft = CreateImage(fxRoot.transform, "Chromatic Left", new Vector2(0f, 0f), new Vector2(0.012f, 1f), Vector2.zero, Vector2.zero, new Color(Cyan.r, Cyan.g, Cyan.b, 0.11f)).GetComponent<RectTransform>();
+            RectTransform chromaticRight = CreateImage(fxRoot.transform, "Chromatic Right", new Vector2(0.988f, 0f), Vector2.one, Vector2.zero, Vector2.zero, new Color(Red.r, Red.g, Red.b, 0.1f)).GetComponent<RectTransform>();
+            fxRoot.transform.SetSiblingIndex(4);
+            distortion.Configure(fxRoot, fxGroup, distortionOverlay, staticLayer, vignette, flash, tear, chromaticLeft, chromaticRight);
+            ui.MemoryController.ConfigureVisualEffects(
+                distortion,
+                AssetDatabase.LoadAssetAtPath<MemoryDistortionProfile>(VisualProductionBuilder.MemoryProfilePath));
             root.SetActive(false);
         }
 
         private static void ConfigureEvidenceBoardPanel(Transform canvas, SceneUi ui)
         {
-            GameObject root = CreateModalRoot(canvas, "Evidence Board Panel", new Color(0.01f, 0.025f, 0.035f, 0.98f));
-            GameObject frame = CreateImage(root.transform, "Board Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1660f, 900f), PanelColor);
-            CreateText(frame.transform, "Heading", "KANIT PANOSU // ÇALIŞMA HİPOTEZİ", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -55f), new Vector2(1500f, 65f), 38, TextAnchor.MiddleLeft, Cyan);
-            Text status = CreateText(frame.transform, "Status", string.Empty, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-250f, 95f), new Vector2(920f, 56f), 23, TextAnchor.MiddleLeft, Amber);
-            Text solved = CreateText(frame.transform, "Solved", string.Empty, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-385f, 40f), new Vector2(650f, 590f), 26, TextAnchor.UpperLeft, TextColor);
-            Button attempt = CreateButton(frame.transform, "Attempt", "ÇIKARIMI DENE", new Vector2(230f, 62f), new Vector2(265f, -350f), Cyan, out _);
-            Button reset = CreateButton(frame.transform, "Reset", "SEÇİMİ TEMİZLE", new Vector2(230f, 62f), new Vector2(515f, -350f), new Color(0.2f, 0.28f, 0.32f, 1f), out _);
-            Button close = CreateButton(frame.transform, "Close", "KAPAT", new Vector2(160f, 58f), new Vector2(690f, 355f), Red, out _);
+            VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
+            GameObject root = CreateModalRoot(canvas, "Evidence Board Panel", Color.clear);
+            CreatePhase5CBackdrop(root, Amber);
+            GameObject frame = CreateImage(root.transform, "Board Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1720f, 920f), new Color(0.014f, 0.03f, 0.044f, 0.99f));
+            CreateImage(frame.transform, "Board Texture", Vector2.zero, Vector2.one, new Vector2(-120f, -24f), new Vector2(-520f, -160f), new Color(0.12f, 0.1f, 0.075f, 0.12f));
+            CreateImage(frame.transform, "System Rail", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(7f, 0f), new Vector2(4f, -34f), Amber);
+            Text heading = CreateText(frame.transform, "Heading", "KANIT PANOSU", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(76f, -68f), new Vector2(680f, 62f), 40, TextAnchor.MiddleLeft, TextColor);
+            Text boardMode = CreateText(frame.transform, "Board Mode", "DİJİTAL ADLİ ÇALIŞMA ALANI / BAĞLANTI MODU", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(78f, -112f), new Vector2(820f, 28f), 14, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.62f));
+            CreateImage(frame.transform, "Header Rule", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(76f, -142f), new Vector2(-152f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.2f));
+            GameObject workspace = CreateImage(frame.transform, "Deduction Workspace", new Vector2(0f, 0f), Vector2.one, new Vector2(-225f, -40f), new Vector2(-590f, -210f), new Color(0.022f, 0.045f, 0.055f, 0.6f));
+            GameObject conclusionPane = CreateImage(frame.transform, "Solved Deductions", new Vector2(1f, 0f), Vector2.one, new Vector2(-256f, -40f), new Vector2(470f, -210f), new Color(0.02f, 0.04f, 0.052f, 0.82f));
+            CreateImage(frame.transform, "Workspace Divider", new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(-492f, -38f), new Vector2(2f, -216f), new Color(Amber.r, Amber.g, Amber.b, 0.3f));
+            CreateImage(conclusionPane.transform, "Solved Signal", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -4f), new Vector2(-26f, 3f), new Color(Amber.r, Amber.g, Amber.b, 0.4f));
+            CreateText(conclusionPane.transform, "Solved Heading", "ÇÖZÜLEN BAĞLANTILAR", new Vector2(0f, 1f), Vector2.one, new Vector2(30f, -24f), new Vector2(-60f, 28f), 15, TextAnchor.MiddleLeft, new Color(Amber.r, Amber.g, Amber.b, 0.75f));
+            Text solved = CreateText(conclusionPane.transform, "Solved", string.Empty, Vector2.zero, Vector2.one, new Vector2(32f, -62f), new Vector2(-64f, -112f), 21, TextAnchor.UpperLeft, TextColor);
+            GameObject lineRootObject = CreateRect(workspace.transform, "Evidence Connections", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            RectTransform lineRoot = lineRootObject.GetComponent<RectTransform>();
+            var linePool = new Image[7];
+            for (int index = 0; index < linePool.Length; index++)
+            {
+                linePool[index] = CreateImage(lineRoot, $"Connection {index + 1}", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(10f, 3f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.62f)).GetComponent<Image>();
+                linePool[index].raycastTarget = false;
+            }
+            EvidenceConnectionView connections = lineRootObject.AddComponent<EvidenceConnectionView>();
+            connections.Configure(lineRoot, linePool);
+            Text status = CreateText(frame.transform, "Status", string.Empty, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(82f, 54f), new Vector2(-720f, 42f), 18, TextAnchor.MiddleLeft, Amber);
+            UiSoundHooks sounds = CreateUiSoundHooks(root.transform);
+            Button attempt = CreatePhase5CButton(frame.transform, "Attempt", "ÇIKARIMI DOĞRULA", "ENTER", new Vector2(300f, 58f), new Vector2(250f, -394f), theme, sounds);
+            Button reset = CreatePhase5CButton(frame.transform, "Reset", "BAĞLANTILARI TEMİZLE", "R", new Vector2(300f, 58f), new Vector2(580f, -394f), theme, sounds);
+            Button close = CreatePhase5CButton(frame.transform, "Close", "KAPAT", "ESC", new Vector2(220f, 54f), new Vector2(720f, 388f), theme, sounds, true);
+            var evidenceButtons = new Button[8];
+            var evidenceLabels = new Text[8];
+            var evidenceCards = new RectTransform[8];
+            var selectedPlates = new Image[8];
+            for (int index = 0; index < evidenceButtons.Length; index++)
+            {
+                int column = index % 2;
+                int row = index / 2;
+                Vector2 position = new Vector2(-245f + column * 490f, 235f - row * 146f);
+                evidenceButtons[index] = CreatePhase5CButton(workspace.transform, $"Evidence {index + 1}", string.Empty, $"E-{index + 1:00}", new Vector2(440f, 118f), position, theme, sounds);
+                evidenceLabels[index] = evidenceButtons[index].transform.Find("Label").GetComponent<Text>();
+                evidenceLabels[index].fontSize = 18;
+                evidenceLabels[index].alignment = TextAnchor.MiddleLeft;
+                evidenceCards[index] = evidenceButtons[index].GetComponent<RectTransform>();
+                selectedPlates[index] = CreateImage(evidenceButtons[index].transform, "Selected Evidence Field", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-8f, -8f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.16f)).GetComponent<Image>();
+                selectedPlates[index].raycastTarget = false;
+                selectedPlates[index].transform.SetSiblingIndex(1);
+                selectedPlates[index].gameObject.SetActive(false);
+                CreateImage(evidenceButtons[index].transform, "Relation Pin", new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-14f, 0f), new Vector2(9f, 9f), new Color(Amber.r, Amber.g, Amber.b, 0.82f));
+            }
+            RectTransform scan = CreateImage(workspace.transform, "Workspace Scan", new Vector2(0f, 0.5f), new Vector2(1f, 0.5f), Vector2.zero, new Vector2(-30f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.07f)).GetComponent<RectTransform>();
+            GameObject pulseObject = CreateImage(workspace.transform, "Deduction Resolve Pulse", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-16f, -16f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.16f));
+            CanvasGroup pulse = pulseObject.AddComponent<CanvasGroup>();
+            CyberNoirPanelPresentation presentation = CreatePhase5CPresentation(root, frame, new[] { heading.gameObject, boardMode.gameObject, workspace, conclusionPane, status.gameObject }, scan, pulse, new Vector2(0f, 26f));
+            EvidenceBoardPanel panel = root.AddComponent<EvidenceBoardPanel>();
+            panel.Configure(root, status, solved, attempt, reset, close, evidenceButtons, evidenceLabels);
+            panel.ConfigurePresentation(presentation, connections, evidenceCards, selectedPlates, conclusionPane.GetComponent<Image>());
+            ui.EvidenceBoardController.Configure(panel);
+            root.SetActive(false);
+        }
+
+        private static void ConfigureInterrogationPanel(Transform canvas, SceneUi ui, string locationId)
+        {
+            VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
+            GameObject root = CreateModalRoot(canvas, "Interrogation Panel", Color.clear);
+            CreatePhase5CBackdrop(root, Red);
+            GameObject frame = CreateImage(root.transform, "Interrogation Frame", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1600f, 860f), new Color(0.016f, 0.028f, 0.043f, 0.985f));
+            CreateImage(frame.transform, "Tension Rail", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(7f, 0f), new Vector2(4f, -34f), Red);
+            Text heading = CreateText(frame.transform, "Heading", "İFADE ÇELİŞKİ ANALİZİ", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(76f, -62f), new Vector2(720f, 58f), 36, TextAnchor.MiddleLeft, TextColor);
+            Text claimMetadata = CreateText(frame.transform, "Claim Metadata", string.Empty, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-390f, -62f), new Vector2(430f, 56f), 14, TextAnchor.MiddleRight, new Color(Red.r, Red.g, Red.b, 0.66f));
+            CreateImage(frame.transform, "Header Rule", new Vector2(0f, 1f), Vector2.one, new Vector2(76f, -124f), new Vector2(-152f, 2f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.18f));
+            GameObject portraitBay = CreateImage(frame.transform, "Witness Portrait", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(215f, -72f), new Vector2(330f, -220f), new Color(0.03f, 0.045f, 0.055f, 0.82f));
+            Image portrait = CreateImage(portraitBay.transform, "Portrait Art Slot", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-22f, -22f), Color.white).GetComponent<Image>();
+            AddFinalArtSlot(portrait.gameObject, $"slot.{locationId}.interrogation.portrait", "NP-CHR-EREN-PORTRAIT-S-001", uiImage: portrait, showStructuralPlaceholder: false);
+            GameObject portraitFallback = CreateProceduralPortraitFallback(portraitBay.transform, "Portrait Fallback", Red);
+            GameObject claimPane = CreateImage(frame.transform, "Claim Pane", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(210f, 205f), new Vector2(940f, 150f), new Color(0.025f, 0.048f, 0.062f, 0.9f));
+            CreateImage(claimPane.transform, "Contradiction Accent", new Vector2(0f, 1f), new Vector2(1f, 1f), Vector2.zero, new Vector2(-30f, 4f), new Color(Red.r, Red.g, Red.b, 0.62f));
+            CreateText(claimPane.transform, "Claim Label", "İFADE / DOĞRULAMA BEKLİYOR", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(32f, -25f), new Vector2(876f, 22f), 13, TextAnchor.MiddleLeft, new Color(Amber.r, Amber.g, Amber.b, 0.72f));
+            Text statement = CreateText(claimPane.transform, "Statement", string.Empty, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(32f, -57f), new Vector2(876f, 50f), 24, TextAnchor.UpperLeft, TextColor);
+            Text feedback = CreateText(claimPane.transform, "Feedback", string.Empty, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(32f, -118f), new Vector2(876f, 26f), 16, TextAnchor.MiddleLeft, Amber);
+            GameObject evidencePreviewFrame = CreateImage(frame.transform, "Presented Evidence", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-202f, 126f), new Vector2(220f, 150f), new Color(0.04f, 0.055f, 0.06f, 0.88f));
+            Image evidencePreview = CreateImage(evidencePreviewFrame.transform, "Evidence Thumbnail", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-18f, -18f), Color.white).GetComponent<Image>();
+            evidencePreview.enabled = false;
+            GameObject evidenceFallback = CreateProceduralEvidenceFallback(evidencePreviewFrame.transform, "Presented Evidence Fallback", Amber);
+            evidencePreviewFrame.SetActive(false);
+            UiSoundHooks sounds = CreateUiSoundHooks(root.transform);
+            Button close = CreatePhase5CButton(frame.transform, "Close", "İFADEYİ KAPAT", "ESC", new Vector2(300f, 54f), new Vector2(620f, 354f), theme, sounds, true);
             var evidenceButtons = new Button[8];
             var evidenceLabels = new Text[8];
             for (int index = 0; index < evidenceButtons.Length; index++)
             {
-                evidenceButtons[index] = CreateButton(frame.transform, $"Evidence {index + 1}", string.Empty, new Vector2(650f, 62f), new Vector2(-430f, 275f - index * 72f), new Color(0.04f, 0.16f, 0.19f, 1f), out evidenceLabels[index]);
+                int column = index % 2;
+                int row = index / 2;
+                evidenceButtons[index] = CreatePhase5CButton(frame.transform, $"Interrogation Evidence {index + 1}", string.Empty, $"E-{index + 1:00}", new Vector2(430f, 58f), new Vector2(135f + column * 430f, -44f - row * 70f), theme, sounds);
+                evidenceLabels[index] = evidenceButtons[index].transform.Find("Label").GetComponent<Text>();
+                evidenceLabels[index].fontSize = 18;
             }
-
-            EvidenceBoardPanel panel = root.AddComponent<EvidenceBoardPanel>();
-            panel.Configure(root, status, solved, attempt, reset, close, evidenceButtons, evidenceLabels);
-            ui.EvidenceBoardController.Configure(panel);
+            RectTransform scan = CreateImage(claimPane.transform, "Claim Scan", new Vector2(0f, 0.5f), new Vector2(1f, 0.5f), Vector2.zero, new Vector2(-24f, 2f), new Color(Red.r, Red.g, Red.b, 0.08f)).GetComponent<RectTransform>();
+            GameObject pulseObject = CreateImage(claimPane.transform, "Contradiction Pulse", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(3f, 0f), new Vector2(5f, -20f), new Color(Red.r, Red.g, Red.b, 0.34f));
+            CanvasGroup pulse = pulseObject.AddComponent<CanvasGroup>();
+            CyberNoirPanelPresentation presentation = CreatePhase5CPresentation(root, frame, new[] { heading.gameObject, portraitBay, claimPane, evidencePreviewFrame }, scan, pulse, new Vector2(0f, 22f));
+            InterrogationPanel panel = root.AddComponent<InterrogationPanel>();
+            panel.Configure(root, statement, feedback, close, evidenceButtons, evidenceLabels);
+            panel.ConfigurePresentation(presentation, portrait, evidencePreview, claimMetadata, portraitFallback, evidencePreviewFrame, evidenceFallback);
+            ui.InterrogationController.Configure(panel);
             root.SetActive(false);
         }
 
@@ -1630,6 +1861,7 @@ namespace NullPointer.Editor
             CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-392f, y), new Vector2(300f, 38f), 18, TextAnchor.MiddleLeft, TextColor);
             GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(112f, y), new Vector2(548f, 16f), new Color(0.035f, 0.065f, 0.09f, 0.96f));
             Image surface = root.GetComponent<Image>();
+            surface.raycastTarget = true;
             GameObject glow = CreateImage(root.transform, "Focus Glow", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(16f, 14f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.22f));
             glow.GetComponent<Image>().raycastTarget = false;
             CanvasGroup glowGroup = glow.AddComponent<CanvasGroup>();
@@ -1659,6 +1891,7 @@ namespace NullPointer.Editor
             CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-392f, y), new Vector2(350f, 38f), 18, TextAnchor.MiddleLeft, TextColor);
             GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(8f, y), new Vector2(92f, 32f), new Color(0.035f, 0.065f, 0.09f, 0.74f));
             Image surface = root.GetComponent<Image>();
+            surface.raycastTarget = true;
             GameObject glow = CreateImage(root.transform, "Focus Glow", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(14f, 12f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.2f));
             glow.GetComponent<Image>().raycastTarget = false;
             CanvasGroup glowGroup = glow.AddComponent<CanvasGroup>();
@@ -1683,6 +1916,7 @@ namespace NullPointer.Editor
             CreateText(parent, name + " Label", labelText, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-392f, y), new Vector2(300f, 38f), 18, TextAnchor.MiddleLeft, TextColor);
             GameObject root = CreateImage(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(112f, y), new Vector2(548f, 42f), new Color(0.035f, 0.065f, 0.09f, 0.86f));
             Image surface = root.GetComponent<Image>();
+            surface.raycastTarget = true;
             GameObject glow = CreateImage(root.transform, "Focus Glow", Vector2.zero, Vector2.one, Vector2.zero, new Vector2(14f, 12f), new Color(Cyan.r, Cyan.g, Cyan.b, 0.2f));
             glow.GetComponent<Image>().raycastTarget = false;
             CanvasGroup glowGroup = glow.AddComponent<CanvasGroup>();
@@ -1803,7 +2037,9 @@ namespace NullPointer.Editor
             Color color)
         {
             GameObject item = CreateRect(parent, name, anchorMin, anchorMax, anchoredPosition, sizeDelta);
-            item.AddComponent<Image>().color = color;
+            Image image = item.AddComponent<Image>();
+            image.color = color;
+            image.raycastTarget = false;
             return item;
         }
 
@@ -1829,6 +2065,21 @@ namespace NullPointer.Editor
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
             label.verticalOverflow = VerticalWrapMode.Truncate;
             label.raycastTarget = false;
+            if (Vector2.Distance(anchorMin, anchorMax) < 0.001f)
+            {
+                RectTransform rect = item.GetComponent<RectTransform>();
+                float pivotX = alignment is TextAnchor.UpperLeft or TextAnchor.MiddleLeft or TextAnchor.LowerLeft
+                    ? 0f
+                    : alignment is TextAnchor.UpperRight or TextAnchor.MiddleRight or TextAnchor.LowerRight
+                        ? 1f
+                        : 0.5f;
+                float pivotY = alignment is TextAnchor.UpperLeft or TextAnchor.UpperCenter or TextAnchor.UpperRight
+                    ? 1f
+                    : alignment is TextAnchor.LowerLeft or TextAnchor.LowerCenter or TextAnchor.LowerRight
+                        ? 0f
+                        : 0.5f;
+                rect.pivot = new Vector2(pivotX, pivotY);
+            }
             return label;
         }
 
@@ -1976,6 +2227,7 @@ namespace NullPointer.Editor
                 new Color(0.025f, 0.055f, 0.075f, 0.34f));
             item.GetComponent<RectTransform>().pivot = Vector2.zero;
             Image surface = item.GetComponent<Image>();
+            surface.raycastTarget = true;
             Button button = item.AddComponent<Button>();
             button.transition = Selectable.Transition.None;
 
@@ -1987,7 +2239,8 @@ namespace NullPointer.Editor
             Image edge = CreateImage(item.transform, "Edge Line", new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(34f, 4f), new Vector2(42f, 2f), Cyan).GetComponent<Image>();
             edge.rectTransform.pivot = new Vector2(0f, 0.5f);
             edge.raycastTarget = false;
-            Text index = CreateText(item.transform, "Index", indexText, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(34f, 0f), new Vector2(42f, 0f), 16, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.65f));
+            Text index = CreateText(item.transform, "Index", indexText, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(34f, 0f), new Vector2(42f, 0f), 13, TextAnchor.MiddleLeft, new Color(Cyan.r, Cyan.g, Cyan.b, 0.65f));
+            index.horizontalOverflow = HorizontalWrapMode.Overflow;
             Text label = CreateText(item.transform, "Label", labelText, Vector2.zero, Vector2.one, new Vector2(16f, 0f), new Vector2(-104f, -6f), 22, TextAnchor.MiddleLeft, TextColor);
             GameObject bracket = CreateRect(item.transform, "Focus Bracket", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             CanvasGroup bracketGroup = bracket.AddComponent<CanvasGroup>();
@@ -2000,6 +2253,96 @@ namespace NullPointer.Editor
             visual.Configure(theme, button, surface, label, edge, focusGlow, item.GetComponent<RectTransform>(), bracketGroup, accent, index);
             visual.ConfigureSound(soundHooks, backAction);
             return button;
+        }
+
+        private static Button CreatePhase5CButton(
+            Transform parent,
+            string name,
+            string label,
+            string index,
+            Vector2 size,
+            Vector2 position,
+            VisualTheme theme,
+            UiSoundHooks sounds,
+            bool backAction = false)
+        {
+            Button button = CreateCyberButton(
+                parent,
+                name,
+                label,
+                index,
+                size,
+                Vector2.zero,
+                theme,
+                sounds,
+                backAction);
+            RectTransform rect = button.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = position;
+            return button;
+        }
+
+        private static GameObject CreateProceduralPortraitFallback(Transform parent, string name, Color accent)
+        {
+            GameObject fallback = CreateRect(parent, name, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            CreateImage(fallback.transform, "Portrait Plate", new Vector2(0.12f, 0.1f), new Vector2(0.88f, 0.9f), Vector2.zero, Vector2.zero, new Color(0.01f, 0.025f, 0.038f, 0.92f));
+            CreateImage(fallback.transform, "Silhouette Head", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 42f), new Vector2(70f, 76f), new Color(accent.r, accent.g, accent.b, 0.13f));
+            CreateImage(fallback.transform, "Silhouette Shoulders", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -54f), new Vector2(158f, 94f), new Color(accent.r, accent.g, accent.b, 0.1f));
+            CreateImage(fallback.transform, "Signal Left", new Vector2(0f, 0.66f), new Vector2(0.38f, 0.66f), new Vector2(18f, 0f), new Vector2(-30f, 2f), new Color(accent.r, accent.g, accent.b, 0.28f));
+            CreateImage(fallback.transform, "Signal Right", new Vector2(0.62f, 0.32f), new Vector2(1f, 0.32f), new Vector2(-18f, 0f), new Vector2(-30f, 2f), new Color(accent.r, accent.g, accent.b, 0.2f));
+            CreateImage(fallback.transform, "Signal Pulse", new Vector2(0.5f, 0.18f), new Vector2(0.5f, 0.18f), Vector2.zero, new Vector2(8f, 8f), new Color(accent.r, accent.g, accent.b, 0.5f));
+            return fallback;
+        }
+
+        private static GameObject CreateProceduralEvidenceFallback(Transform parent, string name, Color accent)
+        {
+            GameObject fallback = CreateRect(parent, name, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            CreateImage(fallback.transform, "Classification Plate", new Vector2(0.14f, 0.14f), new Vector2(0.86f, 0.86f), Vector2.zero, Vector2.zero, new Color(0.01f, 0.028f, 0.038f, 0.86f));
+            RectTransform glyph = CreateImage(fallback.transform, "Evidence Glyph", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(48f, 48f), new Color(accent.r, accent.g, accent.b, 0.16f)).GetComponent<RectTransform>();
+            glyph.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            CreateImage(fallback.transform, "Scan A", new Vector2(0.2f, 0.66f), new Vector2(0.8f, 0.66f), Vector2.zero, new Vector2(0f, 2f), new Color(accent.r, accent.g, accent.b, 0.3f));
+            CreateImage(fallback.transform, "Scan B", new Vector2(0.3f, 0.34f), new Vector2(0.7f, 0.34f), Vector2.zero, new Vector2(0f, 2f), new Color(accent.r, accent.g, accent.b, 0.2f));
+            CreateImage(fallback.transform, "Index Dot", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(8f, 8f), new Color(accent.r, accent.g, accent.b, 0.72f));
+            return fallback;
+        }
+
+        private static void CreatePhase5CBackdrop(GameObject root, Color accent)
+        {
+            CreateImage(root.transform, "World De-emphasis", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0.006f, 0.012f, 0.021f, 0.68f));
+            CreateImage(root.transform, "Left Vignette", new Vector2(0f, 0f), new Vector2(0.08f, 1f), Vector2.zero, Vector2.zero, new Color(0f, 0f, 0f, 0.32f));
+            CreateImage(root.transform, "Right Vignette", new Vector2(0.92f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero, new Color(0f, 0f, 0f, 0.32f));
+            CreateImage(root.transform, "Context Signal", new Vector2(0f, 0.76f), new Vector2(1f, 0.765f), Vector2.zero, Vector2.zero, new Color(accent.r, accent.g, accent.b, 0.055f));
+        }
+
+        private static CyberNoirPanelPresentation CreatePhase5CPresentation(
+            GameObject root,
+            GameObject frame,
+            IReadOnlyList<GameObject> staged,
+            RectTransform scanLine,
+            CanvasGroup feedbackPulse,
+            Vector2 entranceOffset,
+            float duration = 0.24f)
+        {
+            CanvasGroup rootGroup = root.GetComponent<CanvasGroup>() ?? root.AddComponent<CanvasGroup>();
+            UiTransition transition = root.AddComponent<UiTransition>();
+            transition.Configure(
+                frame.GetComponent<RectTransform>(),
+                rootGroup,
+                true,
+                true,
+                true,
+                entranceOffset,
+                new Vector3(0.99f, 0.99f, 1f),
+                duration);
+            CanvasGroup[] groups = staged
+                .Where(item => item != null)
+                .Select(item => item.GetComponent<CanvasGroup>() ?? item.AddComponent<CanvasGroup>())
+                .ToArray();
+            CyberNoirPanelPresentation presentation = root.AddComponent<CyberNoirPanelPresentation>();
+            presentation.Configure(transition, groups, scanLine, feedbackPulse);
+            return presentation;
         }
 
         private static Button CreateButton(
@@ -2020,6 +2363,7 @@ namespace NullPointer.Editor
                 size,
                 color);
             Button button = item.AddComponent<Button>();
+            item.GetComponent<Image>().raycastTarget = true;
             ColorBlock colors = button.colors;
             colors.highlightedColor = Color.Lerp(color, Color.white, 0.25f);
             colors.selectedColor = colors.highlightedColor;
@@ -2293,6 +2637,7 @@ namespace NullPointer.Editor
             public TerminalController TerminalController;
             public MemoryController MemoryController;
             public EvidenceBoardController EvidenceBoardController;
+            public InterrogationController InterrogationController;
             public InteractionPromptController InteractionPrompt;
             public EvidenceNotificationController EvidenceNotification;
             public PauseMenuController PauseMenuController;

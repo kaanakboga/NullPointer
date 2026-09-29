@@ -87,3 +87,17 @@ Pause now retains live scene context under a layered interruption treatment, and
 ### Phase 5B.1 Acceptance Addendum
 
 The aggressive polish pass replaces the flat fallback with layered city silhouettes, window framing, haze/reflections, restrained light movement, and clustered three-depth rain. The NULL POINTER wordmark now uses live missing-reference decoration and low-frequency corruption. Main/Pause actions share bracket/index/accent focus language; Settings uses grouped content, compact diamond handles, mechanical toggles, a live resolution caption, and layered panel depth. The Eren and Mert production scenes retain interaction anchors but no longer expose cyan/gray/amber/red engineering markers. All twelve required 16:9/16:10 captures were visually inspected before the 97/97 EditMode, 13/13 PlayMode, and Windows Development build gates passed.
+
+## Phase 5C Implementation Addendum
+
+Dialogue, Inspect, Evidence Acquired, Evidence Board/Deduction, Terminal, Journal, Objective Update, Interrogation, and Memory have received their production structural presentation pass. Their prior `RESTYLE`/`REBUILD` classifications are now complete for layout, hierarchy, modal motion, focus language, supported-aspect behavior, and graceful missing-art fallback. `REPLACE_WITH_ART` remains open for approved portraits, inspected-object/evidence thumbnails, final typography, decorative atlases/icons, memory masks/shaders, and audio; current procedural fields are intentional safe fallbacks, not final raster art.
+
+The Evidence Board now uses pooled `EvidenceConnectionView` lines and explicit selected/used/locked/solved feedback. Dialogue supports presentation variants and animated choices without changing dialogue state. Memory uses the existing default-off distortion controller and restores a clean frame on every teardown path. `Phase5CVisualCapture.CaptureAll` rendered 30 actual production-UI references (ten surfaces at 1920×1080, 2560×1440, and 2560×1600); every image was inspected for clipping, overlap, hierarchy, focus, excessive effects, default styling, and 16:10 composition. The pass corrected fixed-anchor pivots, safe margins, header/action collisions, inspect action spacing, interrogation action width, memory overlay intensity, and keyboard-hint wrapping.
+
+Acceptance gates passed at 104/104 EditMode, 15/15 PlayMode, and Windows Development build. Phase 5C is ready for hands-on device/accessibility review; it does not constitute approval of temporary procedural visuals as final raster art.
+
+### Phase 5C.1 Capture-Review Addendum
+
+The final cleanup removed player-facing portrait-slot language and replaced missing portraits and evidence/object thumbnails with authored procedural silhouettes or forensic glyphs. Dialogue spacing/rules, Interrogation claim hierarchy, Evidence Acquired safe margins, missing-art Inspect composition, sparse Journal columns, Evidence Board selection/link/solved emphasis, and Memory omission/echo geometry were reviewed in actual production captures. Terminal and compact Objective composition required no redesign.
+
+All eight required investigation surfaces were re-inspected at 1920×1080 and 2560×1600. No engineering placeholder copy, clipping, viewport-edge critical text, raw empty image rectangle, or default Unity presentation remains in the reviewed frames. Final raster portraits, environments, evidence art, memory masks/shaders, typography, icons, and audio remain explicitly outside this pass.

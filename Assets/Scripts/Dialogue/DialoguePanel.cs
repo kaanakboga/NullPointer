@@ -1,12 +1,21 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using NullPointer.Visual;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace NullPointer.Dialogue
 {
+    public enum DialoguePresentationVariant
+    {
+        Normal,
+        Important,
+        MemoryCorrupted,
+        Interrogation
+    }
+
     [AddComponentMenu("Null Pointer/Dialogue/Dialogue Panel")]
     public sealed class DialoguePanel : MonoBehaviour
     {
@@ -18,11 +27,52 @@ namespace NullPointer.Dialogue
         [SerializeField] private Button _closeButton;
         [SerializeField] private Button[] _choiceButtons = Array.Empty<Button>();
         [SerializeField] private Text[] _choiceLabels = Array.Empty<Text>();
+        [SerializeField] private Image _portraitImage;
+        [SerializeField] private GameObject _portraitFallback;
+        [SerializeField] private CyberNoirPanelPresentation _presentation;
+        [SerializeField] private Text _modeLabel;
         private Coroutine _revealRoutine;
         private string _fullText = string.Empty;
         private IReadOnlyList<DialogueChoice> _pendingChoices = Array.Empty<DialogueChoice>();
 
         public bool IsRevealing => _revealRoutine != null;
+
+        public void ConfigurePresentation(
+            CyberNoirPanelPresentation presentation,
+            Image portraitImage,
+            GameObject portraitFallback)
+        {
+            ConfigurePresentation(presentation, portraitImage, portraitFallback, null);
+        }
+
+        public void ConfigurePresentation(
+            CyberNoirPanelPresentation presentation,
+            Image portraitImage,
+            GameObject portraitFallback,
+            Text modeLabel)
+        {
+            _presentation = presentation;
+            _portraitImage = portraitImage;
+            _portraitFallback = portraitFallback;
+            _modeLabel = modeLabel;
+            SetPresentationVariant(DialoguePresentationVariant.Normal);
+        }
+
+        public void SetPresentationVariant(DialoguePresentationVariant variant)
+        {
+            if (_modeLabel == null)
+            {
+                return;
+            }
+
+            _modeLabel.text = variant switch
+            {
+                DialoguePresentationVariant.Important => "ÖNEMLİ / ÖNCELİKLİ İLETİŞİM",
+                DialoguePresentationVariant.MemoryCorrupted => "BELLEK / BOZUK İLETİŞİM",
+                DialoguePresentationVariant.Interrogation => "İFADE / ÇELİŞKİ OTURUMU",
+                _ => "NORMAL / KAYITLI İLETİŞİM"
+            };
+        }
 
         public void Configure(
             GameObject panelRoot,
@@ -88,6 +138,22 @@ namespace NullPointer.Dialogue
             StopReveal();
             _panelRoot.SetActive(true);
             _speakerLabel.text = node?.Speaker == null ? string.Empty : node.Speaker.DisplayName;
+            if (_portraitImage != null)
+            {
+                Sprite portrait = node?.Speaker == null ? null : node.Speaker.Portrait;
+                FinalArtSlot slot = _portraitImage.GetComponent<FinalArtSlot>();
+                bool hasSlottedPortrait = slot != null && slot.HasFinalArt;
+                if (portrait != null)
+                {
+                    _portraitImage.sprite = portrait;
+                }
+
+                _portraitImage.enabled = portrait != null || hasSlottedPortrait;
+                if (_portraitFallback != null)
+                {
+                    _portraitFallback.SetActive(portrait == null && !hasSlottedPortrait);
+                }
+            }
             _fullText = node?.Text ?? string.Empty;
             _pendingChoices = choices ?? Array.Empty<DialogueChoice>();
             if (_historyLabel != null)
@@ -98,6 +164,7 @@ namespace NullPointer.Dialogue
             }
 
             HideChoices();
+            _presentation?.Reveal();
             _continueButton.gameObject.SetActive(true);
             EventSystem.current?.SetSelectedGameObject(_continueButton.gameObject);
             if (secondsPerCharacter <= 0f || string.IsNullOrEmpty(_fullText))
@@ -149,6 +216,18 @@ namespace NullPointer.Dialogue
                 if (isVisible && index < _choiceLabels.Length)
                 {
                     _choiceLabels[index].text = _pendingChoices[index].Text;
+                    UiTransition transition = _choiceButtons[index].GetComponent<UiTransition>();
+                    if (transition != null)
+                    {
+                        if (Application.isPlaying)
+                        {
+                            transition.PlayReveal();
+                        }
+                        else
+                        {
+                            transition.SnapVisible();
+                        }
+                    }
                 }
             }
 
@@ -159,7 +238,14 @@ namespace NullPointer.Dialogue
         public void Hide()
         {
             StopReveal();
-            _panelRoot.SetActive(false);
+            if (_presentation != null)
+            {
+                _presentation.HideAnimated();
+            }
+            else
+            {
+                _panelRoot.SetActive(false);
+            }
         }
 
         private void HideChoices()

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using NullPointer.Journal;
+using NullPointer.Visual;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -18,6 +19,9 @@ namespace NullPointer.Menus
         [SerializeField] private Button _questionsButton;
         [SerializeField] private Button _timelineButton;
         [SerializeField] private Button _backButton;
+        [SerializeField] private Text _sectionMetadata;
+        [SerializeField] private CyberNoirPanelPresentation _presentation;
+        [SerializeField] private RectTransform _contentPane;
         private JournalService _service;
         private Action _closed;
 
@@ -53,16 +57,34 @@ namespace NullPointer.Menus
             _backButton.onClick.AddListener(Close);
         }
 
+        public void ConfigurePresentation(
+            CyberNoirPanelPresentation presentation,
+            Text sectionMetadata,
+            RectTransform contentPane = null)
+        {
+            _presentation = presentation;
+            _sectionMetadata = sectionMetadata;
+            _contentPane = contentPane;
+        }
+
         public void Show()
         {
             gameObject.SetActive(true);
+            _presentation?.Reveal();
             ShowSection(JournalSection.Cases);
             EventSystem.current?.SetSelectedGameObject(_casesButton.gameObject);
         }
 
         public void Hide()
         {
-            gameObject.SetActive(false);
+            if (_presentation != null)
+            {
+                _presentation.HideAnimated();
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
         }
 
         public void Close()
@@ -82,18 +104,40 @@ namespace NullPointer.Menus
                 _ => section.ToString()
             };
             var entries = _service.GetEntries(section);
+            ApplyContentLayout(section == JournalSection.Questions || section == JournalSection.Timeline, entries.Count);
+            if (_sectionMetadata != null)
+            {
+                _sectionMetadata.text = $"SECTION / {section.ToString().ToUpperInvariant()}\nKAYIT SAYISI / {entries.Count:00}";
+            }
             _content.text = entries.Count == 0
                 ? "Henüz kayıt yok."
-                : string.Join("\n\n", entries.Select(entry => $"{entry.Title}\n{entry.Body}"));
+                : string.Join("\n\n", entries.Select((entry, index) => $"{index + 1:00}  ◇  {entry.Title}\n       {entry.Body}"));
         }
 
         private void ShowEvidence()
         {
             _heading.text = "KANITLAR";
             var evidence = _service.GetCollectedEvidence();
+            ApplyContentLayout(evidence.Count > 2, evidence.Count);
+            if (_sectionMetadata != null)
+            {
+                _sectionMetadata.text = $"SECTION / EVIDENCE\nKAYIT SAYISI / {evidence.Count:00}";
+            }
             _content.text = evidence.Count == 0
                 ? "Henüz kanıt kaydedilmedi."
-                : string.Join("\n\n", evidence.Select(item => $"{item.DisplayName}\n{item.Description}"));
+                : string.Join("\n\n", evidence.Select((item, index) => $"{index + 1:00}  ◆  {item.DisplayName}\n       {item.Description}"));
+        }
+
+        private void ApplyContentLayout(bool useWideLayout, int itemCount)
+        {
+            if (_contentPane == null)
+            {
+                return;
+            }
+
+            bool wide = useWideLayout || itemCount > 2;
+            _contentPane.anchoredPosition = wide ? new Vector2(240f, -44f) : new Vector2(80f, -44f);
+            _contentPane.sizeDelta = wide ? new Vector2(-520f, -198f) : new Vector2(-840f, -198f);
         }
     }
 }

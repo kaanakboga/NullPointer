@@ -7,6 +7,7 @@
         "NullPointer.Evidence",
         "NullPointer.Input",
         "NullPointer.Interaction",
+        "NullPointer.Visual",
         "Unity.ugui"
     ],
     "includePlatforms": [],

@@ -45,7 +45,7 @@ For every row, check Main Menu, Gameplay HUD, Pause, Settings, Inspect, Dialogue
 | --- | --- | --- |
 | 1920×1080 | 16:9 baseline | Pixel integer scale, framing, no clipping, UI reference match, prompt/subtitle safe area |
 | 2560×1440 | 16:9 high resolution | Crisp scale, no fractional sprite shimmer, effects do not become visually stronger |
-| 1920×1200 | 16:10 representative | No stretched world art; composition crop/extension is intentional; UI remains inside safe area |
+| 2560×1600 | 16:10 representative | No stretched world art; composition crop/extension is intentional; UI remains inside safe area |
 
 At each resolution:
 
@@ -79,13 +79,36 @@ At each resolution:
 
 Phase 5B.1 evidence: `Phase5BVisualCapture.CaptureAll` generated and the team inspected Main Menu, Main Menu Settings, Pause, and Pause Settings at all three required resolutions under ignored `Logs/VisualReview/`. The accepted pass removes colored interaction markers, eliminates blank/debug-formatted settings values, and preserves deliberate 16:10 composition.
 
+### Phase 5C Investigation-Surface Gate
+
+- [x] Dialogue, Inspect, Evidence Acquired, Evidence Board, Deduction Solved, Terminal, Journal, Objective Update, Interrogation, and Memory stay within safe bounds at 1920×1080, 2560×1440, and 2560×1600.
+- [x] Every modal has deterministic initial focus, keyboard/controller navigation, mouse-selectable controls, immediate `GameMode` recovery, and no gameplay-input bleed while open.
+- [x] Entrances, exits, staged rows/choices, connection emphasis, and feedback use unscaled interrupt-safe transitions; reduced-motion/effects settings preserve semantic state.
+- [x] Missing portrait/object/thumbnail art produces an authored fallback while approved replacements remain isolated behind stable `FinalArtSlot` IDs.
+- [x] Evidence selection, invalid deduction, solved deduction, and contradiction feedback do not use destructive state changes or color as the only cue.
+- [x] Terminal hierarchy remains readable under scan/cursor treatment; Journal questions/timeline and compact Objective updates do not resemble generic menu or MMO tracker UI.
+- [x] Memory is the only full-frame corruption treatment, uses supported authored text, and restores all transient FX on completion, skip, disable, and scene change.
+- [x] Production scenes contain one EventSystem, no missing scripts, and no default Unity control presentation on Phase 5C surfaces.
+
+Phase 5C evidence: `Phase5CVisualCapture.CaptureAll` produced 30 actual Unity-rendered production captures under ignored `Logs/VisualReview/`. All ten surfaces were inspected at all three required resolutions; no screenshot-diff assertions are used. Automated verification covers scene structure, variants/slots, modal state recovery, transition cleanup, connection pooling, and memory teardown.
+
+### Phase 5C.1 Final Polish Gate
+
+- [x] Dialogue and Interrogation missing portraits use intentional procedural silhouettes with no engineering placeholder language.
+- [x] Inspect and Evidence Acquired missing-art states use compact forensic fallbacks and preserve readable copy/safe margins.
+- [x] Sparse Journal categories use a narrower readable column while Questions and Timeline retain the wide layout path.
+- [x] Evidence Board selection, active relations, and solved-column separation remain legible at 16:9 and 16:10.
+- [x] Memory uses irregular omission strips, smaller displaced/echo regions, and a protected central text field rather than stacked full-screen placeholder panels.
+- [x] Dialogue, Inspect, Evidence Acquired, Evidence Board, Interrogation, Journal, Memory, and Terminal were manually inspected at 1920×1080 and 2560×1600.
+- [x] Automated verification passed at 106/106 EditMode and 15/15 PlayMode after the final capture-driven correction.
+
 ## Effects and Accessibility
 
 - [ ] Normal gameplay uses no chromatic split or tearing.
 - [ ] Scanlines/grain/noise remain subordinate to text and silhouettes.
 - [ ] Rain communicates depth without creating high-frequency flicker.
 - [ ] Bloom does not expand text strokes or erase pixel clusters.
-- [ ] Memory distortion returns completely to OFF after completion, skip, disable, and scene change.
+- [x] Memory distortion returns completely to OFF after completion, skip, disable, and scene change.
 - [ ] Reduced-glitch mode preserves every semantic cue with lower amplitude/frequency.
 - [ ] Reduced-flashing mode removes full-field flashes while retaining a readable border/value cue.
 - [ ] Zero-shake mode contains no camera displacement.

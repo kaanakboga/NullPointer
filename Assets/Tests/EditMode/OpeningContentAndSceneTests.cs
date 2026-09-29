@@ -4,18 +4,23 @@ using NullPointer.Deduction;
 using NullPointer.Dialogue;
 using NullPointer.Inspect;
 using NullPointer.Interaction;
+using NullPointer.Interrogation;
 using NullPointer.Memory;
 using NullPointer.Menus;
 using NullPointer.Player;
+using NullPointer.Progression;
 using NullPointer.Runtime;
 using NullPointer.SceneFlow;
 using NullPointer.Terminal;
+using NullPointer.UI;
 using NullPointer.Visual;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace NullPointer.Tests.EditMode
 {
@@ -135,6 +140,113 @@ namespace NullPointer.Tests.EditMode
                 RectTransform heading = pause.transform.Find("Pause Frame/Heading") as RectTransform;
                 Assert.That(heading, Is.Not.Null);
                 Assert.That(heading.pivot.x, Is.EqualTo(0f), "Pause heading must remain inside the viewport.");
+            });
+        }
+
+        [TestCase(ErenPath)]
+        [TestCase(MertPath)]
+        public void Phase5CSurfaces_UseOnePresentationStackAndStyledInteractiveControls(string scenePath)
+        {
+            WithScene(scenePath, roots =>
+            {
+                Assert.That(FindAllInRoots<EventSystem>(roots), Has.Length.EqualTo(1));
+                Assert.That(FindAllInRoots<CyberNoirPanelPresentation>(roots).Length,
+                    Is.GreaterThanOrEqualTo(9));
+
+                Component[] surfaces =
+                {
+                    FindInRoots<DialoguePanel>(roots),
+                    FindInRoots<InspectPanel>(roots),
+                    FindInRoots<EvidenceBoardPanel>(roots),
+                    FindInRoots<TerminalPanel>(roots),
+                    FindInRoots<JournalPanel>(roots),
+                    FindInRoots<MemoryPanel>(roots),
+                    FindInRoots<InterrogationPanel>(roots)
+                };
+                Assert.That(surfaces, Has.None.Null);
+                foreach (Component surface in surfaces)
+                {
+                    Assert.That(surface.GetComponent<CyberNoirPanelPresentation>(), Is.Not.Null,
+                        surface.name);
+                    Button[] buttons = surface.GetComponentsInChildren<Button>(true);
+                    Assert.That(buttons.All(button => button.GetComponent<CyberNoirButtonVisual>() != null),
+                        Is.True, $"{surface.name} contains an unthemed interactive button.");
+                }
+
+                Assert.That(FindInRoots<EvidenceNotificationController>(roots), Is.Not.Null);
+                Assert.That(FindInRoots<ObjectivePresenter>(roots), Is.Not.Null);
+            });
+        }
+
+        [TestCase(ErenPath)]
+        [TestCase(MertPath)]
+        public void Phase5CDialogue_HasAllErenPortraitContractsAndGracefulFallback(string scenePath)
+        {
+            WithScene(scenePath, roots =>
+            {
+                DialoguePanel dialogue = FindInRoots<DialoguePanel>(roots);
+                FinalArtSlot[] portraitSlots = dialogue.GetComponentsInChildren<FinalArtSlot>(true);
+                Assert.That(portraitSlots.Select(slot => slot.ManifestAssetId), Is.EquivalentTo(new[]
+                {
+                    "NP-CHR-EREN-PORTRAIT-N-001",
+                    "NP-CHR-EREN-PORTRAIT-C-001",
+                    "NP-CHR-EREN-PORTRAIT-S-001",
+                    "NP-CHR-EREN-PORTRAIT-A-001",
+                    "NP-CHR-EREN-PORTRAIT-X-001"
+                }));
+                Assert.That(dialogue.GetComponentsInChildren<Transform>(true)
+                    .Any(item => item.name == "Portrait Unassigned"), Is.True);
+            });
+        }
+
+        [TestCase(ErenPath)]
+        [TestCase(MertPath)]
+        public void Phase5C1Fallbacks_AreIntentionalAndContainNoEngineeringCopy(string scenePath)
+        {
+            WithScene(scenePath, roots =>
+            {
+                string[] forbidden = { "PORTRAIT SIGNAL", "UNASSIGNED", "SLOT / READY" };
+                Text[] labels = FindAllInRoots<Text>(roots);
+                Assert.That(labels.All(label => forbidden.All(term =>
+                        string.IsNullOrEmpty(label.text) || !label.text.Contains(term, System.StringComparison.OrdinalIgnoreCase))),
+                    Is.True, "Production UI contains player-facing placeholder engineering copy.");
+
+                Assert.That(FindAllInRoots<Transform>(roots).Any(item => item.name == "Portrait Unassigned"), Is.True);
+                Assert.That(FindAllInRoots<Transform>(roots).Any(item => item.name == "Forensic Object Fallback"), Is.True);
+                Assert.That(FindAllInRoots<Transform>(roots).Any(item => item.name == "Procedural Evidence Fallback"), Is.True);
+                Assert.That(FindAllInRoots<Transform>(roots).Any(item => item.name == "Presented Evidence Fallback"), Is.True);
+                Assert.That(FindAllInRoots<Transform>(roots).Any(item => item.name == "Protected Text Field"), Is.True);
+            });
+        }
+
+        [TestCase(1920, 1080)]
+        [TestCase(2560, 1440)]
+        [TestCase(2560, 1600)]
+        public void Phase5CModalFrames_FitSupportedCanvasBudget(int width, int height)
+        {
+            float scale = Mathf.Sqrt((width / 1920f) * (height / 1080f));
+            Vector2 logicalViewport = new(width / scale, height / scale);
+            Assert.That(logicalViewport.x, Is.GreaterThanOrEqualTo(1820f));
+            Assert.That(logicalViewport.y, Is.GreaterThanOrEqualTo(1080f));
+
+            WithScene(ErenPath, roots =>
+            {
+                CanvasScaler scaler = FindAllInRoots<CanvasScaler>(roots).Single();
+                Assert.That(scaler.uiScaleMode, Is.EqualTo(CanvasScaler.ScaleMode.ScaleWithScreenSize));
+                Assert.That(scaler.referenceResolution, Is.EqualTo(new Vector2(1920f, 1080f)));
+                Assert.That(scaler.matchWidthOrHeight, Is.EqualTo(0.5f).Within(0.001f));
+
+                string[] frameNames =
+                {
+                    "Dialogue Frame", "Inspect Frame", "Terminal Frame", "Journal Frame", "Board Frame",
+                    "Interrogation Frame"
+                };
+                foreach (string frameName in frameNames)
+                {
+                    RectTransform frame = FindAllInRoots<RectTransform>(roots).Single(item => item.name == frameName);
+                    Assert.That(frame.rect.width, Is.LessThanOrEqualTo(logicalViewport.x - 100f), frameName);
+                    Assert.That(frame.rect.height, Is.LessThanOrEqualTo(logicalViewport.y - 100f), frameName);
+                }
             });
         }
 

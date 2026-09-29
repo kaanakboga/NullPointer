@@ -6,6 +6,14 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 
 ### Added
 
+- Added the Phase 5C production presentation pass for Dialogue, Inspect, Evidence Acquired, Evidence Board/Deduction, Terminal, Journal, Objective updates, Interrogation, and Memory without changing their domain logic.
+- Added `CyberNoirPanelPresentation` for unscaled staged entrance/exit, scan and feedback motion with reduced-motion/effects support; production modal close paths now animate while state recovery remains immediate.
+- Added pooled `EvidenceConnectionView` relation lines, deterministic board rendering, solved/invalid feedback, dialogue presentation variants and animated choices, missing-art portrait/object fallbacks, terminal cursor hierarchy, compact objective updates, and hardened memory-FX teardown.
+- Added `Phase5CVisualCapture` and visually inspected 30 real production renders: ten investigation surfaces at 1920×1080, 2560×1440, and 2560×1600. The pass corrected fixed-anchor pivots, safe margins, action/header collisions, 16:10 framing, memory intensity, and input-hint wrapping.
+- Added Phase 5C EditMode and PlayMode coverage for generated scene structure/layout, presentation variants and art slots, modal isolation, animated cleanup, pooled connection reuse, and production teardown behavior.
+- Verified Phase 5C at 104/104 EditMode and 15/15 PlayMode tests and produced a successful Windows Development player.
+- Added the Phase 5C.1 capture-driven polish pass: removed engineering placeholder copy; added intentional portrait, forensic-object, and evidence-thumbnail fallbacks; made Inspect and Journal composition adaptive; strengthened Evidence Board selection/relations; and refined Interrogation and Memory hierarchy without changing gameplay logic.
+- Re-rendered the 30-view production capture set, manually rechecked all eight required investigation surfaces at 1920×1080 and 2560×1600, and passed the expanded 106/106 EditMode plus 15/15 PlayMode suites.
 - Added the Phase 5B.1 visual-quality pass: layered procedural FarCity/MidCity/window composition, clustered three-band rain, restrained distant-light/haze/reflection motion, and a missing-reference title signature while retaining exact final-art replacement slots.
 - Added premium bracket/index/accent menu focus, staggered Main/Pause row reveals, sequenced Settings content motion, grouped Settings composition, compact geometric sliders, mechanical shape-plus-text toggles, and a live resolution selector.
 - Added production-scene regression validation that keeps interactable colliders/logic active while hiding unapproved colored marker renderers until a `FinalArtSlot` receives approved art.

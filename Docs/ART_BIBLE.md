@@ -277,6 +277,18 @@ Glitches, memory locks, evidence acquisition, and deduction completion each requ
 - Main, Pause, and Settings controls use the same semantic surface, edge, glow, index, typography, and focus language. Disabled state remains readable without color alone.
 - UI sound hooks exist for focus, confirm, back, and invalid actions. Null clips are intentional and silent until approved audio is assigned; no temporary clip may be represented as final.
 
+## Phase 5C Investigation Interface Grammar
+
+Phase 5C applies the existing cyber-noir language to production investigation surfaces without changing their domain logic. Dialogue is a cinematic lower third with speaker-first hierarchy, portrait replacement slots, staged copy, animated choices, and normal/important/corrupted/interrogation-compatible variants. Inspect is a calm forensic close-up: object slot, classification, provenance metadata, readable description, and explicit evidence state. Missing portrait or object art uses a deliberate signal/scan fallback rather than an empty broken frame.
+
+Evidence acquisition is a short top-right registration card; critical evidence adds controlled amber emphasis without a full-screen interruption. The Evidence Board is the strongest analytical surface: cards use shape, index, state text, and focus brackets; pooled connection lines make selected relations legible; solved and invalid attempts use restrained cyan/amber feedback without mutating state on rejection. The board remains authored and deterministic rather than physics-driven.
+
+Terminal, Journal, Objective, Interrogation, and Memory each retain a distinct information density. Terminal uses directory/record hierarchy, timestamps, cursor, and restrained scan influence. Journal prioritizes stable tabs, unanswered questions, and a readable timeline. Objective updates stay compact and peripheral. Interrogation reserves red for contradiction pressure and always keeps claim, portrait fallback, evidence choices, and close action readable. Memory alone may temporarily violate the normal frame through authored tear, echo, desaturation, vignette, and brief flashes; supported text remains protected and all distortion returns to zero on completion, skip, disable, or scene change.
+
+Missing production art must read as an authored absence, never an engineering placeholder. Dialogue and Interrogation use neutral procedural silhouettes with signal geometry; Inspect and Evidence Acquired use compact forensic classification glyphs and scan structures. Sparse Journal sections narrow their reading column while Questions and Timeline retain the wider composition. These fallbacks contain no developer-facing status copy and remain temporary until approved Phase 5D/5E art is assigned through the existing slots.
+
+All Phase 5C modal surfaces use `CyberNoirPanelPresentation` for 180–320 ms unscaled entrance/exit, staged reveal, scan, and feedback. Reduced UI Motion shortens/removes displacement and Reduced Visual FX suppresses nonsemantic pulses/scans. Keyboard/controller focus is communicated by bracket, edge, value, and text rather than hue alone. The production reference layouts are approved structurally at 1920×1080, 2560×1440, and 2560×1600; approved raster art, portrait sprites, icons, final typography, and audio remain separate replacement work.
+
 ## Art Review Checklist
 
 - Does the focal point read at gameplay zoom and 1080p?

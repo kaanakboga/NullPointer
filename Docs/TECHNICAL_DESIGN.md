@@ -463,6 +463,20 @@ Settings uses separate AUDIO, DISPLAY, and ACCESSIBILITY/INTERFACE groups. Slide
 
 Unapproved interactable art is now an invisible renderer placeholder while the GameObject, collider, and interaction component remain active. `FinalArtSlot` re-enables the renderer automatically when approved art is assigned. EditMode scene validation prevents Eren/Mert production interactables from regressing to colored engineering markers.
 
+## Phase 5C Production Presentation Architecture
+
+The production Bootstrap scene owns every Phase 5C overlay and contains a single EventSystem. `OpeningContentBuilder` remains the idempotent structural authority: it builds Dialogue, Inspect, Evidence Notification, Evidence Board, Terminal, Journal, Objective, Interrogation, and Memory roots, wires their existing controllers, and preserves only approved `FinalArtSlot` sprite references across regeneration. Domain services and `GameModeController` continue to own state; presentation components do not infer story state or search scenes per frame.
+
+`CyberNoirPanelPresentation` composes the existing `UiTransition` with staged CanvasGroups, an optional scan line, and an optional feedback pulse. Reveal/exit animation uses unscaled time, immediately disables interaction while exiting, tolerates rapid direction changes, and fully deactivates the root on completion. Reduced UI Motion shortens the transition and removes displacement; Reduced Visual FX suppresses scan/pulse decoration. Dialogue choices have individual interrupt-safe reveals. Missing visual assets use explicit fallback fields and never block interaction.
+
+`EvidenceConnectionView` owns a pre-authored line pool. It deterministically maps the selected evidence-card order to adjacent relations, positions each `RectTransform` line without allocations, pulses success/invalid feedback, and returns every line to the inactive pool on clear/close. Deduction acceptance remains in `DeductionService`; the view cannot mutate evidence, deductions, or saves.
+
+Memory integrates `MemoryDistortionController` as a transient scene-level effect. Its chromatic, tear, echo, desaturation, vignette, and flash layers are authored/profile-driven and default inactive. Stop/completion/disable and scene teardown use Unity-aware destroyed-object checks and reset every layer, so normal gameplay cannot inherit corruption state.
+
+`Phase5CVisualCapture.CaptureFromCommandLine` opens the generated production scene and renders ten real UI states at 1920×1080, 2560×1440, and 2560×1600 into ignored `Logs/VisualReview/`. URP 2D capture requires a graphics device; run batch mode without `-nographics`. Captures are review evidence, not golden-image tests. EditMode validates structure/layout/slots and PlayMode validates modal/transition/pool teardown behavior.
+
+Phase 5C.1 keeps those ownership boundaries intact. Panels query only their assigned `FinalArtSlot`/sprite state to choose between final art and a pre-authored procedural fallback; no scene search or story inference was added. Inspect switches between full-art and compact-missing-art geometry, Journal selects sparse versus wide content composition from the visible entry count/section, and Interrogation reveals its evidence preview only after evidence is presented. `OpeningContentBuilder` remains the sole structural author, so regeneration is idempotent and both production apartment scenes receive the same corrected setup.
+
 ## Security and Data Safety
 
 - Treat save files as untrusted input: bound collections and strings, validate enums/IDs, and fail safely.

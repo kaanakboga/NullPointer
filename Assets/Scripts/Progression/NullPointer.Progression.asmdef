@@ -5,6 +5,7 @@
         "NullPointer.Content",
         "NullPointer.Core",
         "NullPointer.Save",
+        "NullPointer.Visual",
         "Unity.ugui"
     ],
     "includePlatforms": [],

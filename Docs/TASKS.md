@@ -161,6 +161,7 @@ The backlog covers the complete game target. It is not a promise that every impl
 | NP-ART-012 | NOT STARTED | Run global atlas, texture memory, overdraw, pixel stability, palette consistency, and asset provenance passes. |
 | NP-ART-013 | DONE | Complete Phase 5A visual foundation: production visual audit, 94-item external-art manifest, objective visual QA contract, semantic theme data, UI motion/button foundation, screen/environment FX hooks, default-off memory-distortion prototype, globally unique final-art slots with builder preservation, placeholder mapping, and an excluded procedural preview scene. |
 | NP-ART-014 | DONE | Completed Phase 5B/5B.1 production Main Menu, Pause, and Settings overhaul: cinematic/staggered reveals, exact final-art replacement slots, layered city/window depth, pooled three-band rain, shared premium cyber-noir controls, grouped Settings hierarchy, modal focus restoration, interrupt-safe unscaled transitions, persisted reduced-motion/FX options, hidden production debug markers, 12-view supported-aspect review, 97/97 EditMode + 13/13 PlayMode verification, and a successful Windows Development build. |
+| NP-ART-015 | DONE | Completed Phase 5C/5C.1 production investigation-interface overhaul for Dialogue, Inspect, Evidence Acquired, Evidence Board/Deduction, Terminal, Journal, Objective, Interrogation, and Memory: shared staged presentation, intentional missing-art fallbacks with no engineering copy, adaptive sparse/full layouts, pooled relation lines, modal/input safety, idempotent scene generation, 30-view 16:9/16:10 review, 106/106 EditMode + 15/15 PlayMode verification, and a successful Windows Development build. Final raster art, typography, icons, audio, and Phase 5D remain open. |
 
 ## Phase 9 — Narrative Preproduction and Content Production
 
@@ -229,4 +230,4 @@ The backlog covers the complete game target. It is not a promise that every impl
 
 ## First Recommended Next Task
 
-**Produce and approve the first Main Menu raster layer batch.** Import the manifest-defined Far/Mid/Near city, motif, fog, and screen-texture assets through `FinalArtSlot`, compare them against the twelve Phase 5B.1 reference captures, and keep procedural rain in Unity. Do not begin Chapter 2/gameplay redesign as part of that art-integration task.
+**Run a focused manual Phase 5C input/accessibility review in the Windows Development player.** Exercise every investigation modal with keyboard, controller, and mouse; verify reduced-motion/reduced-FX behavior and focus restoration; then record any device-specific defects before importing final portraits, evidence thumbnails, UI atlases, typography, or audio. Do not begin Chapter 2 or Phase 5D as part of that review.

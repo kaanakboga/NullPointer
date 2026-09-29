@@ -88,6 +88,7 @@ namespace NullPointer.Deduction
             if (candidate == null)
             {
                 _panel.SetStatus("Bu seçim doğrulanabilir bir çıkarım oluşturmuyor.");
+                _panel.PlayDeductionFeedback(false);
                 return;
             }
 
@@ -95,6 +96,7 @@ namespace NullPointer.Deduction
             _panel.SetStatus(result.Status == DeductionAttemptStatus.Completed
                 ? $"Çıkarım tamamlandı: {candidate.ResultTitle}"
                 : "Çıkarım için gerekli kanıtlar henüz tamamlanmadı.");
+            _panel.PlayDeductionFeedback(result.Status == DeductionAttemptStatus.Completed);
             _selectedEvidenceIds.Clear();
             Render();
         }

@@ -19,6 +19,7 @@
         "NullPointer.Progression",
         "NullPointer.Journal",
         "NullPointer.Interrogation",
+        "NullPointer.UI",
         "NullPointer.Menus",
         "NullPointer.Settings",
         "NullPointer.Visual",

@@ -5,6 +5,7 @@ using NullPointer.Core;
 using NullPointer.Deduction;
 using NullPointer.Dialogue;
 using NullPointer.Inspect;
+using NullPointer.Interrogation;
 using NullPointer.Interaction;
 using NullPointer.Memory;
 using NullPointer.Menus;
@@ -28,6 +29,7 @@ namespace NullPointer.Runtime
         [SerializeField] private TerminalController _terminalController;
         [SerializeField] private MemoryController _memoryController;
         [SerializeField] private EvidenceBoardController _evidenceBoardController;
+        [SerializeField] private InterrogationController _interrogationController;
         [SerializeField] private InteractionPromptController _interactionPrompt;
         [SerializeField] private EvidenceNotificationController _evidenceNotification;
         [SerializeField] private PauseMenuController _pauseMenuController;
@@ -48,6 +50,7 @@ namespace NullPointer.Runtime
             TerminalController terminalController,
             MemoryController memoryController,
             EvidenceBoardController evidenceBoardController,
+            InterrogationController interrogationController,
             InteractionPromptController interactionPrompt,
             EvidenceNotificationController evidenceNotification,
             SceneTransitionInteractable[] sceneTransitions,
@@ -61,6 +64,7 @@ namespace NullPointer.Runtime
             _terminalController = terminalController;
             _memoryController = memoryController;
             _evidenceBoardController = evidenceBoardController;
+            _interrogationController = interrogationController;
             _interactionPrompt = interactionPrompt;
             _evidenceNotification = evidenceNotification;
             _sceneTransitions = sceneTransitions ?? Array.Empty<SceneTransitionInteractable>();
@@ -118,6 +122,11 @@ namespace NullPointer.Runtime
                 application.InputReader,
                 application.EvidenceService,
                 application.DeductionService);
+            _interrogationController?.Initialize(
+                application.GameModes,
+                application.InputReader,
+                application.EvidenceService,
+                application.InterrogationService);
             _interactionPrompt.Initialize(_interactionDetector);
             _evidenceNotification.Initialize(application.EvidenceService);
             _objectivePresenter?.Initialize(application.ObjectiveService);

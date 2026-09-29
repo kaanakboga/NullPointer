@@ -63,6 +63,10 @@ namespace NullPointer.Interrogation
             InterrogationAttemptResult result = _service.PresentEvidence(
                 _claim.StableId,
                 _evidence[index].StableId);
+            _panel.SetPresentedEvidence(
+                _evidence[index],
+                result.Status == InterrogationAttemptStatus.ContradictionFound ||
+                result.Status == InterrogationAttemptStatus.AlreadyResolved);
             _panel.SetFeedback(result.Response);
         }
 

@@ -4,6 +4,7 @@
     "references": [
         "NullPointer.Evidence",
         "NullPointer.Interaction",
+        "NullPointer.Visual",
         "Unity.ugui"
     ],
     "includePlatforms": [],

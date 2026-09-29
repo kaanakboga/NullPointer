@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using NullPointer.Evidence;
+using NullPointer.Visual;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -18,6 +19,11 @@ namespace NullPointer.Deduction
         [SerializeField] private Button _closeButton;
         [SerializeField] private Button[] _evidenceButtons = Array.Empty<Button>();
         [SerializeField] private Text[] _evidenceLabels = Array.Empty<Text>();
+        [SerializeField] private CyberNoirPanelPresentation _presentation;
+        [SerializeField] private EvidenceConnectionView _connections;
+        [SerializeField] private RectTransform[] _evidenceCards = Array.Empty<RectTransform>();
+        [SerializeField] private Image[] _selectedPlates = Array.Empty<Image>();
+        [SerializeField] private Image _solvedPane;
 
         public void Configure(
             GameObject panelRoot,
@@ -56,9 +62,24 @@ namespace NullPointer.Deduction
             }
         }
 
+        public void ConfigurePresentation(
+            CyberNoirPanelPresentation presentation,
+            EvidenceConnectionView connections,
+            RectTransform[] evidenceCards,
+            Image[] selectedPlates = null,
+            Image solvedPane = null)
+        {
+            _presentation = presentation;
+            _connections = connections;
+            _evidenceCards = evidenceCards ?? Array.Empty<RectTransform>();
+            _selectedPlates = selectedPlates ?? Array.Empty<Image>();
+            _solvedPane = solvedPane;
+        }
+
         public void Show()
         {
             _panelRoot.SetActive(true);
+            _presentation?.Reveal();
         }
 
         public void RenderEvidence(IReadOnlyList<EvidenceData> evidence, ISet<string> selectedIds)
@@ -74,10 +95,16 @@ namespace NullPointer.Deduction
 
                 EvidenceData item = evidence[index];
                 bool selected = selectedIds.Contains(item.StableId);
+                if (index < _selectedPlates.Length && _selectedPlates[index] != null)
+                {
+                    _selectedPlates[index].gameObject.SetActive(selected);
+                }
                 _evidenceLabels[index].text = selected
-                    ? $"[SEÇİLİ] {item.DisplayName}"
-                    : item.DisplayName;
+                    ? $"◆  {item.DisplayName}\n     BAĞLANTI İÇİN SEÇİLDİ"
+                    : $"◇  {item.DisplayName}\n     {item.EvidenceType.ToString().ToUpperInvariant()}";
             }
+
+            RenderConnections(evidence, selectedIds);
 
             GameObject initialFocus = evidence != null && evidence.Count > 0
                 ? _evidenceButtons[0].gameObject
@@ -90,11 +117,28 @@ namespace NullPointer.Deduction
             _statusLabel.text = status ?? string.Empty;
         }
 
+        public void PlayDeductionFeedback(bool solved)
+        {
+            _connections?.Pulse(solved);
+            if (solved)
+            {
+                _presentation?.PlaySuccessFeedback();
+            }
+            else
+            {
+                _presentation?.PlayInvalidFeedback();
+            }
+        }
+
         public void SetSolved(IReadOnlyList<DeductionData> solved)
         {
             if (solved == null || solved.Count == 0)
             {
                 _solvedLabel.text = "Çözülmüş çıkarım yok.";
+                if (_solvedPane != null)
+                {
+                    _solvedPane.color = new Color(0.02f, 0.04f, 0.052f, 0.82f);
+                }
                 return;
             }
 
@@ -105,11 +149,42 @@ namespace NullPointer.Deduction
             }
 
             _solvedLabel.text = string.Join("\n\n", lines);
+            if (_solvedPane != null)
+            {
+                _solvedPane.color = new Color(0.025f, 0.09f, 0.1f, 0.94f);
+            }
         }
 
         public void Hide()
         {
-            _panelRoot.SetActive(false);
+            _connections?.Clear();
+            if (_presentation != null)
+            {
+                _presentation.HideAnimated();
+            }
+            else
+            {
+                _panelRoot.SetActive(false);
+            }
+        }
+
+        private void RenderConnections(IReadOnlyList<EvidenceData> evidence, ISet<string> selectedIds)
+        {
+            if (_connections == null || evidence == null || selectedIds == null)
+            {
+                return;
+            }
+
+            var selectedCards = new List<RectTransform>(_evidenceCards.Length);
+            for (int index = 0; index < evidence.Count && index < _evidenceCards.Length; index++)
+            {
+                if (selectedIds.Contains(evidence[index].StableId))
+                {
+                    selectedCards.Add(_evidenceCards[index]);
+                }
+            }
+
+            _connections.Render(selectedCards.ToArray());
         }
     }
 }

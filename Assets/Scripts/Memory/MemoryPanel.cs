@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using NullPointer.Visual;
 
 namespace NullPointer.Memory
 {
@@ -11,6 +12,8 @@ namespace NullPointer.Memory
         [SerializeField] private Text _titleLabel;
         [SerializeField] private Text _beatLabel;
         [SerializeField] private CanvasGroup _canvasGroup;
+        [SerializeField] private Text _fragmentLabel;
+        [SerializeField] private CyberNoirPanelPresentation _presentation;
 
         public void Configure(
             GameObject panelRoot,
@@ -31,18 +34,38 @@ namespace NullPointer.Memory
             _panelRoot.SetActive(true);
             _titleLabel.text = memory == null ? string.Empty : memory.Title;
             _beatLabel.text = string.Empty;
+            if (_fragmentLabel != null)
+            {
+                _fragmentLabel.text = "BELLEK PARÇASI / BÜTÜNLÜK BELİRSİZ\nKAYNAK EŞLEŞMESİ DEVAM EDİYOR";
+            }
             _canvasGroup.alpha = 1f;
+            _presentation?.Reveal();
+        }
+
+        public void ConfigurePresentation(CyberNoirPanelPresentation presentation, Text fragmentLabel)
+        {
+            _presentation = presentation;
+            _fragmentLabel = fragmentLabel;
         }
 
         public void ShowBeat(MemoryBeat beat)
         {
             _beatLabel.text = beat?.Text ?? string.Empty;
-            _overlay.color = beat?.OverlayColor ?? Color.clear;
+            Color overlay = beat?.OverlayColor ?? Color.clear;
+            overlay.a = Mathf.Min(overlay.a, 0.16f);
+            _overlay.color = overlay;
         }
 
         public void Hide()
         {
-            _panelRoot.SetActive(false);
+            if (_presentation != null)
+            {
+                _presentation.HideAnimated();
+            }
+            else
+            {
+                _panelRoot.SetActive(false);
+            }
         }
     }
 }

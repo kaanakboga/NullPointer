@@ -58,7 +58,10 @@ namespace NullPointer.Visual
 
             StopActiveRoutine();
             CacheRestingPositions();
-            _fxRoot?.SetActive(true);
+            if (_fxRoot != null)
+            {
+                _fxRoot.SetActive(true);
+            }
             if (_canvasGroup != null)
             {
                 _canvasGroup.alpha = 1f;
@@ -71,11 +74,57 @@ namespace NullPointer.Visual
             return true;
         }
 
+        public bool ShowPreview(MemoryDistortionProfile profile)
+        {
+            if (profile == null)
+            {
+                return false;
+            }
+
+            StopActiveRoutine();
+            CacheRestingPositions();
+            if (_fxRoot != null)
+            {
+                _fxRoot.SetActive(true);
+            }
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha = 1f;
+                _canvasGroup.blocksRaycasts = false;
+                _canvasGroup.interactable = false;
+            }
+
+            float envelope = Mathf.Clamp01(profile.Intensity * 0.62f);
+            SetAlpha(_overlay, envelope * profile.OverlayOpacity);
+            SetAlpha(_staticLayer, envelope * profile.StaticOpacity);
+            SetAlpha(_vignetteLayer, envelope * profile.VignetteShift);
+            SetAlpha(_flashLayer, 0f);
+            if (_tearBand != null)
+            {
+                _tearBand.anchoredPosition = _tearRestingPosition + new Vector2(profile.HorizontalTearing * 0.35f, 72f);
+            }
+
+            if (_chromaticLeft != null)
+            {
+                _chromaticLeft.anchoredPosition = _leftRestingPosition + Vector2.left * profile.ChromaticOffset * 0.45f;
+            }
+
+            if (_chromaticRight != null)
+            {
+                _chromaticRight.anchoredPosition = _rightRestingPosition + Vector2.right * profile.ChromaticOffset * 0.45f;
+            }
+
+            return true;
+        }
+
         public void StopImmediate()
         {
             StopActiveRoutine();
             ResetVisuals();
-            _fxRoot?.SetActive(false);
+            if (_fxRoot != null)
+            {
+                _fxRoot.SetActive(false);
+            }
         }
 
         private IEnumerator Animate(MemoryDistortionProfile profile, float duration)
@@ -118,7 +167,10 @@ namespace NullPointer.Visual
 
             _routine = null;
             ResetVisuals();
-            _fxRoot?.SetActive(false);
+            if (_fxRoot != null)
+            {
+                _fxRoot.SetActive(false);
+            }
         }
 
         private void CacheRestingPositions()
