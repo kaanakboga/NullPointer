@@ -28,6 +28,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
@@ -40,6 +42,8 @@ namespace NullPointer.Editor
         private const string MainMenuScenePath = "Assets/Scenes/MainMenu/SCN_MainMenu.unity";
         private const string ErenScenePath = "Assets/Scenes/Gameplay/SCN_ErenApartment.unity";
         private const string MertScenePath = "Assets/Scenes/Gameplay/SCN_MertApartment.unity";
+        private const string EnvironmentVolumeProfilePath = "Assets/Art/Effects/Profiles/VFX_Environment_Normal.asset";
+        private const string WorldPrimitivePath = "Assets/Art/Effects/World/VFX_SolidWorldPrimitive.asset";
         private const string DispatchReceivedFlag = "flag.dispatch.mert_assignment_received";
 
         private static readonly Color BackgroundColor = new Color(0.018f, 0.027f, 0.047f, 1f);
@@ -53,6 +57,9 @@ namespace NullPointer.Editor
         public static void RebuildAll()
         {
             VisualProductionBuilder.EnsureVisualAssets();
+            EnsureWorldPrimitive();
+            EnvironmentStagingTextureBuilder.EnsureAssets();
+            EnsureEnvironmentVolumeProfile();
             InputActionAsset inputActions = AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath);
             if (inputActions == null)
             {
@@ -964,6 +971,7 @@ namespace NullPointer.Editor
             BuildScene(ErenScenePath, () =>
             {
                 SceneSetup setup = CreateGameplayScene("EREN'İN DAİRESİ // 03:17", assets.ErenLocation);
+                BuildErenEnvironment(setup);
 
                 GameObject medication = CreateInteractableBlock(
                     "Neurological Medication",
@@ -1044,6 +1052,7 @@ namespace NullPointer.Editor
                     assets,
                     setup.Ui.TerminalController,
                     LocationAmbienceKind.DistantTraffic));
+                setup.Installer.ConfigureEnvironmentPresentation(setup.EnvironmentPresentation);
             });
         }
 
@@ -1052,13 +1061,7 @@ namespace NullPointer.Editor
             BuildScene(MertScenePath, () =>
             {
                 SceneSetup setup = CreateGameplayScene("MERT'İN DAİRESİ // OLAY YERİ", assets.MertLocation);
-
-                GameObject rainWindow = CreateWorldBlock("Rain Window", new Vector3(-4.9f, 1.4f, 0f), new Vector2(2.2f, 2.8f), new Color(0.04f, 0.2f, 0.27f, 1f), GetPlaceholderSprite(), false, -2);
-                AddFinalArtSlot(rainWindow, "slot.mert_apartment.rain_window", "NP-ENV-MERT-WINDOW-001", rainWindow.GetComponent<SpriteRenderer>());
-                GameObject workstationPool = CreateWorldBlock("Workstation Pool", new Vector3(-1.8f, -0.7f, 0f), new Vector2(2.6f, 1.8f), new Color(0.08f, 0.18f, 0.2f, 1f), GetPlaceholderSprite(), false, -2);
-                AddFinalArtSlot(workstationPool, "slot.mert_apartment.workstation", "NP-PROP-MERT-WORKSTATION-001", workstationPool.GetComponent<SpriteRenderer>());
-                GameObject lockedInterior = CreateWorldBlock("Locked Interior", new Vector3(4.6f, 0.1f, 0f), new Vector2(3.1f, 4.4f), new Color(0.08f, 0.06f, 0.12f, 1f), GetPlaceholderSprite(), false, -3);
-                AddFinalArtSlot(lockedInterior, "slot.mert_apartment.architecture", "NP-ENV-MERT-ARCH-001", lockedInterior.GetComponent<SpriteRenderer>());
+                BuildMertEnvironment(setup);
 
                 GameObject photograph = CreateInteractableBlock(
                     "Mert Photograph",
@@ -1162,6 +1165,7 @@ namespace NullPointer.Editor
                     setup.Ui.TerminalController,
                     LocationAmbienceKind.Rain,
                     assets.LockedRoomDeduction.StableId));
+                setup.Installer.ConfigureEnvironmentPresentation(setup.EnvironmentPresentation);
             });
         }
 
@@ -1210,32 +1214,850 @@ namespace NullPointer.Editor
             item.AddComponent<InspectInteractable>().Configure(setup.Ui.InspectController, inspection);
         }
 
+        private static void BuildErenEnvironment(SceneSetup setup)
+        {
+            Transform farCity = CreateLayerRoot(setup.VisualRoot, "FarCity");
+            Transform midCity = CreateLayerRoot(setup.VisualRoot, "MidCity");
+            Transform nearBuildings = CreateLayerRoot(setup.VisualRoot, "NearBuildings");
+            Transform windowFrame = CreateLayerRoot(setup.VisualRoot, "WindowFrame");
+            Transform windowGlass = CreateLayerRoot(setup.VisualRoot, "WindowGlass");
+            Transform rainBehindGlass = CreateLayerRoot(setup.VisualRoot, "RainBehindGlass");
+            Transform rainOnGlass = CreateLayerRoot(setup.VisualRoot, "RainOnGlass");
+            Transform roomArchitecture = CreateLayerRoot(setup.VisualRoot, "RoomArchitecture");
+            Transform wallSurface = CreateLayerRoot(setup.VisualRoot, "WallSurface");
+            Transform floorSurface = CreateLayerRoot(setup.VisualRoot, "FloorSurface");
+            Transform bedArea = CreateLayerRoot(setup.VisualRoot, "BedArea");
+            Transform deskArea = CreateLayerRoot(setup.VisualRoot, "DeskArea");
+            Transform terminalArea = CreateLayerRoot(setup.VisualRoot, "TerminalArea");
+            Transform shelves = CreateLayerRoot(setup.VisualRoot, "Shelves");
+            Transform personalProps = CreateLayerRoot(setup.VisualRoot, "PersonalProps");
+            Transform foregroundLeft = CreateLayerRoot(setup.VisualRoot, "ForegroundLeft");
+            Transform foregroundRight = CreateLayerRoot(setup.VisualRoot, "ForegroundRight");
+            Transform practicalLights = CreateLayerRoot(setup.VisualRoot, "PracticalLights");
+            Transform reflectionOverlay = CreateLayerRoot(setup.VisualRoot, "ReflectionOverlay");
+            Transform atmosphere = CreateLayerRoot(setup.VisualRoot, "Atmosphere");
+            Transform worldFx = CreateLayerRoot(setup.VisualRoot, "WorldFX");
+
+            AddEnvironmentBlock(farCity, "Night Sky", new Vector2(0f, 0.35f), new Vector2(32f, 17f),
+                new Color(0.015f, 0.027f, 0.052f), "Background", -2990, false);
+            AddEnvironmentArtSlot(farCity, "Final Art - Far City", new Vector2(0f, 0.4f), new Vector2(30f, 15.5f),
+                new Color(0.035f, 0.075f, 0.12f), "Background", -2870,
+                "slot.eren_apartment.far_city", "NP-ENV-EREN-CITY-001");
+            for (int index = 0; index < 13; index++)
+            {
+                float x = -15f + index * 2.55f;
+                float height = 3.8f + (index * 17 % 7) * 0.55f;
+                AddEnvironmentBlock(midCity, $"City Mass {index:00}", new Vector2(x, -0.1f + height * 0.5f),
+                    new Vector2(2.15f, height), new Color(0.035f, 0.07f + (index % 3) * 0.012f, 0.105f),
+                    "Background", -2650 + index, false);
+                for (int row = 0; row < 3; row++)
+                {
+                    if ((index + row) % 3 == 1)
+                    {
+                        continue;
+                    }
+                    AddEnvironmentBlock(midCity, $"Window {index:00}-{row}",
+                        new Vector2(x - 0.42f + row * 0.42f, 0.3f + row * 1.02f), new Vector2(0.18f, 0.34f),
+                        row == 2 ? new Color(0.55f, 0.38f, 0.2f, 0.62f) : new Color(0.2f, 0.55f, 0.62f, 0.52f),
+                        "Background", -2500 + index, false);
+                }
+            }
+            AddEnvironmentBlock(nearBuildings, "Near City Left", new Vector2(-12.7f, -0.2f), new Vector2(5.5f, 12.5f),
+                new Color(0.018f, 0.035f, 0.055f), "Background", -2200, false);
+            AddEnvironmentBlock(nearBuildings, "Near City Right", new Vector2(12.6f, 0.1f), new Vector2(6.3f, 13.2f),
+                new Color(0.014f, 0.028f, 0.046f), "Background", -2190, false);
+
+            AddEnvironmentArtSlot(windowGlass, "Final Art - Window", new Vector2(0f, 1.35f), new Vector2(24f, 11.9f),
+                new Color(0.035f, 0.095f, 0.125f, 0.32f), "Environment", -1840,
+                "slot.eren_apartment.window", "NP-ENV-EREN-WINDOW-001");
+            AddEnvironmentBlock(windowFrame, "Window Header", new Vector2(0f, 7.12f), new Vector2(30f, 0.55f),
+                new Color(0.045f, 0.055f, 0.07f), "Environment", -1720, true);
+            AddEnvironmentBlock(windowFrame, "Window Sill", new Vector2(0f, -4.42f), new Vector2(30f, 0.62f),
+                new Color(0.035f, 0.045f, 0.058f), "Environment", -1710, true);
+            foreach (float x in new[] { -11.7f, -5.9f, 0f, 5.9f, 11.7f })
+            {
+                AddEnvironmentBlock(windowFrame, $"Window Mullion {x:0.0}", new Vector2(x, 1.35f), new Vector2(0.22f, 11.6f),
+                    new Color(0.045f, 0.055f, 0.07f), "Environment", -1700, true);
+            }
+
+            AddEnvironmentArtSlot(roomArchitecture, "Final Art - Architecture", Vector3.zero, new Vector2(30f, 16.875f),
+                new Color(0.035f, 0.043f, 0.055f, 0.22f), "Environment", -1550,
+                "slot.eren_apartment.architecture", "NP-ENV-EREN-ARCH-001");
+            AddEnvironmentArtSlot(wallSurface, "Final Art - Room Surface", new Vector2(0f, 0.6f), new Vector2(29.5f, 15.6f),
+                new Color(0.055f, 0.06f, 0.072f, 0.37f), "Environment", -1500,
+                "slot.eren_apartment.room_surface", "NP-ENV-EREN-ROOM-001");
+            AddEnvironmentArtSlot(roomArchitecture, "Final Art - Door", new Vector2(4.65f, 0.15f), new Vector2(2.2f, 5.4f),
+                new Color(0.075f, 0.055f, 0.052f), "PropsBack", -740,
+                "slot.eren_apartment.environment_door", "NP-PROP-EREN-DOOR-001");
+            AddEnvironmentBlock(wallSurface, "Left Interior Wall", new Vector2(-10.3f, 1.5f), new Vector2(8.1f, 11.2f),
+                new Color(0.075f, 0.065f, 0.07f, 0.93f), "Environment", -1450, true);
+            AddEnvironmentBlock(wallSurface, "Right Interior Wall", new Vector2(10.5f, 1.5f), new Vector2(7.7f, 11.2f),
+                new Color(0.045f, 0.052f, 0.067f, 0.92f), "Environment", -1450, true);
+            AddEnvironmentBlock(floorSurface, "Walk Plane", new Vector2(0f, -4.72f), new Vector2(30f, 7.45f),
+                new Color(0.055f, 0.065f, 0.075f), "Environment", -1120, true);
+            AddEnvironmentBlock(floorSurface, "Floor Reflection Band", new Vector2(0f, -2.05f), new Vector2(30f, 0.055f),
+                new Color(0.36f, 0.55f, 0.58f, 0.28f), "Environment", -1080, true);
+
+            AddEnvironmentArtSlot(bedArea, "Final Art - Bed", new Vector2(-4.8f, -1.15f), new Vector2(4.6f, 2.45f),
+                new Color(0.14f, 0.095f, 0.09f), "PropsBack", -650,
+                "slot.eren_apartment.bed", "NP-PROP-EREN-BED-001");
+            AddEnvironmentBlock(bedArea, "Bed Frame", new Vector2(-4.75f, -1.58f), new Vector2(4.9f, 0.48f),
+                new Color(0.08f, 0.065f, 0.06f), "PropsBack", -600, true);
+            AddEnvironmentBlock(bedArea, "Rumpled Blanket", new Vector2(-4.55f, -0.9f), new Vector2(3.9f, 0.95f),
+                new Color(0.18f, 0.105f, 0.09f), "PropsBack", -570, true);
+            AddEnvironmentArtSlot(deskArea, "Final Art - Desk", new Vector2(2.15f, -0.9f), new Vector2(4.25f, 2.15f),
+                new Color(0.085f, 0.08f, 0.073f), "PropsBack", -520,
+                "slot.eren_apartment.desk", "NP-PROP-EREN-DESK-001");
+            AddEnvironmentBlock(deskArea, "Desk Top", new Vector2(2.1f, -0.72f), new Vector2(4.35f, 0.24f),
+                new Color(0.14f, 0.1f, 0.075f), "PropsBack", -490, true);
+            AddEnvironmentBlock(deskArea, "Desk Legs", new Vector2(2.1f, -1.45f), new Vector2(3.7f, 1.3f),
+                new Color(0.055f, 0.047f, 0.045f), "PropsBack", -530, true);
+            AddEnvironmentBlock(terminalArea, "Dispatch Screen", new Vector2(1.75f, 0.1f), new Vector2(2.35f, 1.28f),
+                new Color(0.08f, 0.34f, 0.36f), "PropsBack", -430, true);
+            SpriteRenderer terminalGlow = AddEnvironmentBlock(terminalArea, "Dispatch Screen Core", new Vector2(1.75f, 0.1f), new Vector2(1.95f, 0.94f),
+                new Color(0.35f, 0.84f, 0.78f, 0.28f), "Effects", 1040, false);
+            AddEnvironmentArtSlot(shelves, "Final Art - Shelves", new Vector2(-9.8f, 0.8f), new Vector2(2.9f, 5.8f),
+                new Color(0.065f, 0.057f, 0.055f), "PropsBack", -700,
+                "slot.eren_apartment.shelves", "NP-PROP-EREN-SHELF-001");
+            for (int row = 0; row < 4; row++)
+            {
+                AddEnvironmentBlock(shelves, $"Shelf {row}", new Vector2(-9.8f, -1f + row * 1.25f), new Vector2(2.8f, 0.12f),
+                    new Color(0.13f, 0.09f, 0.07f), "PropsBack", -620 + row, true);
+            }
+            AddEnvironmentArtSlot(personalProps, "Final Art - Personal Clutter", new Vector2(-0.8f, -1.35f), new Vector2(5.5f, 1.7f),
+                new Color(0.12f, 0.095f, 0.075f, 0.72f), "PropsFront", 220,
+                "slot.eren_apartment.personal_props", "NP-PROP-EREN-CLUTTER-001");
+
+            AddEnvironmentBlock(foregroundLeft, "Foreground Left Frame", new Vector2(-14.75f, 0.4f), new Vector2(1.1f, 17.5f),
+                new Color(0.008f, 0.012f, 0.019f, 0.96f), "Foreground", 2100, false);
+            AddEnvironmentBlock(foregroundRight, "Foreground Right Frame", new Vector2(14.72f, 0.4f), new Vector2(1.15f, 17.5f),
+                new Color(0.006f, 0.01f, 0.017f, 0.96f), "Foreground", 2110, false);
+            AddEnvironmentArtSlot(foregroundRight, "Final Art - Foreground", new Vector2(12.8f, -0.1f), new Vector2(5.9f, 17f),
+                new Color(0.025f, 0.035f, 0.043f, 0.54f), "Foreground", 2050,
+                "slot.eren_apartment.foreground", "NP-ENV-EREN-FORE-001");
+
+            AddEnvironmentBlock(practicalLights, "Bedside Lamp Shade", new Vector2(-5.4f, 0.42f), new Vector2(0.72f, 0.46f),
+                new Color(0.82f, 0.38f, 0.12f), "PropsFront", 410, true);
+            AddEnvironmentBlock(practicalLights, "Bedside Lamp Stem", new Vector2(-5.4f, -0.2f), new Vector2(0.1f, 0.9f),
+                new Color(0.22f, 0.13f, 0.09f), "PropsFront", 405, true);
+            AddEnvironmentBlock(practicalLights, "Door Practical Source", new Vector2(4.65f, 2.35f), new Vector2(0.8f, 0.12f),
+                new Color(0.9f, 0.38f, 0.14f), "PropsFront", 415, true);
+            CreateGlobalLight(practicalLights, "Global Night Fill", new Color(0.68f, 0.76f, 0.9f), 0.72f);
+            CreatePointLight(practicalLights, "Bedside Lamp", new Vector2(-5.4f, 0.5f), new Color(1f, 0.48f, 0.18f), 1.34f, 4.7f);
+            CreatePointLight(practicalLights, "Window Spill", new Vector2(0f, 2.1f), new Color(0.16f, 0.54f, 0.68f), 0.52f, 8.2f);
+            CreatePointLight(practicalLights, "Terminal Light", new Vector2(6.8f, -0.05f), new Color(0.16f, 0.78f, 0.76f), 1.32f, 3.2f);
+            CreatePointLight(practicalLights, "Door Practical", new Vector2(0.7f, 1.1f), new Color(0.82f, 0.34f, 0.16f), 0.42f, 2.6f);
+
+            SpriteRenderer reflection = AddEnvironmentBlock(reflectionOverlay, "Wet Floor Reflection", new Vector2(1.2f, -2.1f), new Vector2(9.8f, 1.25f),
+                new Color(0.18f, 0.54f, 0.58f, 0.1f), "Effects", 1110, false);
+            SpriteRenderer haze = AddEnvironmentBlock(atmosphere, "Interior Haze", new Vector2(0f, 0.5f), new Vector2(24f, 8.5f),
+                new Color(0.12f, 0.3f, 0.34f, 0.035f), "Effects", 1200, false);
+            List<Transform> rain = new();
+            CreateRainField(rainBehindGlass, rain, 12, -11.4f, 11.4f, -4f, 7.2f, -1780, 0.075f);
+            int farRainCount = rain.Count;
+            CreateRainField(rainOnGlass, rain, 5, -11.4f, 11.4f, -4f, 7.2f, -1660, 0.14f);
+            AddEnvironmentBlock(worldFx, "Window Condensation", new Vector2(-4.1f, 2.5f), new Vector2(5.8f, 6.5f),
+                new Color(0.3f, 0.6f, 0.63f, 0.025f), "Effects", 1180, false);
+
+            AddErenStagingDetail(midCity, roomArchitecture, wallSurface, floorSurface, bedArea, deskArea,
+                terminalArea, shelves, personalProps, foregroundLeft, foregroundRight);
+
+            InstallPixelEnvironmentStaging(setup.VisualRoot, false);
+
+            setup.EnvironmentPresentation.Configure(setup.WorldCamera, setup.Player.transform,
+                new[] { farCity, midCity, nearBuildings }, new[] { 0.012f, 0.026f, 0.048f },
+                rain.ToArray(), new[] { reflection, haze }, new[] { terminalGlow }, farRainCount);
+        }
+
+        private static void BuildMertEnvironment(SceneSetup setup)
+        {
+            Transform farExterior = CreateLayerRoot(setup.VisualRoot, "FarExterior");
+            Transform window = CreateLayerRoot(setup.VisualRoot, "Window");
+            Transform architecture = CreateLayerRoot(setup.VisualRoot, "Architecture");
+            Transform floor = CreateLayerRoot(setup.VisualRoot, "Floor");
+            Transform mainWorkstation = CreateLayerRoot(setup.VisualRoot, "MainWorkstation");
+            Transform secondaryDisplays = CreateLayerRoot(setup.VisualRoot, "SecondaryDisplays");
+            Transform researchHardware = CreateLayerRoot(setup.VisualRoot, "ResearchHardware");
+            Transform medicalEquipment = CreateLayerRoot(setup.VisualRoot, "MedicalMemoryEquipment");
+            Transform evidenceProps = CreateLayerRoot(setup.VisualRoot, "EvidenceProps");
+            Transform doorArea = CreateLayerRoot(setup.VisualRoot, "DoorArea");
+            Transform storage = CreateLayerRoot(setup.VisualRoot, "Storage");
+            Transform cableClusters = CreateLayerRoot(setup.VisualRoot, "CableClusters");
+            Transform disturbedClutter = CreateLayerRoot(setup.VisualRoot, "DisturbedClutter");
+            Transform foreground = CreateLayerRoot(setup.VisualRoot, "Foreground");
+            Transform lighting = CreateLayerRoot(setup.VisualRoot, "Lighting");
+            Transform atmosphere = CreateLayerRoot(setup.VisualRoot, "Atmosphere");
+            Transform worldFx = CreateLayerRoot(setup.VisualRoot, "WorldFX");
+
+            AddEnvironmentBlock(farExterior, "Cold Exterior", new Vector2(0f, 0.35f), new Vector2(32f, 17f),
+                new Color(0.012f, 0.025f, 0.047f), "Background", -2990, false);
+            AddEnvironmentArtSlot(farExterior, "Final Art - Far Exterior", new Vector2(-5.5f, 1f), new Vector2(18f, 14f),
+                new Color(0.025f, 0.065f, 0.1f), "Background", -2820,
+                "slot.mert_apartment.far_exterior", "NP-ENV-MERT-FAR-001");
+            for (int index = 0; index < 9; index++)
+            {
+                AddEnvironmentBlock(farExterior, $"Exterior Tower {index:00}",
+                    new Vector2(-14f + index * 2.55f, -0.2f + (index % 3) * 0.65f),
+                    new Vector2(2.2f, 8f + (index * 5 % 4)), new Color(0.025f, 0.052f, 0.08f),
+                    "Background", -2700 + index, false);
+            }
+            AddEnvironmentArtSlot(window, "Final Art - Window", new Vector2(-6.8f, 1.45f), new Vector2(8.3f, 11.8f),
+                new Color(0.055f, 0.15f, 0.19f, 0.38f), "Environment", -1830,
+                "slot.mert_apartment.window", "NP-ENV-MERT-WINDOW-001");
+            AddEnvironmentBlock(window, "Window Frame Left", new Vector2(-11f, 1.4f), new Vector2(0.3f, 12.2f),
+                new Color(0.05f, 0.065f, 0.078f), "Environment", -1760, true);
+            AddEnvironmentBlock(window, "Window Frame Center", new Vector2(-6.8f, 1.4f), new Vector2(0.24f, 12.2f),
+                new Color(0.05f, 0.065f, 0.078f), "Environment", -1760, true);
+            AddEnvironmentBlock(window, "Window Frame Right", new Vector2(-2.65f, 1.4f), new Vector2(0.3f, 12.2f),
+                new Color(0.05f, 0.065f, 0.078f), "Environment", -1760, true);
+
+            AddEnvironmentArtSlot(architecture, "Final Art - Architecture", Vector3.zero, new Vector2(30f, 16.875f),
+                new Color(0.045f, 0.055f, 0.068f, 0.42f), "Environment", -1550,
+                "slot.mert_apartment.architecture", "NP-ENV-MERT-ARCH-001");
+            AddEnvironmentBlock(architecture, "Clinical Wall", new Vector2(6.2f, 1.1f), new Vector2(17.4f, 12.4f),
+                new Color(0.055f, 0.07f, 0.082f), "Environment", -1480, true);
+            for (int index = 0; index < 7; index++)
+            {
+                AddEnvironmentBlock(architecture, $"Wall Seam {index:00}", new Vector2(-0.8f + index * 2.35f, 1.2f),
+                    new Vector2(0.035f, 11.6f), new Color(0.15f, 0.22f, 0.25f, 0.2f), "Environment", -1410, true);
+            }
+            AddEnvironmentArtSlot(floor, "Final Art - Floor", new Vector2(0f, -4.72f), new Vector2(30f, 7.45f),
+                new Color(0.045f, 0.065f, 0.075f), "Environment", -1120,
+                "slot.mert_apartment.room_surface", "NP-ENV-MERT-ROOM-001");
+            for (int index = 0; index < 12; index++)
+            {
+                AddEnvironmentBlock(floor, $"Floor Joint {index:00}", new Vector2(-14f + index * 2.5f, -2.6f),
+                    new Vector2(0.03f, 3f), new Color(0.2f, 0.36f, 0.38f, 0.14f), "Environment", -1080, true);
+            }
+
+            AddEnvironmentArtSlot(mainWorkstation, "Final Art - Main Workstation", new Vector2(-2.35f, -0.45f), new Vector2(5.2f, 3.2f),
+                new Color(0.055f, 0.11f, 0.13f), "PropsBack", -620,
+                "slot.mert_apartment.main_workstation", "NP-PROP-MERT-WORKSTATION-001");
+            AddEnvironmentBlock(mainWorkstation, "Workstation Desk", new Vector2(-2.25f, -0.72f), new Vector2(5.3f, 0.34f),
+                new Color(0.08f, 0.095f, 0.1f), "PropsBack", -560, true);
+            AddEnvironmentBlock(mainWorkstation, "Workstation Pedestal", new Vector2(-2.3f, -1.5f), new Vector2(4.4f, 1.38f),
+                new Color(0.035f, 0.052f, 0.06f), "PropsBack", -590, true);
+            AddEnvironmentArtSlot(secondaryDisplays, "Final Art - Secondary Displays", new Vector2(-2.2f, 1.1f), new Vector2(5.6f, 2.5f),
+                new Color(0.06f, 0.25f, 0.3f), "PropsBack", -470,
+                "slot.mert_apartment.secondary_displays", "NP-PROP-MERT-MONITORS-001");
+            List<SpriteRenderer> signals = new();
+            for (int index = 0; index < 4; index++)
+            {
+                signals.Add(AddEnvironmentBlock(secondaryDisplays, $"Diagnostic Display {index:00}",
+                    new Vector2(-4.15f + index * 1.3f, 1.1f + (index % 2) * 0.35f), new Vector2(1.05f, 1.2f),
+                    index == 3 ? new Color(0.48f, 0.12f, 0.16f, 0.7f) : new Color(0.14f, 0.55f, 0.62f, 0.65f),
+                    "Effects", 1030 + index, false));
+            }
+            AddEnvironmentArtSlot(researchHardware, "Final Art - Research Hardware", new Vector2(3.2f, -0.3f), new Vector2(4.5f, 4.4f),
+                new Color(0.075f, 0.09f, 0.1f), "PropsBack", -610,
+                "slot.mert_apartment.research_hardware", "NP-PROP-MERT-MEDICAL-001");
+            AddEnvironmentBlock(researchHardware, "Research Rack", new Vector2(3.2f, -0.05f), new Vector2(2.9f, 4.9f),
+                new Color(0.045f, 0.062f, 0.07f), "PropsBack", -570, true);
+            for (int index = 0; index < 5; index++)
+            {
+                AddEnvironmentBlock(researchHardware, $"Rack Module {index:00}", new Vector2(3.2f, -1.6f + index * 0.72f),
+                    new Vector2(2.45f, 0.45f), new Color(0.085f, 0.115f, 0.12f), "PropsBack", -530 + index, true);
+            }
+            AddEnvironmentArtSlot(medicalEquipment, "Final Art - Memory Equipment", new Vector2(-0.9f, -0.7f), new Vector2(2.4f, 2.6f),
+                new Color(0.08f, 0.16f, 0.17f, 0.8f), "PropsFront", 180,
+                "slot.mert_apartment.memory_equipment", "NP-PROP-MERT-IMPLANT-001");
+            AddEnvironmentBlock(medicalEquipment, "Implant Examination Pool", new Vector2(-0.9f, -1.35f), new Vector2(1.5f, 0.28f),
+                new Color(0.38f, 0.78f, 0.75f, 0.42f), "Effects", 1060, false);
+            AddEnvironmentArtSlot(evidenceProps, "Final Art - Evidence Props", new Vector2(0.7f, -1.25f), new Vector2(8.8f, 1.9f),
+                new Color(0.1f, 0.12f, 0.12f, 0.7f), "PropsFront", 220,
+                "slot.mert_apartment.evidence_props", "NP-PROP-MERT-NOTES-001");
+            AddEnvironmentArtSlot(doorArea, "Final Art - Door", new Vector2(5.5f, 0.2f), new Vector2(3.2f, 6.5f),
+                new Color(0.055f, 0.065f, 0.075f), "PropsBack", -420,
+                "slot.mert_apartment.door", "NP-PROP-MERT-DOOR-001");
+            AddEnvironmentBlock(doorArea, "Door Fault Strip", new Vector2(4.15f, 0.55f), new Vector2(0.08f, 5.2f),
+                new Color(0.65f, 0.12f, 0.16f, 0.78f), "Effects", 1080, false);
+            AddEnvironmentBlock(storage, "Cold Storage", new Vector2(9.3f, 0.15f), new Vector2(3.2f, 6.4f),
+                new Color(0.04f, 0.055f, 0.065f), "PropsBack", -650, true);
+            for (int row = 0; row < 5; row++)
+            {
+                AddEnvironmentBlock(storage, $"Storage Drawer {row:00}", new Vector2(9.3f, -1.8f + row * 1f), new Vector2(2.65f, 0.72f),
+                    new Color(0.075f, 0.09f, 0.1f), "PropsBack", -600 + row, true);
+            }
+            AddEnvironmentArtSlot(cableClusters, "Final Art - Cable Clusters", new Vector2(0.3f, -1.85f), new Vector2(10f, 1.1f),
+                new Color(0.035f, 0.05f, 0.055f), "PropsFront", 260,
+                "slot.mert_apartment.cables", "NP-PROP-MERT-CABLES-001");
+            for (int index = 0; index < 9; index++)
+            {
+                SpriteRenderer cable = AddEnvironmentBlock(cableClusters, $"Cable {index:00}",
+                    new Vector2(-4.1f + index * 1.05f, -1.82f + (index % 2) * 0.18f), new Vector2(1.6f, 0.055f),
+                    new Color(0.02f, 0.035f, 0.04f), "PropsFront", 280 + index, true);
+                cable.transform.rotation = Quaternion.Euler(0f, 0f, -10f + index * 3f);
+            }
+            AddEnvironmentArtSlot(disturbedClutter, "Final Art - Disturbed Clutter", new Vector2(1.5f, -1.2f), new Vector2(8.7f, 2.2f),
+                new Color(0.085f, 0.075f, 0.065f, 0.55f), "PropsFront", 310,
+                "slot.mert_apartment.clutter", "NP-PROP-MERT-CLUTTER-001");
+            SpriteRenderer fallenChair = AddEnvironmentBlock(disturbedClutter, "Fallen Chair", new Vector2(1.55f, -1.35f), new Vector2(1.5f, 1.1f),
+                new Color(0.075f, 0.08f, 0.08f), "PropsFront", 340, true);
+            fallenChair.transform.rotation = Quaternion.Euler(0f, 0f, 22f);
+
+            AddEnvironmentBlock(foreground, "Foreground Left", new Vector2(-14.75f, 0.4f), new Vector2(1.1f, 17.5f),
+                new Color(0.006f, 0.01f, 0.018f, 0.97f), "Foreground", 2100, false);
+            AddEnvironmentBlock(foreground, "Foreground Right", new Vector2(14.72f, 0.4f), new Vector2(1.15f, 17.5f),
+                new Color(0.006f, 0.01f, 0.016f, 0.97f), "Foreground", 2110, false);
+
+            AddEnvironmentBlock(lighting, "Workstation Source Bar", new Vector2(-2.4f, 3.05f), new Vector2(3.8f, 0.12f),
+                new Color(0.18f, 0.62f, 0.68f), "PropsFront", 420, true);
+            AddEnvironmentBlock(lighting, "Implant Source Ring", new Vector2(-0.9f, -0.25f), new Vector2(1.7f, 0.08f),
+                new Color(0.42f, 0.82f, 0.76f), "PropsFront", 425, true);
+            CreateGlobalLight(lighting, "Global Clinical Fill", new Color(0.64f, 0.74f, 0.88f), 0.62f);
+            CreatePointLight(lighting, "Workstation Light", new Vector2(-1.2f, 0.4f), new Color(0.12f, 0.68f, 0.76f), 1.38f, 4.8f);
+            CreatePointLight(lighting, "Implant Examination Light", new Vector2(7.6f, -0.3f), new Color(0.5f, 0.88f, 0.82f), 1.58f, 2.5f);
+            CreatePointLight(lighting, "Fault Light", new Vector2(12.3f, 0.55f), new Color(0.72f, 0.1f, 0.15f), 0.5f, 2.4f);
+            CreatePointLight(lighting, "Exterior Spill", new Vector2(-10.4f, 2.2f), new Color(0.14f, 0.45f, 0.6f), 0.45f, 6.4f);
+
+            SpriteRenderer mist = AddEnvironmentBlock(atmosphere, "Cold Interior Haze", new Vector2(1.5f, 0.2f), new Vector2(22f, 8f),
+                new Color(0.1f, 0.27f, 0.32f, 0.03f), "Effects", 1200, false);
+            SpriteRenderer floorReflection = AddEnvironmentBlock(worldFx, "Clinical Floor Reflection", new Vector2(-1.3f, -2.08f), new Vector2(12f, 1.15f),
+                new Color(0.12f, 0.5f, 0.55f, 0.095f), "Effects", 1130, false);
+            List<Transform> rain = new();
+            CreateRainField(window, rain, 8, -10.7f, -2.9f, -4f, 7.2f, -1680, 0.09f);
+            AddEnvironmentBlock(worldFx, "Diagnostic Dust", new Vector2(3.2f, 0.1f), new Vector2(7f, 5.6f),
+                new Color(0.2f, 0.44f, 0.46f, 0.022f), "Effects", 1190, false);
+
+            AddMertStagingDetail(farExterior, architecture, floor, mainWorkstation, secondaryDisplays,
+                researchHardware, medicalEquipment, evidenceProps, doorArea, storage, cableClusters,
+                disturbedClutter, foreground);
+
+            InstallPixelEnvironmentStaging(setup.VisualRoot, true);
+
+            setup.EnvironmentPresentation.Configure(setup.WorldCamera, setup.Player.transform,
+                new[] { farExterior }, new[] { 0.018f }, rain.ToArray(),
+                new[] { mist, floorReflection }, signals.ToArray(), rain.Count);
+        }
+
+        private static Transform CreateLayerRoot(Transform parent, string name)
+        {
+            var root = new GameObject(name);
+            root.transform.SetParent(parent, false);
+            return root.transform;
+        }
+
+        private static SpriteRenderer AddEnvironmentArtSlot(
+            Transform parent,
+            string name,
+            Vector3 position,
+            Vector2 scale,
+            Color color,
+            string sortingLayer,
+            int sortingOrder,
+            string slotId,
+            string manifestAssetId)
+        {
+            SpriteRenderer renderer = AddEnvironmentBlock(parent, name, position, scale, color, sortingLayer, sortingOrder, true);
+            AddFinalArtSlot(renderer.gameObject, slotId, manifestAssetId, renderer, showStructuralPlaceholder: false);
+            return renderer;
+        }
+
+        private static SpriteRenderer AddEnvironmentBlock(
+            Transform parent,
+            string name,
+            Vector3 position,
+            Vector2 scale,
+            Color color,
+            string sortingLayer,
+            int sortingOrder,
+            bool lit)
+        {
+            GameObject block = CreateWorldBlock(name, position, scale, color, GetWorldBlockSprite(), false, sortingOrder);
+            block.transform.SetParent(parent, true);
+            SpriteRenderer renderer = block.GetComponent<SpriteRenderer>();
+            renderer.color = LiftEnvironmentColor(color);
+            renderer.sortingLayerName = sortingLayer;
+            if (lit)
+            {
+                Material litMaterial = AssetDatabase.LoadAssetAtPath<Material>(
+                    "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Lit-Default.mat");
+                if (litMaterial != null)
+                {
+                    renderer.sharedMaterial = litMaterial;
+                }
+            }
+            return renderer;
+        }
+
+        private static Color LiftEnvironmentColor(Color color)
+        {
+            if (color.r + color.g + color.b < 0.001f)
+            {
+                return color;
+            }
+
+            return new Color(
+                Mathf.Clamp01(color.r * 1.9f + 0.025f),
+                Mathf.Clamp01(color.g * 1.9f + 0.025f),
+                Mathf.Clamp01(color.b * 1.9f + 0.035f),
+                color.a);
+        }
+
+        private static void AddErenStagingDetail(
+            Transform city,
+            Transform architecture,
+            Transform walls,
+            Transform floor,
+            Transform bed,
+            Transform desk,
+            Transform terminal,
+            Transform shelves,
+            Transform props,
+            Transform foregroundLeft,
+            Transform foregroundRight)
+        {
+            Color ink = new(0.018f, 0.024f, 0.034f, 1f);
+            Color steel = new(0.075f, 0.105f, 0.125f, 1f);
+            Color cyan = new(0.13f, 0.44f, 0.49f, 0.88f);
+            Color warm = new(0.48f, 0.23f, 0.11f, 0.92f);
+            Color cloth = new(0.18f, 0.09f, 0.075f, 1f);
+
+            // Authored skyline silhouettes: roof caps, service stacks, antennas and varied window rhythms.
+            for (int index = 0; index < 13; index++)
+            {
+                float x = -15f + index * 2.55f;
+                float roofY = 1.8f + (index * 17 % 7) * 0.275f;
+                AddEnvironmentBlock(city, $"Roof Cap {index:00}", new Vector2(x, roofY), new Vector2(2.24f, 0.12f),
+                    index % 4 == 0 ? new Color(0.09f, 0.13f, 0.16f) : new Color(0.045f, 0.075f, 0.105f),
+                    "Background", -2440 + index, false);
+                if (index % 3 == 0)
+                {
+                    AddEnvironmentBlock(city, $"Roof Stack {index:00}", new Vector2(x + 0.55f, roofY + 0.34f),
+                        new Vector2(0.24f, 0.62f), new Color(0.04f, 0.06f, 0.08f), "Background", -2430 + index, false);
+                    AddLine(city, $"Antenna {index:00}", new Vector2(x - 0.4f, roofY + 0.05f),
+                        new Vector2(x - 0.32f, roofY + 1.15f), 0.035f, new Color(0.09f, 0.15f, 0.18f),
+                        "Background", -2420 + index, false);
+                }
+            }
+
+            AddPanelFrame(architecture, "Ceiling Recess", new Vector2(0f, 6.95f), new Vector2(27.9f, 1.15f), 0.12f,
+                ink, steel, "Environment", -1190, true);
+            AddLine(architecture, "Ceiling Cable Run", new Vector2(-12.4f, 6.45f), new Vector2(7.5f, 6.45f),
+                0.07f, steel, "Environment", -1184, true);
+            AddLine(architecture, "Ceiling Drop", new Vector2(7.5f, 6.45f), new Vector2(7.5f, 5.65f),
+                0.07f, steel, "Environment", -1183, true);
+            for (int index = 0; index < 9; index++)
+            {
+                float x = -12.8f + index * 3.2f;
+                AddLine(walls, $"Wall Panel Seam {index:00}", new Vector2(x, -1.05f), new Vector2(x, 5.85f),
+                    0.035f, new Color(0.11f, 0.12f, 0.13f, 0.42f), "Environment", -1160 + index, true);
+            }
+            AddEnvironmentBlock(walls, "Warm Wainscot", new Vector2(-7.1f, -0.08f), new Vector2(12.9f, 0.11f),
+                new Color(0.24f, 0.105f, 0.065f, 0.72f), "Environment", -1140, true);
+
+            for (int index = 0; index < 16; index++)
+            {
+                float x = -14.4f + index * 1.92f;
+                AddLine(floor, $"Floor Board {index:00}", new Vector2(x, -4.36f), new Vector2(x + 0.72f, -1.04f),
+                    0.03f, new Color(0.13f, 0.16f, 0.17f, 0.26f), "Environment", -1050 + index, true);
+            }
+            for (int band = 0; band < 4; band++)
+            {
+                AddLine(floor, $"Floor Depth Band {band:00}", new Vector2(-14.5f, -2.25f - band * 1.35f),
+                    new Vector2(14.5f, -2.25f - band * 1.35f), 0.035f,
+                    new Color(0.12f, 0.14f, 0.15f, 0.19f), "Environment", -1025 + band, true);
+            }
+            AddLine(floor, "Floor Contact Edge", new Vector2(-14.4f, -1.03f), new Vector2(14.4f, -1.03f),
+                0.08f, new Color(0.11f, 0.16f, 0.18f, 0.62f), "Environment", -1030, true);
+
+            AddPanelFrame(bed, "Bed Headboard", new Vector2(-6.45f, -0.47f), new Vector2(0.32f, 2.35f), 0.09f,
+                ink, new Color(0.25f, 0.12f, 0.085f), "PropsBack", -360, true);
+            AddEnvironmentBlock(bed, "Mattress", new Vector2(-4.75f, -1.05f), new Vector2(4.5f, 0.38f),
+                new Color(0.22f, 0.18f, 0.15f), "PropsBack", -350, true);
+            AddEnvironmentBlock(bed, "Pillow", new Vector2(-5.85f, -0.7f), new Vector2(1.2f, 0.55f),
+                new Color(0.34f, 0.29f, 0.23f), "PropsBack", -330, true);
+            AddLine(bed, "Blanket Fold A", new Vector2(-4.85f, -0.53f), new Vector2(-4.05f, -1.22f),
+                0.08f, warm, "PropsBack", -325, true);
+            AddLine(bed, "Blanket Fold B", new Vector2(-3.75f, -0.52f), new Vector2(-3.2f, -1.2f),
+                0.065f, cloth, "PropsBack", -324, true);
+            AddEnvironmentBlock(bed, "Bed Foot", new Vector2(-2.42f, -1.7f), new Vector2(0.14f, 0.62f),
+                ink, "PropsBack", -320, true);
+
+            AddPanelFrame(desk, "Desk Drawer Unit", new Vector2(3.2f, -1.48f), new Vector2(1.3f, 1.45f), 0.09f,
+                ink, new Color(0.12f, 0.09f, 0.07f), "PropsBack", -315, true);
+            for (int row = 0; row < 3; row++)
+            {
+                AddLine(desk, $"Drawer Rule {row:00}", new Vector2(2.65f, -1.92f + row * 0.45f),
+                    new Vector2(3.75f, -1.92f + row * 0.45f), 0.035f, warm, "PropsBack", -305 + row, true);
+            }
+            AddEnvironmentBlock(desk, "Desk Left Leg", new Vector2(0.38f, -1.58f), new Vector2(0.16f, 1.55f),
+                ink, "PropsBack", -310, true);
+            AddEnvironmentBlock(desk, "Keyboard", new Vector2(1.7f, -0.52f), new Vector2(1.42f, 0.18f),
+                new Color(0.09f, 0.12f, 0.125f), "PropsBack", -285, true);
+            AddPanelFrame(terminal, "Monitor Bezel", new Vector2(1.75f, 0.1f), new Vector2(2.55f, 1.48f), 0.12f,
+                ink, new Color(0.06f, 0.13f, 0.15f), "PropsBack", -270, true);
+            for (int row = 0; row < 4; row++)
+            {
+                float width = row == 1 ? 1.25f : 0.65f + row * 0.22f;
+                AddEnvironmentBlock(terminal, $"Terminal Data {row:00}", new Vector2(1.32f + width * 0.18f, 0.47f - row * 0.22f),
+                    new Vector2(width, 0.045f), row == 3 ? warm : cyan, "Effects", 1070 + row, false);
+            }
+            AddEnvironmentBlock(desk, "Mug Body", new Vector2(0.2f, -0.43f), new Vector2(0.28f, 0.36f),
+                new Color(0.3f, 0.17f, 0.1f), "PropsBack", -260, true);
+            AddPanelFrame(desk, "Mug Handle", new Vector2(0.41f, -0.39f), new Vector2(0.22f, 0.22f), 0.055f,
+                new Color(0.3f, 0.17f, 0.1f), Color.clear, "PropsBack", -259, true);
+
+            AddEnvironmentBlock(shelves, "Shelf Left Upright", new Vector2(-11.22f, 0.8f), new Vector2(0.13f, 5.85f),
+                ink, "PropsBack", -355, true);
+            AddEnvironmentBlock(shelves, "Shelf Right Upright", new Vector2(-8.38f, 0.8f), new Vector2(0.13f, 5.85f),
+                ink, "PropsBack", -355, true);
+            for (int index = 0; index < 12; index++)
+            {
+                float x = -10.92f + (index % 4) * 0.57f;
+                float y = -0.48f + (index / 4) * 1.25f;
+                float height = 0.48f + (index % 3) * 0.17f;
+                Color book = index % 4 == 0 ? warm : index % 4 == 1 ? cyan : new Color(0.2f, 0.18f, 0.15f);
+                AddEnvironmentBlock(shelves, $"Book {index:00}", new Vector2(x, y), new Vector2(0.28f, height),
+                    book, "PropsBack", -290 + index, true);
+            }
+            AddEnvironmentBlock(props, "Open Notebook", new Vector2(-0.35f, -0.75f), new Vector2(0.72f, 0.42f),
+                new Color(0.44f, 0.4f, 0.31f), "PropsFront", 315, true);
+            AddLine(props, "Notebook Spine", new Vector2(-0.35f, -0.96f), new Vector2(-0.35f, -0.54f),
+                0.035f, ink, "PropsFront", 316, true);
+            AddEnvironmentBlock(props, "Medicine Bottle", new Vector2(-1.15f, -0.68f), new Vector2(0.24f, 0.46f),
+                new Color(0.37f, 0.28f, 0.15f), "PropsFront", 318, true);
+            AddEnvironmentBlock(props, "Bottle Cap", new Vector2(-1.15f, -0.41f), new Vector2(0.27f, 0.09f),
+                cyan, "PropsFront", 319, false);
+            AddLine(props, "Loose Cable A", new Vector2(-0.05f, -1.56f), new Vector2(1.05f, -1.92f),
+                0.055f, ink, "PropsFront", 322, true);
+            AddLine(props, "Loose Cable B", new Vector2(1.05f, -1.92f), new Vector2(2.15f, -1.72f),
+                0.055f, ink, "PropsFront", 323, true);
+
+            AddPanelFrame(architecture, "Apartment Door", new Vector2(4.65f, 0.15f), new Vector2(2.35f, 5.55f), 0.13f,
+                ink, new Color(0.085f, 0.062f, 0.055f), "PropsBack", -345, true);
+            AddLine(architecture, "Door Inset", new Vector2(4.12f, -1.75f), new Vector2(5.18f, 1.55f),
+                0.055f, new Color(0.18f, 0.095f, 0.065f), "PropsBack", -335, true);
+            AddEnvironmentBlock(architecture, "Door Handle", new Vector2(4.06f, -0.45f), new Vector2(0.42f, 0.1f),
+                new Color(0.36f, 0.27f, 0.17f), "PropsBack", -325, true);
+            AddEnvironmentBlock(architecture, "Door Status", new Vector2(5.42f, 1.62f), new Vector2(0.18f, 0.48f),
+                warm, "PropsFront", 324, false);
+            AddEnvironmentBlock(props, "Hanging Coat Body", new Vector2(6.55f, 0.7f), new Vector2(0.82f, 2.25f),
+                new Color(0.045f, 0.065f, 0.075f), "PropsBack", -320, true);
+            AddLine(props, "Hanging Coat Sleeve", new Vector2(6.25f, 1.2f), new Vector2(5.82f, 0.25f),
+                0.22f, new Color(0.045f, 0.065f, 0.075f), "PropsBack", -319, true);
+
+            AddLine(foregroundLeft, "Foreground Pipe", new Vector2(-14.25f, 6.8f), new Vector2(-12.6f, 6.8f),
+                0.18f, ink, "Foreground", 2120, false);
+            AddLine(foregroundRight, "Foreground Cable", new Vector2(13.85f, 7.6f), new Vector2(13.45f, 4.4f),
+                0.09f, new Color(0.03f, 0.05f, 0.06f), "Foreground", 2121, false);
+        }
+
+        private static void AddMertStagingDetail(
+            Transform exterior,
+            Transform architecture,
+            Transform floor,
+            Transform workstation,
+            Transform displays,
+            Transform hardware,
+            Transform medical,
+            Transform evidence,
+            Transform door,
+            Transform storage,
+            Transform cables,
+            Transform clutter,
+            Transform foreground)
+        {
+            Color ink = new(0.012f, 0.022f, 0.03f, 1f);
+            Color steel = new(0.08f, 0.12f, 0.14f, 1f);
+            Color cyan = new(0.12f, 0.5f, 0.57f, 0.9f);
+            Color pale = new(0.34f, 0.52f, 0.55f, 0.9f);
+            Color warning = new(0.5f, 0.08f, 0.11f, 0.88f);
+
+            for (int index = 0; index < 9; index++)
+            {
+                float x = -14f + index * 2.55f;
+                AddEnvironmentBlock(exterior, $"Exterior Roof Cap {index:00}", new Vector2(x, 3.8f + (index % 3) * 0.65f),
+                    new Vector2(2.28f, 0.1f), new Color(0.055f, 0.09f, 0.12f), "Background", -2480 + index, false);
+                if (index % 2 == 0)
+                {
+                    AddEnvironmentBlock(exterior, $"Exterior Signal {index:00}", new Vector2(x + 0.35f, 2.2f),
+                        new Vector2(0.12f, 0.28f), index == 4 ? warning : cyan, "Background", -2460 + index, false);
+                }
+            }
+
+            AddPanelFrame(architecture, "Clinical Ceiling Rail", new Vector2(3.9f, 6.75f), new Vector2(20.2f, 0.78f), 0.1f,
+                ink, steel, "Environment", -1180, true);
+            for (int index = 0; index < 5; index++)
+            {
+                float x = -0.2f + index * 3.2f;
+                AddPanelFrame(architecture, $"Wall Service Panel {index:00}", new Vector2(x, 2.2f), new Vector2(2.75f, 5.4f),
+                    0.055f, new Color(0.065f, 0.1f, 0.12f), new Color(0.055f, 0.075f, 0.085f),
+                    "Environment", -1160 + index * 4, true);
+                AddEnvironmentBlock(architecture, $"Panel Index {index:00}", new Vector2(x - 1.06f, 4.55f), new Vector2(0.24f, 0.09f),
+                    index == 3 ? warning : cyan, "Environment", -1158 + index * 4, true);
+            }
+            AddLine(architecture, "Service Conduit", new Vector2(-0.75f, 5.5f), new Vector2(11.8f, 5.5f),
+                0.08f, pale, "Environment", -1120, true);
+            for (int index = 0; index < 12; index++)
+            {
+                float x = -14f + index * 2.5f;
+                AddLine(floor, $"Perspective Floor Joint {index:00}", new Vector2(x, -4.35f),
+                    new Vector2(x * 0.72f, -1.04f), 0.03f, new Color(0.16f, 0.28f, 0.3f, 0.34f),
+                    "Environment", -1040 + index, true);
+            }
+            for (int band = 0; band < 4; band++)
+            {
+                AddLine(floor, $"Floor Depth Band {band:00}", new Vector2(-14.5f, -2.25f - band * 1.35f),
+                    new Vector2(14.5f, -2.25f - band * 1.35f), 0.035f,
+                    new Color(0.1f, 0.19f, 0.21f, 0.2f), "Environment", -1015 + band, true);
+            }
+            AddLine(floor, "Clinical Floor Edge", new Vector2(-14.5f, -1.03f), new Vector2(14.5f, -1.03f),
+                0.085f, new Color(0.12f, 0.31f, 0.34f, 0.52f), "Environment", -1020, true);
+
+            AddPanelFrame(workstation, "Workstation Chassis", new Vector2(-2.25f, -0.72f), new Vector2(5.45f, 0.52f), 0.1f,
+                ink, steel, "PropsBack", -330, true);
+            AddPanelFrame(workstation, "Left Pedestal", new Vector2(-4.15f, -1.52f), new Vector2(1.25f, 1.55f), 0.08f,
+                ink, new Color(0.055f, 0.075f, 0.082f), "PropsBack", -325, true);
+            AddPanelFrame(workstation, "Right Pedestal", new Vector2(-0.35f, -1.52f), new Vector2(1.25f, 1.55f), 0.08f,
+                ink, new Color(0.055f, 0.075f, 0.082f), "PropsBack", -325, true);
+            for (int index = 0; index < 4; index++)
+            {
+                float x = -4.15f + index * 1.3f;
+                AddPanelFrame(displays, $"Display Bezel {index:00}", new Vector2(x, 1.1f + (index % 2) * 0.35f),
+                    new Vector2(1.18f, 1.34f), 0.075f, ink, steel, "PropsBack", -300 + index, true);
+                for (int row = 0; row < 4; row++)
+                {
+                    float lineWidth = 0.28f + ((index + row) % 3) * 0.16f;
+                    AddEnvironmentBlock(displays, $"Display {index:00} Data {row:00}",
+                        new Vector2(x - 0.32f + lineWidth * 0.5f, 1.42f + (index % 2) * 0.35f - row * 0.2f),
+                        new Vector2(lineWidth, 0.038f), index == 3 && row == 0 ? warning : cyan,
+                        "Effects", 1070 + index * 5 + row, false);
+                }
+            }
+            AddEnvironmentBlock(workstation, "Input Deck", new Vector2(-2.35f, -0.38f), new Vector2(2.6f, 0.18f),
+                new Color(0.09f, 0.14f, 0.15f), "PropsBack", -280, true);
+            for (int key = 0; key < 8; key++)
+            {
+                AddEnvironmentBlock(workstation, $"Input Key {key:00}", new Vector2(-3.35f + key * 0.3f, -0.37f),
+                    new Vector2(0.12f, 0.045f), key == 6 ? warning : pale, "PropsBack", -270 + key, true);
+            }
+
+            AddPanelFrame(hardware, "Research Rack Frame", new Vector2(3.2f, -0.05f), new Vector2(3.15f, 5.15f), 0.12f,
+                ink, steel, "PropsBack", -315, true);
+            for (int index = 0; index < 5; index++)
+            {
+                float y = -1.6f + index * 0.72f;
+                AddEnvironmentBlock(hardware, $"Rack Handle {index:00}", new Vector2(3.65f, y), new Vector2(0.65f, 0.055f),
+                    pale, "PropsBack", -260 + index * 3, true);
+                AddEnvironmentBlock(hardware, $"Rack Indicator {index:00}", new Vector2(2.25f, y), new Vector2(0.09f, 0.09f),
+                    index == 2 ? warning : cyan, "Effects", 1080 + index, false);
+            }
+            AddLine(hardware, "Overhead Data Cable", new Vector2(2.45f, 2.7f), new Vector2(-0.55f, 3.85f),
+                0.075f, ink, "PropsBack", -250, true);
+
+            AddPanelFrame(medical, "Implant Tray", new Vector2(-0.9f, -1.28f), new Vector2(1.72f, 0.5f), 0.08f,
+                ink, new Color(0.12f, 0.18f, 0.18f), "PropsFront", 350, true);
+            AddEnvironmentBlock(medical, "Damaged Implant", new Vector2(-0.9f, -1.12f), new Vector2(0.56f, 0.22f),
+                new Color(0.24f, 0.38f, 0.37f), "PropsFront", 360, true);
+            AddLine(medical, "Implant Fracture", new Vector2(-0.98f, -1.04f), new Vector2(-0.76f, -1.22f),
+                0.045f, warning, "PropsFront", 365, false);
+            AddLine(medical, "Examination Arm A", new Vector2(-1.65f, 0.25f), new Vector2(-1.3f, -0.45f),
+                0.11f, steel, "PropsFront", 340, true);
+            AddLine(medical, "Examination Arm B", new Vector2(-1.3f, -0.45f), new Vector2(-0.98f, -0.72f),
+                0.11f, pale, "PropsFront", 341, true);
+
+            AddEnvironmentBlock(evidence, "Photograph", new Vector2(0.15f, -0.76f), new Vector2(0.62f, 0.42f),
+                new Color(0.38f, 0.34f, 0.27f), "PropsFront", 370, true);
+            AddLine(evidence, "Photo Shadow", new Vector2(-0.15f, -0.98f), new Vector2(0.48f, -0.89f),
+                0.045f, ink, "PropsFront", 369, true);
+            AddEnvironmentBlock(evidence, "Death Record", new Vector2(0.95f, -0.83f), new Vector2(0.72f, 0.5f),
+                new Color(0.3f, 0.34f, 0.31f), "PropsFront", 371, true);
+            AddLine(evidence, "Record Mark", new Vector2(0.68f, -0.72f), new Vector2(1.18f, -0.72f),
+                0.045f, warning, "PropsFront", 372, false);
+            AddEnvironmentBlock(evidence, "Unfinished Cup", new Vector2(1.9f, -0.68f), new Vector2(0.28f, 0.38f),
+                new Color(0.2f, 0.24f, 0.23f), "PropsFront", 373, true);
+
+            AddPanelFrame(door, "Door Frame Detail", new Vector2(5.5f, 0.2f), new Vector2(3.35f, 6.65f), 0.14f,
+                ink, steel, "PropsBack", -260, true);
+            AddLine(door, "Door Split", new Vector2(5.5f, -2.9f), new Vector2(5.5f, 3.25f),
+                0.055f, new Color(0.12f, 0.16f, 0.17f), "PropsBack", -250, true);
+            AddEnvironmentBlock(door, "Door Status", new Vector2(4.45f, 0.65f), new Vector2(0.22f, 0.72f),
+                warning, "Effects", 1090, false);
+            AddEnvironmentBlock(door, "Door Handle", new Vector2(5.0f, -0.45f), new Vector2(0.48f, 0.1f),
+                pale, "PropsBack", -245, true);
+
+            for (int row = 0; row < 5; row++)
+            {
+                AddEnvironmentBlock(storage, $"Drawer Handle {row:00}", new Vector2(9.3f, -1.8f + row),
+                    new Vector2(0.82f, 0.065f), row == 4 ? warning : pale, "PropsBack", -250 + row, true);
+            }
+            AddLine(cables, "Dropped Cable A", new Vector2(-0.1f, -1.55f), new Vector2(1.2f, -2.18f),
+                0.06f, ink, "PropsFront", 390, true);
+            AddLine(cables, "Dropped Cable B", new Vector2(1.2f, -2.18f), new Vector2(2.55f, -1.74f),
+                0.06f, ink, "PropsFront", 391, true);
+            AddLine(clutter, "Fallen Chair Back", new Vector2(1.25f, -0.5f), new Vector2(2.0f, -1.48f),
+                0.16f, steel, "PropsFront", 400, true);
+            AddLine(clutter, "Fallen Chair Seat", new Vector2(1.55f, -1.4f), new Vector2(2.45f, -1.15f),
+                0.18f, steel, "PropsFront", 401, true);
+            AddLine(clutter, "Fallen Chair Leg", new Vector2(2.18f, -1.3f), new Vector2(2.72f, -2.03f),
+                0.1f, ink, "PropsFront", 402, true);
+
+            AddLine(foreground, "Foreground Ceiling Arm", new Vector2(-14.2f, 7.15f), new Vector2(-11.9f, 7.15f),
+                0.16f, ink, "Foreground", 2120, false);
+            AddLine(foreground, "Foreground Hanging Lead", new Vector2(13.85f, 7.45f), new Vector2(13.15f, 4.15f),
+                0.08f, steel, "Foreground", 2121, false);
+        }
+
+        private static void AddPanelFrame(
+            Transform parent,
+            string name,
+            Vector2 center,
+            Vector2 size,
+            float thickness,
+            Color border,
+            Color fill,
+            string sortingLayer,
+            int sortingOrder,
+            bool lit)
+        {
+            if (fill.a > 0f)
+            {
+                AddEnvironmentBlock(parent, name + " Fill", center, size, fill, sortingLayer, sortingOrder, lit);
+            }
+
+            AddEnvironmentBlock(parent, name + " Top", new Vector2(center.x, center.y + size.y * 0.5f),
+                new Vector2(size.x, thickness), border, sortingLayer, sortingOrder + 1, lit);
+            AddEnvironmentBlock(parent, name + " Bottom", new Vector2(center.x, center.y - size.y * 0.5f),
+                new Vector2(size.x, thickness), border, sortingLayer, sortingOrder + 1, lit);
+            AddEnvironmentBlock(parent, name + " Left", new Vector2(center.x - size.x * 0.5f, center.y),
+                new Vector2(thickness, size.y), border, sortingLayer, sortingOrder + 1, lit);
+            AddEnvironmentBlock(parent, name + " Right", new Vector2(center.x + size.x * 0.5f, center.y),
+                new Vector2(thickness, size.y), border, sortingLayer, sortingOrder + 1, lit);
+        }
+
+        private static SpriteRenderer AddLine(
+            Transform parent,
+            string name,
+            Vector2 start,
+            Vector2 end,
+            float width,
+            Color color,
+            string sortingLayer,
+            int sortingOrder,
+            bool lit)
+        {
+            Vector2 delta = end - start;
+            SpriteRenderer line = AddEnvironmentBlock(parent, name, (start + end) * 0.5f,
+                new Vector2(delta.magnitude, width), color, sortingLayer, sortingOrder, lit);
+            line.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
+            return line;
+        }
+
+        private static void CreateRainField(
+            Transform parent,
+            List<Transform> output,
+            int count,
+            float minX,
+            float maxX,
+            float minY,
+            float maxY,
+            int sortingOrder,
+            float alpha)
+        {
+            for (int index = 0; index < count; index++)
+            {
+                float hashX = Mathf.Repeat(Mathf.Sin((index + 1) * 12.9898f) * 43758.5453f, 1f);
+                float hashY = Mathf.Repeat(Mathf.Sin((index + 1) * 78.233f) * 12345.6789f, 1f);
+                float x = Mathf.Lerp(minX, maxX, hashX);
+                float y = Mathf.Lerp(minY, maxY, hashY);
+                var streakObject = new GameObject($"Rain Streak {index:00}");
+                streakObject.transform.SetParent(parent, false);
+                streakObject.transform.position = new Vector3(x, y, 0f);
+                SpriteRenderer streak = streakObject.AddComponent<SpriteRenderer>();
+                streak.sprite = EnvironmentStagingTextureBuilder.GetRainSprite(index);
+                streak.color = new Color(0.62f, 0.82f, 0.86f, alpha * (0.62f + hashX * 0.38f));
+                streak.sortingLayerName = "Effects";
+                streak.sortingOrder = sortingOrder + index;
+                streak.transform.localScale = new Vector3(0.48f + hashX * 0.6f, 0.55f + hashY * 0.85f, 1f);
+                streak.transform.rotation = Quaternion.Euler(0f, 0f, -2f - hashX * 7f);
+                output.Add(streak.transform);
+            }
+        }
+
+        private static void InstallPixelEnvironmentStaging(Transform visualRoot, bool mert)
+        {
+            foreach (SpriteRenderer renderer in visualRoot.GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                if (renderer.GetComponent<FinalArtSlot>() != null || renderer.name.StartsWith("Rain Streak", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                renderer.enabled = false;
+            }
+
+            var stagingObject = new GameObject(mert
+                ? "Mert Authored Pixel Environment Staging"
+                : "Eren Authored Pixel Environment Staging");
+            stagingObject.transform.SetParent(visualRoot, false);
+            SpriteRenderer staging = stagingObject.AddComponent<SpriteRenderer>();
+            staging.sprite = EnvironmentStagingTextureBuilder.GetEnvironmentSprite(mert);
+            staging.color = Color.white;
+            staging.sortingLayerName = "Background";
+            staging.sortingOrder = -3000;
+            Material spriteLitMaterial = AssetDatabase.LoadAssetAtPath<Material>(
+                "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Lit-Default.mat");
+            if (spriteLitMaterial != null)
+            {
+                staging.sharedMaterial = spriteLitMaterial;
+            }
+        }
+
+        private static Light2D CreateGlobalLight(Transform parent, string name, Color color, float intensity)
+        {
+            var lightObject = new GameObject(name);
+            lightObject.transform.SetParent(parent, false);
+            Light2D light = lightObject.AddComponent<Light2D>();
+            light.lightType = Light2D.LightType.Global;
+            light.color = color;
+            light.intensity = intensity;
+            light.blendStyleIndex = 0;
+            return light;
+        }
+
+        private static Light2D CreatePointLight(
+            Transform parent,
+            string name,
+            Vector3 position,
+            Color color,
+            float intensity,
+            float radius)
+        {
+            var lightObject = new GameObject(name);
+            lightObject.transform.SetParent(parent, false);
+            lightObject.transform.position = position;
+            Light2D light = lightObject.AddComponent<Light2D>();
+            light.lightType = Light2D.LightType.Point;
+            light.color = color;
+            light.intensity = intensity;
+            light.pointLightInnerRadius = radius * 0.18f;
+            light.pointLightOuterRadius = radius;
+            light.falloffIntensity = 0.72f;
+            light.blendStyleIndex = 0;
+            return light;
+        }
+
         private static SceneSetup CreateGameplayScene(string sceneTitle, LocationData location)
         {
             Sprite sprite = GetPlaceholderSprite();
-            CreateCamera();
+            Camera worldCamera = CreateCamera();
             VisualTheme theme = AssetDatabase.LoadAssetAtPath<VisualTheme>(VisualProductionBuilder.ThemePath);
             var visualRoot = new GameObject("Visual Root");
             visualRoot.AddComponent<VisualRootAnchor>().Configure(
                 $"visual.{location.StableId}",
                 VisualRootKind.GameplayLocation,
                 theme);
-            GameObject backdrop = CreateWorldBlock("Backdrop", Vector3.zero, new Vector2(15f, 9f), BackgroundColor, sprite, false, -10);
-            AddFinalArtSlot(backdrop, $"slot.{location.StableId}.room_architecture", ResolveEnvironmentManifestId(location, "ARCH"), backdrop.GetComponent<SpriteRenderer>());
-            GameObject floor = CreateWorldBlock(
-                "Floor",
-                new Vector3(0f, -2.55f, 0f),
-                new Vector2(15f, 1f),
-                new Color(0.07f, 0.1f, 0.13f, 1f),
-                sprite,
-                true,
-                -1);
-            AddFinalArtSlot(floor, $"slot.{location.StableId}.floor_walls", ResolveEnvironmentManifestId(location, "ROOM"), floor.GetComponent<SpriteRenderer>());
+            EnvironmentPresentationController environmentPresentation =
+                visualRoot.AddComponent<EnvironmentPresentationController>();
+
+            var floor = new GameObject("Floor");
+            floor.transform.SetParent(visualRoot.transform, false);
+            floor.transform.position = new Vector3(0f, -2.55f, 0f);
+            BoxCollider2D floorCollider = floor.AddComponent<BoxCollider2D>();
+            floorCollider.size = new Vector2(15f, 1f);
             CreateBoundary("Left Boundary", new Vector3(-6.8f, 0f, 0f), new Vector2(0.5f, 7f));
             CreateBoundary("Right Boundary", new Vector3(6.8f, 0f, 0f), new Vector2(0.5f, 7f));
-
-            TextMesh title = CreateWorldText(sceneTitle, new Vector3(-6.1f, 3.85f, 0f), TextAnchor.UpperLeft, Cyan);
-            title.name = "Location Title";
 
             var spawnObject = new GameObject("SpawnPoint_entry");
             spawnObject.transform.position = new Vector3(-5.2f, -1.15f, 0f);
@@ -1253,7 +2075,10 @@ namespace NullPointer.Editor
                 Detector = detector,
                 Ui = ui,
                 Installer = installer,
-                SpawnPoint = spawn
+                SpawnPoint = spawn,
+                VisualRoot = visualRoot.transform,
+                WorldCamera = worldCamera,
+                EnvironmentPresentation = environmentPresentation
             };
         }
 
@@ -1264,18 +2089,59 @@ namespace NullPointer.Editor
         {
             var playerObject = new GameObject("Player");
             playerObject.transform.position = new Vector3(-5.2f, -1.15f, 0f);
-            playerObject.transform.localScale = new Vector3(0.72f, 1.35f, 1f);
-            SpriteRenderer renderer = playerObject.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            renderer.color = new Color(0.12f, 0.18f, 0.22f, 1f);
-            renderer.sortingOrder = 2;
-            AddFinalArtSlot(playerObject, $"slot.{locationId}.eren", "NP-CHR-EREN-IDLE-001", renderer);
+            var visualObject = new GameObject("Character Visual");
+            visualObject.transform.SetParent(playerObject.transform, false);
+            visualObject.transform.localPosition = new Vector3(0f, -0.9f, 0f);
+            SpriteRenderer renderer = visualObject.AddComponent<SpriteRenderer>();
+            renderer.sprite = GetWorldBlockSprite();
+            renderer.color = new Color(0.33f, 0.44f, 0.5f, 1f);
+            renderer.sortingLayerName = "Characters";
+            renderer.sortingOrder = 0;
+            FinalArtSlot playerArtSlot = AddFinalArtSlot(visualObject, $"slot.{locationId}.eren",
+                "NP-CHR-EREN-IDLE-001", renderer, showStructuralPlaceholder: false);
+            var fallbackRoot = new GameObject("Character Structural Fallback");
+            fallbackRoot.transform.SetParent(playerObject.transform, false);
+            SpriteRenderer bodyFallback = AddEnvironmentBlock(fallbackRoot.transform, "Coat Silhouette", Vector3.zero,
+                new Vector2(0.68f, 1.45f), new Color(0.055f, 0.08f, 0.1f), "Characters", 1, false);
+            bodyFallback.transform.localPosition = new Vector3(0f, 0.36f, 0f);
+            bodyFallback.transform.localScale = new Vector3(0.68f, 1.45f, 1f);
+            SpriteRenderer shoulders = AddEnvironmentBlock(fallbackRoot.transform, "Coat Shoulders", Vector3.zero,
+                new Vector2(0.96f, 0.36f), new Color(0.08f, 0.11f, 0.13f), "Characters", 2, false);
+            shoulders.transform.localPosition = new Vector3(0f, 0.94f, 0f);
+            shoulders.transform.localScale = new Vector3(0.96f, 0.36f, 1f);
+            SpriteRenderer leftTail = AddEnvironmentBlock(fallbackRoot.transform, "Left Coat Tail", Vector3.zero,
+                new Vector2(0.31f, 0.88f), new Color(0.045f, 0.07f, 0.09f), "Characters", 1, false);
+            leftTail.transform.localPosition = new Vector3(-0.2f, -0.62f, 0f);
+            leftTail.transform.localScale = new Vector3(0.31f, 0.88f, 1f);
+            SpriteRenderer rightTail = AddEnvironmentBlock(fallbackRoot.transform, "Right Coat Tail", Vector3.zero,
+                new Vector2(0.31f, 0.88f), new Color(0.045f, 0.07f, 0.09f), "Characters", 1, false);
+            rightTail.transform.localPosition = new Vector3(0.2f, -0.62f, 0f);
+            rightTail.transform.localScale = new Vector3(0.31f, 0.88f, 1f);
+            SpriteRenderer head = AddEnvironmentBlock(fallbackRoot.transform, "Head Silhouette", Vector3.zero,
+                new Vector2(0.56f, 0.62f), new Color(0.18f, 0.21f, 0.22f), "Characters", 3, false);
+            head.transform.localPosition = new Vector3(0f, 1.55f, 0f);
+            head.transform.localScale = new Vector3(0.56f, 0.62f, 1f);
+            SpriteRenderer hair = AddEnvironmentBlock(fallbackRoot.transform, "Hair Silhouette", Vector3.zero,
+                new Vector2(0.6f, 0.22f), new Color(0.012f, 0.022f, 0.032f), "Characters", 4, false);
+            hair.transform.localPosition = new Vector3(-0.03f, 1.78f, 0f);
+            hair.transform.localScale = new Vector3(0.6f, 0.22f, 1f);
+            SpriteRenderer coat = AddEnvironmentBlock(fallbackRoot.transform, "Coat Signal Break", Vector3.zero,
+                new Vector2(0.94f, 0.08f), new Color(0.08f, 0.42f, 0.46f, 0.58f), "Characters", 3, false);
+            coat.transform.localPosition = new Vector3(0f, 0.42f, 0f);
+            coat.transform.localScale = new Vector3(0.94f, 0.08f, 1f);
+            playerObject.AddComponent<FinalArtFallbackVisibility>().Configure(playerArtSlot, fallbackRoot);
+            SpriteRenderer contactShadow = AddEnvironmentBlock(playerObject.transform, "Character Contact Shadow",
+                new Vector3(playerObject.transform.position.x, -2.04f, 0f), new Vector2(1.35f, 0.18f),
+                new Color(0f, 0f, 0f, 0.48f), "Characters", -5, false);
+            contactShadow.transform.localPosition = new Vector3(0f, -0.9f, 0f);
             Rigidbody2D body = playerObject.AddComponent<Rigidbody2D>();
             body.bodyType = RigidbodyType2D.Dynamic;
             body.gravityScale = 0f;
             body.constraints = RigidbodyConstraints2D.FreezePositionY |
                                RigidbodyConstraints2D.FreezeRotation;
-            playerObject.AddComponent<BoxCollider2D>();
+            BoxCollider2D collider = playerObject.AddComponent<BoxCollider2D>();
+            collider.size = new Vector2(0.82f, 3.05f);
+            collider.offset = new Vector2(0f, 0.62f);
             PlayerController player = playerObject.AddComponent<PlayerController>();
             player.SetMoveSpeed(4f);
             detector = playerObject.AddComponent<PlayerInteractionDetector>();
@@ -1951,17 +2817,64 @@ namespace NullPointer.Editor
             return dropdown;
         }
 
-        private static void CreateCamera()
+        private static Camera CreateCamera()
         {
             var cameraObject = new GameObject("Main Camera");
             cameraObject.tag = "MainCamera";
             cameraObject.transform.position = new Vector3(0f, 0.35f, -10f);
             Camera camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = 4.8f;
+            camera.orthographicSize = 8.4375f;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = BackgroundColor;
+            PixelPerfectCamera pixelPerfect = cameraObject.AddComponent<PixelPerfectCamera>();
+            pixelPerfect.assetsPPU = 16;
+            pixelPerfect.refResolutionX = 480;
+            pixelPerfect.refResolutionY = 270;
+            pixelPerfect.gridSnapping = PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
+            UniversalAdditionalCameraData additionalData = cameraObject.AddComponent<UniversalAdditionalCameraData>();
+            additionalData.renderPostProcessing = true;
             cameraObject.AddComponent<AudioListener>();
+
+            var volumeObject = new GameObject("Global Environment Volume");
+            Volume volume = volumeObject.AddComponent<Volume>();
+            volume.isGlobal = true;
+            volume.priority = 0f;
+            volume.weight = 1f;
+            volume.sharedProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(EnvironmentVolumeProfilePath);
+            return camera;
+        }
+
+        private static void EnsureEnvironmentVolumeProfile()
+        {
+            EnsureFolder("Assets/Art/Effects/Profiles");
+            VolumeProfile profile = GetOrCreate<VolumeProfile>(EnvironmentVolumeProfilePath);
+            if (!profile.TryGet(out Bloom bloom))
+            {
+                bloom = profile.Add<Bloom>(true);
+            }
+            bloom.active = true;
+            bloom.threshold.Override(1.1f);
+            bloom.intensity.Override(0.08f);
+            bloom.scatter.Override(0.48f);
+
+            if (!profile.TryGet(out Vignette vignette))
+            {
+                vignette = profile.Add<Vignette>(true);
+            }
+            vignette.active = true;
+            vignette.intensity.Override(0.15f);
+            vignette.smoothness.Override(0.48f);
+
+            if (!profile.TryGet(out ColorAdjustments colorAdjustments))
+            {
+                colorAdjustments = profile.Add<ColorAdjustments>(true);
+            }
+            colorAdjustments.active = true;
+            colorAdjustments.postExposure.Override(0.28f);
+            colorAdjustments.contrast.Override(9f);
+            colorAdjustments.saturation.Override(-2f);
+            EditorUtility.SetDirty(profile);
         }
 
         private static GameObject CreateInteractableBlock(
@@ -2525,7 +3438,42 @@ namespace NullPointer.Editor
             return sprite;
         }
 
-        private static void AddFinalArtSlot(
+        private static Sprite GetWorldBlockSprite()
+        {
+            Sprite sprite = AssetDatabase.LoadAllAssetsAtPath(WorldPrimitivePath).OfType<Sprite>().FirstOrDefault();
+            return sprite != null ? sprite : GetPlaceholderSprite();
+        }
+
+        private static void EnsureWorldPrimitive()
+        {
+            EnsureFolder("Assets/Art/Effects/World");
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(WorldPrimitivePath);
+            if (texture == null)
+            {
+                texture = new Texture2D(16, 16, TextureFormat.RGBA32, false, true)
+                {
+                    name = "VFX_SolidWorldPrimitive_Texture",
+                    filterMode = FilterMode.Point,
+                    wrapMode = TextureWrapMode.Clamp
+                };
+                Color[] pixels = Enumerable.Repeat(Color.white, 16 * 16).ToArray();
+                texture.SetPixels(pixels);
+                texture.Apply(false, false);
+                AssetDatabase.CreateAsset(texture, WorldPrimitivePath);
+            }
+
+            Sprite sprite = AssetDatabase.LoadAllAssetsAtPath(WorldPrimitivePath).OfType<Sprite>().FirstOrDefault();
+            if (sprite == null)
+            {
+                sprite = Sprite.Create(texture, new Rect(0f, 0f, 16f, 16f), new Vector2(0.5f, 0.5f), 16f);
+                sprite.name = "VFX_SolidWorldPrimitive_Sprite";
+                AssetDatabase.AddObjectToAsset(sprite, texture);
+                EditorUtility.SetDirty(texture);
+                AssetDatabase.ImportAsset(WorldPrimitivePath, ImportAssetOptions.ForceSynchronousImport);
+            }
+        }
+
+        private static FinalArtSlot AddFinalArtSlot(
             GameObject target,
             string stableId,
             string manifestAssetId,
@@ -2533,12 +3481,14 @@ namespace NullPointer.Editor
             Image uiImage = null,
             bool showStructuralPlaceholder = true)
         {
-            target.AddComponent<FinalArtSlot>().ConfigureStructural(
+            FinalArtSlot slot = target.AddComponent<FinalArtSlot>();
+            slot.ConfigureStructural(
                 stableId,
                 manifestAssetId,
                 spriteRenderer,
                 uiImage,
                 showStructuralPlaceholder);
+            return slot;
         }
 
         private static GameObject CreateEmptyUiArtSlot(
@@ -2628,6 +3578,9 @@ namespace NullPointer.Editor
             public SceneUi Ui;
             public OpeningSceneInstaller Installer;
             public SpawnPoint SpawnPoint;
+            public Transform VisualRoot;
+            public Camera WorldCamera;
+            public EnvironmentPresentationController EnvironmentPresentation;
         }
 
         private sealed class SceneUi

@@ -20,6 +20,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 namespace NullPointer.Tests.EditMode
@@ -311,6 +312,92 @@ namespace NullPointer.Tests.EditMode
             });
         }
 
+        [Test]
+        public void Phase5DScenes_ContainRequiredProductionEnvironmentRoots()
+        {
+            AssertEnvironmentRoots(ErenPath, new[]
+            {
+                "FarCity", "MidCity", "NearBuildings", "WindowFrame", "WindowGlass", "RainBehindGlass",
+                "RainOnGlass", "RoomArchitecture", "WallSurface", "FloorSurface", "BedArea", "DeskArea",
+                "TerminalArea", "Shelves", "PersonalProps", "ForegroundLeft", "ForegroundRight",
+                "PracticalLights", "ReflectionOverlay", "Atmosphere", "WorldFX"
+            });
+            AssertEnvironmentRoots(MertPath, new[]
+            {
+                "FarExterior", "Window", "Architecture", "Floor", "MainWorkstation", "SecondaryDisplays",
+                "ResearchHardware", "MedicalMemoryEquipment", "EvidenceProps", "DoorArea", "Storage",
+                "CableClusters", "DisturbedClutter", "Foreground", "Lighting", "Atmosphere", "WorldFX"
+            });
+        }
+
+        [TestCase(ErenPath)]
+        [TestCase(MertPath)]
+        public void Phase5DScenes_UseLockedPixelCameraAndSourceDrivenUrpLighting(string scenePath)
+        {
+            WithScene(scenePath, roots =>
+            {
+                Camera camera = FindAllInRoots<Camera>(roots).Single();
+                PixelPerfectCamera pixelPerfect = camera.GetComponent<PixelPerfectCamera>();
+                Assert.That(pixelPerfect, Is.Not.Null);
+                Assert.That(pixelPerfect.assetsPPU, Is.EqualTo(16));
+                Assert.That(pixelPerfect.refResolutionX, Is.EqualTo(480));
+                Assert.That(pixelPerfect.refResolutionY, Is.EqualTo(270));
+                Assert.That(pixelPerfect.gridSnapping, Is.EqualTo(PixelPerfectCamera.GridSnapping.UpscaleRenderTexture));
+
+                Light2D[] lights = FindAllInRoots<Light2D>(roots);
+                Assert.That(lights.Count(light => light.lightType == Light2D.LightType.Global), Is.EqualTo(1));
+                Assert.That(lights.Count(light => light.lightType == Light2D.LightType.Point), Is.GreaterThanOrEqualTo(3));
+                Assert.That(FindAllInRoots<AudioListener>(roots), Has.Length.EqualTo(1));
+                Assert.That(FindAllInRoots<EventSystem>(roots), Has.Length.EqualTo(1));
+            });
+        }
+
+        [TestCase(ErenPath, 10, 17)]
+        [TestCase(MertPath, 9, 8)]
+        public void Phase5DScenes_ExposeIndependentFinalArtSlotsWithoutRenderingColoredSlotPlaceholders(
+            string scenePath,
+            int minimumSlots,
+            int expectedRainStreaks)
+        {
+            WithScene(scenePath, roots =>
+            {
+                Transform visualRoot = FindAllInRoots<Transform>(roots).Single(item => item.name == "Visual Root");
+                FinalArtSlot[] slots = visualRoot.GetComponentsInChildren<FinalArtSlot>(true);
+                Assert.That(slots.Length, Is.GreaterThanOrEqualTo(minimumSlots));
+                Assert.That(slots.Select(slot => slot.StableId), Is.Unique);
+                Assert.That(slots.All(slot => !string.IsNullOrWhiteSpace(slot.ManifestAssetId)), Is.True);
+                Assert.That(slots.Where(slot => !slot.HasFinalArt).All(slot =>
+                {
+                    SpriteRenderer renderer = slot.GetComponent<SpriteRenderer>();
+                    return renderer != null && !renderer.enabled && renderer.sprite != null;
+                }), Is.True, "Missing final art targets must stay hidden instead of exposing colored slot rectangles.");
+
+                SpriteRenderer[] visibleFallbacks = visualRoot.GetComponentsInChildren<SpriteRenderer>(true)
+                    .Where(renderer => renderer.GetComponent<FinalArtSlot>() == null && renderer.enabled)
+                    .ToArray();
+                SpriteRenderer authoredStaging = visibleFallbacks.Single(renderer =>
+                    renderer.name.EndsWith("Authored Pixel Environment Staging", System.StringComparison.Ordinal));
+                Assert.That(authoredStaging.sprite, Is.Not.Null);
+                Assert.That(authoredStaging.sprite.rect.size, Is.EqualTo(new Vector2(480f, 270f)));
+                Assert.That(authoredStaging.sprite.pixelsPerUnit, Is.EqualTo(16f));
+                Assert.That(authoredStaging.sprite.texture.filterMode, Is.EqualTo(FilterMode.Point));
+
+                SpriteRenderer[] rain = visibleFallbacks
+                    .Where(renderer => renderer.name.StartsWith("Rain Streak", System.StringComparison.Ordinal))
+                    .ToArray();
+                Assert.That(rain, Has.Length.EqualTo(expectedRainStreaks));
+                Assert.That(rain.All(renderer => renderer.sprite != null &&
+                    renderer.sprite.name.StartsWith("VFX_RainStreak_", System.StringComparison.Ordinal)), Is.True);
+                Assert.That(visibleFallbacks.All(renderer => renderer == authoredStaging || rain.Contains(renderer)), Is.True,
+                    "No legacy blockout renderer or visible gameplay guide may remain enabled.");
+
+                SpriteRenderer walkPlane = visualRoot.GetComponentsInChildren<SpriteRenderer>(true)
+                    .FirstOrDefault(renderer => renderer.name.IndexOf("Walk Plane", System.StringComparison.OrdinalIgnoreCase) >= 0);
+                Assert.That(walkPlane == null || !walkPlane.enabled, Is.True,
+                    "The functional walk plane must never render as a gameplay band.");
+            });
+        }
+
         private static void WithScene(string path, System.Action<GameObject[]> assertion)
         {
             SceneAsset sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(path);
@@ -324,6 +411,21 @@ namespace NullPointer.Tests.EditMode
             {
                 EditorSceneManager.CloseScene(scene, true);
             }
+        }
+
+        private static void AssertEnvironmentRoots(string scenePath, string[] expectedRoots)
+        {
+            WithScene(scenePath, roots =>
+            {
+                Transform visualRoot = FindAllInRoots<Transform>(roots).Single(item => item.name == "Visual Root");
+                string[] childNames = Enumerable.Range(0, visualRoot.childCount)
+                    .Select(index => visualRoot.GetChild(index).name)
+                    .ToArray();
+                Assert.That(childNames, Is.SupersetOf(expectedRoots));
+                Assert.That(visualRoot.GetComponent<EnvironmentPresentationController>(), Is.Not.Null);
+                Assert.That(FindAllInRoots<Transform>(roots).Any(item => item.name == "Backdrop"), Is.False);
+                Assert.That(FindAllInRoots<Transform>(roots).Any(item => item.name == "Location Title"), Is.False);
+            });
         }
 
         private static T FindInRoots<T>(GameObject[] roots) where T : Component

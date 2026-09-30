@@ -179,6 +179,45 @@ namespace NullPointer.Tests.PlayMode
             }
         }
 
+        [UnityTest]
+        public IEnumerator EnvironmentPresentation_AnimatesPooledRainAndHonorsAccessibility()
+        {
+            var root = new GameObject("Environment");
+            var player = new GameObject("Player");
+            var layer = new GameObject("Far Layer");
+            var rain = new GameObject("Rain");
+            var atmosphere = new GameObject("Atmosphere", typeof(SpriteRenderer));
+            player.transform.SetParent(root.transform);
+            layer.transform.SetParent(root.transform);
+            rain.transform.SetParent(root.transform);
+            atmosphere.transform.SetParent(root.transform);
+            atmosphere.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 0.2f);
+            rain.transform.localPosition = new Vector3(1f, 3f, 0f);
+            try
+            {
+                EnvironmentPresentationController presentation = root.AddComponent<EnvironmentPresentationController>();
+                presentation.Configure(null, player.transform, new[] { layer.transform }, new[] { 0.1f },
+                    new[] { rain.transform }, new[] { atmosphere.GetComponent<SpriteRenderer>() },
+                    System.Array.Empty<SpriteRenderer>(), 1, 4f, -4f);
+
+                Vector3 rainStart = rain.transform.localPosition;
+                yield return null;
+                yield return null;
+                Assert.That(rain.transform.localPosition, Is.Not.EqualTo(rainStart));
+
+                presentation.ApplyAccessibility(true, true);
+                player.transform.position = Vector3.right * 5f;
+                presentation.SetPreviewTime(2f);
+                Assert.That(layer.transform.localPosition.x, Is.EqualTo(0f).Within(0.001f));
+                Assert.That(presentation.ReducedMotion, Is.True);
+                Assert.That(presentation.ReducedEffects, Is.True);
+            }
+            finally
+            {
+                Object.Destroy(root);
+            }
+        }
+
         private static UiTransition CreateTransition(Transform parent, string name)
         {
             var target = new GameObject(name, typeof(RectTransform), typeof(CanvasGroup));

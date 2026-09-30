@@ -14,6 +14,7 @@ using NullPointer.Progression;
 using NullPointer.SceneFlow;
 using NullPointer.Terminal;
 using NullPointer.UI;
+using NullPointer.Visual;
 using UnityEngine;
 
 namespace NullPointer.Runtime
@@ -37,6 +38,7 @@ namespace NullPointer.Runtime
         [SerializeField] private ProgressionCoordinator _progressionCoordinator;
         [SerializeField] private ChapterEndSequenceController _chapterEndSequence;
         [SerializeField] private GameplayAudioHooks _audioHooks;
+        [SerializeField] private EnvironmentPresentationController _environmentPresentation;
         [SerializeField] private SceneTransitionInteractable[] _sceneTransitions =
             Array.Empty<SceneTransitionInteractable>();
         [SerializeField] private SpawnPoint[] _spawnPoints = Array.Empty<SpawnPoint>();
@@ -86,6 +88,11 @@ namespace NullPointer.Runtime
         public void ConfigureAudioHooks(GameplayAudioHooks audioHooks)
         {
             _audioHooks = audioHooks;
+        }
+
+        public void ConfigureEnvironmentPresentation(EnvironmentPresentationController presentation)
+        {
+            _environmentPresentation = presentation;
         }
 
         public void Install(GameApplication application, string requestedSpawnPointId)
@@ -146,6 +153,7 @@ namespace NullPointer.Runtime
             _progressionCoordinator?.Initialize(application);
             _chapterEndSequence?.Initialize(application);
             _audioHooks?.Initialize(application);
+            _environmentPresentation?.Initialize(application.SettingsManager);
         }
 
         private void SpawnAt(string requestedSpawnPointId)

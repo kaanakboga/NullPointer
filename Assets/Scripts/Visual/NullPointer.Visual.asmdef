@@ -2,6 +2,7 @@
     "name": "NullPointer.Visual",
     "rootNamespace": "NullPointer.Visual",
     "references": [
+        "NullPointer.Settings",
         "Unity.ugui",
         "Unity.InputSystem"
     ],

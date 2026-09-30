@@ -102,6 +102,36 @@ Phase 5C evidence: `Phase5CVisualCapture.CaptureAll` produced 30 actual Unity-re
 - [x] Dialogue, Inspect, Evidence Acquired, Evidence Board, Interrogation, Journal, Memory, and Terminal were manually inspected at 1920×1080 and 2560×1600.
 - [x] Automated verification passed at 106/106 EditMode and 15/15 PlayMode after the final capture-driven correction.
 
+### Phase 5D Production-Environment Gate
+
+- [x] Actual production scenes were captured with a graphics-enabled Unity batch process; `-nographics` is forbidden for URP visual capture because it cannot allocate the required render textures.
+- [x] Eren and Mert each contain the documented named hierarchy, independent environment `FinalArtSlot` ownership, one Global Light 2D, four visible-source practical lights, one AudioListener, one EventSystem, and no visible interaction markers or world debug labels.
+- [x] Eren reads as a warmer personal apartment with sleeping, circulation, workstation, city/window, rain, reflection, and foreground zones; Mert reads as a colder research/crime scene with workstation, displays, medical-memory equipment, evidence, cable/clutter, storage, and controlled red fault zones.
+- [x] Player staging separates from the immediate background; approved Eren art can replace it while its structural fallback automatically hides.
+- [x] Normal gameplay uses restrained Bloom, Color Adjustments, and Vignette only; Film Grain and Chromatic Aberration remain off. UI is rendered after the world treatment and stays readable.
+- [x] Pooled rain varies position, length, angle, opacity, depth, and speed deterministically; reduced effects samples the pool while reduced motion freezes parallax and nonsemantic drift.
+- [x] 33 captures were reviewed at 1920×1080, 2560×1440, and 2560×1600. Crushed-black/transparent-primitive and oversized colored-slot passes were rejected; the accepted pass hides missing-art targets and uses detailed separate staging without a dead lower viewport band.
+- [x] 16:9 uses integer pixel scaling; representative 16:10 keeps the 16:9 world composition centered with deliberate bars and no stretch or UI clipping.
+
+### Phase 5D.1 Environment-Rescue Gate
+
+- [x] No enabled legacy blockout SpriteRenderer remains under either production `Visual Root`; only one 480×270 authored staging plate, irregular rain sprites, and assigned final-art slots may render.
+- [x] The functional walk plane, colliders, movement bounds, interaction anchors, and evidence IDs remain present but have no visible gameplay-band or marker presentation.
+- [x] Eren's sleeping, circulation, workstation, city/window, and foreground zones read as a composed room with distinct wall, floor, wood, metal, glass, cloth, screen, paper, and plastic value treatment.
+- [x] Mert reads as a separate clinical/research environment with structured storage, monitor-grid workstation, dedicated implant micro-scene, disturbed chair/cables/papers, and integrated evidence rather than an Eren recolor.
+- [x] City rooflines, service masses, clustered/broken windows, mullions, sill, glass tint/reflection, fake AO, floor perspective, and foreground framing replace visible giant flat blocks.
+- [x] Rain uses a small irregular point-filtered atlas, deterministic non-uniform placement, varied scale/angle/opacity, sparse baked contact marks, and deliberate quiet areas.
+- [x] The required six 1920×1080 views and representative 2560×1440 / 2560×1600 views were manually reviewed after the final density correction; no visible walk-plane band or regular debug-line field remains.
+
+### Phase 5D.2 Cinematic-Polish Gate
+
+- [x] Background, midground, focal gameplay areas, and foreground have distinct contrast bands; neither room is a uniform blue-grey field.
+- [x] Eren has three readable anchors with workstation strongest, bed warmest, and door quieter; amber practicals remain localized against the cold city/window/terminal.
+- [x] Mert uses graphite structure, tiered cyan monitor brightness, a localized implant examination pool, and rare meaningful fault red.
+- [x] Rain, glass/reflection texture, city-window activity, and floor perspective contain quiet regions and do not obscure silhouettes or dominate the frame.
+- [x] The player fallback remains visibly temporary but separates through backdrop value, motivated cyan edge, and contact shadow without a glowing outline or fabricated final character art.
+- [x] Eren normal/workstation/window and Mert entrance/workstation/implant were reviewed at 1920×1080; representative 2560×1600 captures preserve hierarchy and integer-scaled framing.
+
 ## Effects and Accessibility
 
 - [ ] Normal gameplay uses no chromatic split or tearing.

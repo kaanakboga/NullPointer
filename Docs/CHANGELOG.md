@@ -6,6 +6,21 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 
 ### Added
 
+- Added the Phase 5D.2 cinematic environment polish: explicit background/midground/focal/foreground value bands, realigned focal Light2D positions, localized Eren amber/cyan drama, tiered Mert monitor output, a stronger implant examination pocket, and restrained rare fault red.
+- Reduced Eren dynamic rain from 34 to 17 sprites and Mert rain from 16 to 8; reduced baked rain, city/window noise, glass fragments, floor dither, and perspective seams while retaining intentional depth cues and accessibility behavior.
+- Tuned the normal environment profile to restrained 0.28 exposure, +9 contrast, -2 saturation, 0.08 Bloom, and 0.15 Vignette; rejected the first polish capture because floor convergence remained too dominant, then regenerated and reviewed the corrected 33-view set.
+- Verified the final Phase 5D.2 result at 111/111 EditMode and 16/16 PlayMode tests and rebuilt the Windows Development player successfully with zero build warnings.
+- Added the Phase 5D.1 environment visual rescue: deterministic editor-authored 480×270 pixel staging plates for Eren and Mert, an eight-sprite irregular rain atlas, Sprite-Lit integration, and stable final-art layering without changing any gameplay anchor, collider, evidence ID, or replacement slot.
+- Replaced the visible primitive-stack fallback with composed temporary pixel environments: Eren's personal/circulation/investigation zones and three-band city/window; Mert's research storage, monitor-grid workstation, implant micro-scene, controlled fault exit, and disturbed evidence staging. Legacy structure and the functional walk plane remain present but do not render.
+- Rejected and corrected regular dither bands and excessive glass/city texture during real-render review, then regenerated and inspected all 33 production captures across 1920×1080, 2560×1440, and 2560×1600.
+- Expanded EditMode environment validation to require a point-filtered 480×270 plate, the exact irregular-rain population, hidden unassigned final-art targets, and no enabled legacy or walk-plane renderer.
+- Verified the final Phase 5D.1 result at 111/111 EditMode and 16/16 PlayMode tests and rebuilt the Windows Development player successfully.
+- Added the Phase 5D production environment pass for both apartments: distinct named depth/storytelling roots, independent preserved environment art slots, detailed opaque procedural staging with hidden unassigned target renderers, and final-art-aware player fallback without changing gameplay anchors, colliders, spawns, progression, or Chapter 1 logic.
+- Added `EnvironmentPresentationController` with cached shallow parallax, pooled deterministic multi-depth rain, restrained haze/reflection/screen motion, and persisted reduced-motion/reduced-FX behavior; no per-frame scene searches or collection allocations were introduced.
+- Added a 480×270 / 16 PPU URP Pixel Perfect Camera, one Global Light 2D plus four visible-source practical Light 2D objects per production scene, and a restrained normal-gameplay Bloom/Color Adjustments/Vignette profile.
+- Added `Phase5DVisualCapture` and reviewed 33 graphics-enabled Unity renders covering eleven production-scene compositions at 1920×1080, 2560×1440, and 2560×1600. The initial crushed-black transparent-placeholder pass was rejected and corrected.
+- Added Phase 5D EditMode/PlayMode validation for environment roots, art-slot fallbacks, pixel-camera settings, unique lighting/EventSystem/AudioListener ownership, pooled motion/accessibility, and existing production movement-plane stability.
+
 - Added the Phase 5C production presentation pass for Dialogue, Inspect, Evidence Acquired, Evidence Board/Deduction, Terminal, Journal, Objective updates, Interrogation, and Memory without changing their domain logic.
 - Added `CyberNoirPanelPresentation` for unscaled staged entrance/exit, scan and feedback motion with reduced-motion/effects support; production modal close paths now animate while state recovery remains immediate.
 - Added pooled `EvidenceConnectionView` relation lines, deterministic board rendering, solved/invalid feedback, dialogue presentation variants and animated choices, missing-art portrait/object fallbacks, terminal cursor hierarchy, compact objective updates, and hardened memory-FX teardown.
@@ -87,6 +102,10 @@ All notable project changes are recorded here. This project uses an `Unreleased`
 - Added deterministic Chapter 1 happy-path, chapter boundary, save corruption/schema, checkpoint, objective, journal, interrogation, Main Menu availability, settings, and input-device coverage.
 
 ### Changed
+
+- Replaced the single backdrop/floor greybox presentation in `SCN_ErenApartment` and `SCN_MertApartment` with scene-specific layered staging. Eren is warmer, personal, and window-led with constructed bed/desk/shelf/door details; Mert is colder, research-heavy, evidence-dense, and visibly disturbed with clinical panels, display bank, rack hardware, implant tray, evidence, cables, and fallen furniture.
+- Replaced scaled transparent built-in UI sprites in world staging with an editor-generated opaque 16×16 Unity support primitive; this is procedural scaffolding, not final raster art or an external-generation deliverable.
+- Removed the production world-space location/debug label and kept all interaction anchors invisible until approved art is assigned.
 
 - Replaced generic Main Menu, Pause, and Settings uGUI styling with the Phase 5A semantic theme/control architecture while preserving existing commands, navigation, modal ownership, and Chapter 1 behavior.
 - Reclassified Main Menu rain as a Unity-procedural visual rather than an external full-screen raster slot; external replacement boundaries now match the art manifest exactly.
